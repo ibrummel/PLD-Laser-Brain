@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
                              QSizePolicy, QSlider, QSpinBox, QStyleFactory,
                              QTableWidget, QTabWidget, QTextEdit, QVBoxLayout,
                              QWidget, QMessageBox, QFormLayout, QStackedWidget,
-                             QFrame)
+                             QFrame, QMainWindow, QDockWidget)
 import sys
 from VISA_Communications import VisaLaser
 import time
@@ -52,7 +52,7 @@ class LaserStatusControl(QWidget):
         # Create and format title for LSC block
         self.title = QLabel('Laser Status')
         self.title.setAlignment(Qt.AlignCenter)
-        # FIXME: Change how this is handled to be generaly to other instances
+        # FIXME: Change how this is handled to be general to other instances
         self.title.setFont(QFont('Arial', 24, QFont.Bold))
 
         # Mode Selection Box. Will default to current laser running mode
@@ -248,7 +248,7 @@ class DepControlBox(QWidget):
         self.paramStack = QStackedWidget()
         # FIXME: Need this to not be hardcoded for the dictionary or maybe it should be.
         self.stdDepWidget = StructureParamForm(StackParamForm({"Main": DepositionStepForm("Main Deposition", 1),
-                                            "Second": DepositionStepForm("Test", 2)}),False)
+                                            "Second": DepositionStepForm("Test", 2)}), False)
         self.paramStack.addWidget(self.stdDepWidget)
         self.paramStack.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.paramStack.setLineWidth(2)
@@ -396,6 +396,7 @@ class StructureParamForm(QWidget):
 
         return depParams
 
+
 class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
 
     def __init__(self, structureWidget, visaLaser):
@@ -409,11 +410,12 @@ class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
                 self.layerCodes.append(key)
 
         self.layerCodes.sort()
+        self.currentLayerIndex = 0
 
         self.prevStepEnergy = self.depParams[self.layerCodes[0]]['Energy']
 
-    def run_step(self, layerCode):
-        currentStepParam = self.depParams[layerCode]
+    def run_step(self, layerCodeIndex):
+        currentStepParam = self.depParams[self.layerCodes[layerCodeIndex]]
         # FIXME: Once the HV energy set function works, adjust energy values: warn between steps
         # if the energy changes as there will be a time/number of pulses where the energy does not
         # match the setting. Will also need a way to get a timer going.. maybe move this to its own
@@ -423,19 +425,76 @@ class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
 
         self.laser.set_reprate(currentStepParam['Reprate'])
         self.stepTimer = QTimer.singleShot(currentStepParam['Time'] * 1000)
+        self.stepTimer.timeout.connect(self.end_step)
+
+        self.laserOnTimer = QTimer(50)
+        self.laserOnTimer.timeout.connect(self.check_laser_pulsing)
+        self.laserOnTimer.start()
+        self.laser.on()
+
+    def check_laser_pulsing(self):
+        if self.laser.rd_opmode() == 'OFF,WAIT':
+            pass
+        elif self.laser.rd_opmode() == 'ON':
+            self.stepTimer.start()
+            self.laserOnTimer.stop()
+        else:
+            print("Laser not started")
+
+    def end_step(self):
+        self.laser.off()
+        if self.currentLayer is not self.layerCodes[-1]:
+            self.confirm_next()
+
+    def confirm_next(self):
+        confirmNext = QMessageBox.question(self, 'Dep Step {} Complete'
+                                           .format(self.layerCodes[self.currentLayerIndex]),
+                                           'Press OK to begin next step, make sure shutters,\
+                                           targets, etc are placed correctly for dep step {}.'
+                                           .format(self.layerCodes[self.currentLayerIndex + 1]),
+                                           QMessageBox.Ok |
+                                           QMessageBox.Abort,
+                                           QMessageBox.Abort)
+        if confirmNext == QMessageBox.Ok:
+            self.currentLayerIndex += 1
+            self.run_step(self.currentLayerIndex)
+        elif confirmNext == QMessageBox.Cancel:
+            print('Deposition aborted by user')
+            pass
 
 
 # =============================================================================
 # Start the GUI (set up for testing for now)
 # FIXME: Need to finalize main loop for proper operation
 # =============================================================================
+
+class MainWindow(QMainWindow):
+
+    def __init__(self, visaLaser):
+        super().__init__()
+
+        self.laser = visaLaser
+        self.initUI()
+
+    def initUI(self):
+        self.setObjectName('Main Window')
+        self.setWindowTitle('PLD Laser Control')
+        self.setCentralWidget(StructureParamForm({"Main": DepositionStepForm("Main Deposition", 1),
+                                                  "Second": DepositionStepForm("Test", 2)}), True)
+        self.lscDocked = QDockWidget()
+        self.lscDocked.setWidget(LaserStatusControl(self.laser))
+        self.lscDocked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
+        self.lscDocked.setCorner(Qt.TopLeftCorner | Qt.TopRightCorner, Qt.TopDockWidgetArea)
+        self.lscDocked.setCorner(Qt.BottomLeftCorner | Qt.BottomRightCorner, Qt.BottomDockWidgetArea)
+        self.addDockWidget(self.lscDocked)
+
+
 def main():
     app = QApplication(sys.argv)
     # Start LaserComm and connect to laser
-    # laser = VisaLaser('ASRLCOM3::INSTR', '@py')
+    laser = VisaLaser('ASRLCOM3::INSTR', '@py')
 
-    ex = StructureParamForm(StackParamForm({"Main": DepositionStepForm("Main Deposition", 1),
-                                            "Second": DepositionStepForm("Test", 2)}), True)
+    ex = MainWindow(laser)
     ex.show()
 
     sys.exit(app.exec_())
