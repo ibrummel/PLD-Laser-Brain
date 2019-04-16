@@ -31,10 +31,11 @@ def truncate(number, decimals=0):
         factor = float(10**decimals)
         return trunc(number*factor)/factor
 
+
 # FIXME: Add a raster target check for manual control
 class LaserStatusControl(QWidget):
 
-    def __init__(self, visaLaser):
+    def __init__(self, laser):
         super().__init__()
         self.inModes = {'EGY NGR': 'Energy', 'HV': 'HV'}
         # FIXME: I have assumed that we will grow super lattices and PLID films
@@ -42,10 +43,10 @@ class LaserStatusControl(QWidget):
         # this whole thing differently. I don't know if we want the user to
         # be able to change the operating parameters during PLID or SULAT deps
         self.outModes = {'Energy': 'EGY NGR', 'HV': 'HV'}
-        self.laser = visaLaser
-        self.initUI()
+        self.laser = laser
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         '''
         Create Widget Elements
         '''
@@ -393,7 +394,7 @@ class StructureParamForm(QWidget):
         else:
             depParams['# Stacks'] = 1
         depParams[equilParams['Layer Code']] = equilParams
-
+        print(depParams)
         return depParams
 
 
@@ -414,8 +415,12 @@ class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
 
         self.prevStepEnergy = self.depParams[self.layerCodes[0]]['Energy']
 
+        print("DepParams = {}".format( self.depParams))
+        print("Layer Codes = {}".format(self.layerCodes))
+
     def run_step(self, layerCodeIndex):
         currentStepParam = self.depParams[self.layerCodes[layerCodeIndex]]
+        print("running step: {}".format(currentStepParam))
         # FIXME: Once the HV energy set function works, adjust energy values: warn between steps
         # if the energy changes as there will be a time/number of pulses where the energy does not
         # match the setting. Will also need a way to get a timer going.. maybe move this to its own
@@ -426,11 +431,13 @@ class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
         self.laser.set_reprate(currentStepParam['Reprate'])
         self.stepTimer = QTimer.singleShot(currentStepParam['Time'] * 1000)
         self.stepTimer.timeout.connect(self.end_step)
+        print("Created Step Timer: {} ms".format(currentStepParam['Time'] * 1000))
 
         self.laserOnTimer = QTimer(50)
         self.laserOnTimer.timeout.connect(self.check_laser_pulsing)
         self.laserOnTimer.start()
         self.laser.on()
+        print("Laser ON sent")
 
     def check_laser_pulsing(self):
         if self.laser.rd_opmode() == 'OFF,WAIT':
@@ -443,6 +450,7 @@ class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
 
     def end_step(self):
         self.laser.off()
+        print("Laser OFF sent")
         if self.currentLayer is not self.layerCodes[-1]:
             self.confirm_next()
 
@@ -472,15 +480,14 @@ class MainWindow(QMainWindow):
 
     def __init__(self, visaLaser):
         super().__init__()
-
         self.laser = visaLaser
         self.initUI()
 
     def initUI(self):
         self.setObjectName('Main Window')
         self.setWindowTitle('PLD Laser Control')
-        self.setCentralWidget(StructureParamForm({"Main": DepositionStepForm("Main Deposition", 1),
-                                                  "Second": DepositionStepForm("Test", 2)}), True)
+        self.setCentralWidget(DepControlBox())
+
         self.lscDocked = QDockWidget()
         self.lscDocked.setWidget(LaserStatusControl(self.laser))
         self.lscDocked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
