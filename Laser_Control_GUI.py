@@ -493,7 +493,7 @@ class MainWindow(QMainWindow):
         self.lscDocked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
         self.setCorner(Qt.TopLeftCorner | Qt.TopRightCorner, Qt.TopDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner | Qt.BottomRightCorner, Qt.BottomDockWidgetArea)
-        self.addDockWidget(self.lscDocked)
+        self.addDockWidget(Qt.TopDockWidgetArea, self.lscDocked)
 
 
 def main():
