@@ -245,11 +245,11 @@ class VisaLaser:
         # Sets the partial pressure of gas connected to inert line
         self.laser.write('INERT=%s' % mbar)
 
-    def set_menu(self, menuNum):
+    def set_menu(self, menu_num):
         # Sets the gas menu by number, probably shouldn't allow direct access
         # to this through the GUI, unless you are going to add a dropdown.
-        if menuNum >= 1 and menuNum <= 6:
-            self.laser.write('MENU=%s' % menuNum)
+        if 1 <= menu_num <= 6:
+            self.laser.write('MENU=%s' % menu_num)
         else:
             try:
                 raise LaserOutOfRangeError()

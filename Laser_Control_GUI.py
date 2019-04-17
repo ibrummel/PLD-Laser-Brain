@@ -238,9 +238,9 @@ class DepControlBox(QWidget):
         # Connect Buttons to their functions
         self.runCurrentBtn.clicked.connect(self.run_step)
         # FIXME: The obvious way to do this is to use pickle
-        self.saveBtn.clicked.connect(self.save_parameters)
+        # self.saveBtn.clicked.connect(self.save_parameters)
         # FIXME: Build in the ability to load from a dictionary to the Structure parameter form
-        self.loadBtn.clicked.connect(self.load_parameters)
+        # self.loadBtn.clicked.connect(self.load_parameters)
 
         # Create the list of steps/deposition dictionary to use
         self.paramStack = QStackedWidget()
@@ -428,6 +428,7 @@ class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
 
         # Pull in parameter info and manipulate for other supporting variables
         self.depParams = structure_widget.return_deposition_params()
+        self.current_step_param = {}
         self.laser = laser
         self.layerCodes = []
         for key in self.depParams:
@@ -445,7 +446,7 @@ class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
 
     def run_step(self, layer_code_index):
         self.current_step_param = self.depParams[self.layerCodes[layer_code_index]]
-        print("running step: {}".format(current_step_param))
+        print("running step: {}".format(self.current_step_param))
         # FIXME: Once the HV energy set function works, adjust energy values: warn between steps
         # if the energy changes as there will be a time/number of pulses where the energy does not
         # match the setting. Will also need a way to get a timer going.. maybe move this to its own
@@ -453,11 +454,11 @@ class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
         # if current_step_param['Energy'] is not self.prevStepEnergy:
         #     self.laser.set_HV_energy(current_step_param['Energy'])
 
-        self.laser.set_reprate(current_step_param['Reprate'])
+        self.laser.set_reprate(self.current_step_param['Reprate'])
         # noinspection PyNoneFunctionAssignment,PyAttributeOutsideInit
         self.stepTimer = QTimer.singleShot()
         self.stepTimer.timeout.connect(self.end_step)
-        print("Created Step Timer: {} ms".format(current_step_param['Time'] * 1000))
+        print("Created Step Timer: {} ms".format(self.current_step_param['Time'] * 1000))
 
         self.laserOnTimer.timeout.connect(self.check_laser_pulsing)
         self.laserOnTimer.start(50)
@@ -514,7 +515,7 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         self.setObjectName('Main Window')
         self.setWindowTitle('PLD Laser Control')
-        self.setCentralWidget(DepControlBox())
+        self.setCentralWidget(DepControlBox(self.laser))
 
         self.lscDocked.setWidget(LaserStatusControl(self.laser))
         self.lscDocked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
