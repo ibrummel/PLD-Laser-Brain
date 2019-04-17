@@ -17,12 +17,12 @@ class LaserOutOfRangeError(BaseException):
 
 class VisaLaser:
 
-    def __init__(self, laserID, visaBackend='@ni'):
+    def __init__(self, laser_id, visa_backend='@ni'):
         # self.app = app  # Set the app that is controlling the laser
         # Create a visa resource manager (Will default to using NI Visa, but
         # you can pass other options like '@py' for the fully python VISA or
         # '@sim' for a simulated backend that connects to dummy instruments)
-        self.resManager = visa.ResourceManager(visaBackend)
+        self.resManager = visa.ResourceManager(visa_backend)
         self.laserCodes = {}
         with open('Laser_Codes.txt', 'rt') as csv_file:
             for row in csv.reader(csv_file, delimiter='\t'):
@@ -31,10 +31,10 @@ class VisaLaser:
         # print(self.resManager.list_resources())
 
         try:
-            self.laser = self.resManager.open_resource(laserID,
+            self.laser = self.resManager.open_resource(laser_id,
                                                        write_termination='\r',
                                                        read_termination='\r')
-        except BaseException:
+        except NameError:
             print(self.resManager.list_resources())
             print("Could not connect to laser, check for instrument name \
                   changes and make sure that the laser is plugged in. Note: \
@@ -44,7 +44,7 @@ class VisaLaser:
     def disconnect(self):
         self.laser.close()
 
-    # Passthrough methods for laser read, write, query through PyVisa
+    # Pass through methods for laser read, write, query through PyVisa
 
     def write(self, command):
         self.laser.write(command)
