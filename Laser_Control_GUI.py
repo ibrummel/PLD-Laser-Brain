@@ -297,7 +297,6 @@ class DepositionStepForm(QVBoxLayout):
 
         elif 1 <= self.layerCode <= 3:
             self.formatStr = "L{} ".format(self.layerCode)
-        self.init_form()
 
         # Initialize controls for all types of deposition step form
         self.reprateLine = QLineEdit()
@@ -306,6 +305,8 @@ class DepositionStepForm(QVBoxLayout):
         self.energyLine = QLineEdit()
         self.title = QLabel(self.stepTitle)
         self.form = QFormLayout()
+
+        self.init_form()
 
     def init_form(self):
 
