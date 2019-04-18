@@ -508,7 +508,6 @@ class MainWindow(QMainWindow):
     def __init__(self, laser):
         super().__init__()
         self.laser = laser
-        self.init_ui()
 
         # Create a docked widget to hold the LSC module
         self.lscDocked = QDockWidget()
@@ -523,6 +522,8 @@ class MainWindow(QMainWindow):
         self.setCorner(Qt.TopLeftCorner | Qt.TopRightCorner, Qt.TopDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner | Qt.BottomRightCorner, Qt.BottomDockWidgetArea)
         self.addDockWidget(Qt.TopDockWidgetArea, self.lscDocked)
+
+        self.init_ui()
 
 
 def main():
