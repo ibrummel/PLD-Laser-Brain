@@ -51,7 +51,7 @@ class LaserStatusControl(QWidget):
         self.egyLabel = QLabel('Energy: ')
         self.egyVal = QLineEdit(self.laser.rd_energy())
         self.hvLabel = QLabel('HV: ')
-        self.hvVal = QLineEdit(self.laser.rd_HV())
+        self.hvVal = QLineEdit(self.laser.rd_hv())
         self.reprateLabel = QLabel('Reprate: ')
         self.reprateVal = QLineEdit(self.laser.rd_reprate())
         self.btnOnOff = QPushButton("Start Laser")
@@ -138,7 +138,7 @@ class LaserStatusControl(QWidget):
             self.egyVal.setText(self.laser.rd_energy())
 
         if not self.hvVal.hasFocus():
-            self.hvVal.setText(self.laser.rd_HV())
+            self.hvVal.setText(self.laser.rd_hv())
 
         if not self.reprateVal.hasFocus():
             if self.laser.rd_trigger() == 'INT':

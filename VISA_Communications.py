@@ -8,7 +8,6 @@ Created on Tue Mar  5 12:17:18 2019
 
 import visa
 import csv
-from PyQt5.QtCore import QTimer
 
 
 class LaserOutOfRangeError(BaseException):
@@ -76,12 +75,12 @@ class VisaLaser:
         self.laser.write("OPMODE=ENERGY CAL")
         # while self.laser.rd_opmode() != ""
 
-    def flush_line(self, lineName):
+    def flush_line(self, line_name):
         # Flushes(evacuates) the supplied line values can be
         # RARE, HALOGEN, BUFFER, or INERT
-        validLineNames = ['RARE', 'HALOGEN', 'INERT']
-        if lineName.upper() in validLineNames:
-            self.laser.write('OPMODE=FLUSH %s LINE' % lineName.upper())
+        valid_line_names = ['RARE', 'HALOGEN', 'INERT']
+        if line_name.upper() in valid_line_names:
+            self.laser.write('OPMODE=FLUSH %s LINE' % line_name.upper())
         else:
             try:
                 raise LaserOutOfRangeError()
@@ -99,7 +98,7 @@ class VisaLaser:
         # ONLY USED IF WE HAVE CHANGED GAS SOURCES AWAY FROM A PREMIX
         self.laser.write('OPMODE=HI')
 
-    def disable_LowLight(self):
+    def disable_low_light(self):
         # Disables the low light warning function. Low light function stops
         # laser operation if more than 30% of pulses within 10s are misses.
         self.laser.write('OPMODE=LL OFF')
@@ -128,9 +127,9 @@ class VisaLaser:
         # halogen source.
         self.laser.write('OPMODE=PGR')
 
-    def purge_line(self, lineName):
+    def purge_line(self, line_name):
         # Purges the selected line (flushes/evacuates and fills with inert).
-        self.laser.write('OPMODE=PURGE %s LINE' % lineName.upper())
+        self.laser.write('OPMODE=PURGE %s LINE' % line_name.upper())
 
     def purge_tube(self):
         # Purges the laser tube (flushes/evacuates and fills with inert).
@@ -144,7 +143,7 @@ class VisaLaser:
 #     Parameter Methods: Used to Set Operations Values
 # =============================================================================
 
-    def set_bufferP(self, mbar):  # Takes an int
+    def set_buffer_press(self, mbar):  # Takes an int
         # Sets the partial pressure of gas connected to buffer line
         self.laser.write('BUFFER=%s' % mbar)
 
@@ -154,12 +153,12 @@ class VisaLaser:
         self.laser.write('CAP.SET=%s' % cap)
         self.laser.write('OPMODE=CAPACITY RESET')
 
-    def set_charge_on_demand(self, isCOD):
+    def set_charge_on_demand(self, is_charge_on_demand):
         # Sets the charge on demand mode for the laser. Note that if COD is
         # set as on, the laser will not accept reprates over 50Hz.
-        if isCOD is True:
+        if is_charge_on_demand is True:
             self.laser.write('COD=ON')
-        elif isCOD is False:
+        elif is_charge_on_demand is False:
             self.laser.write('COD=OFF')
         else:
             try:
@@ -178,25 +177,25 @@ class VisaLaser:
         # counts reduces to 0. Can set 0 <= counts <= 65535.
         self.laser.write('COUNTS=%s' % counts)
 
-    def set_energy(self, mJ):
+    def set_energy(self, mj):
         # In energy constant mode, this sets the target energy value.
         # Setting this value to 0 will reset the laser to the default
         # energy value as defined in the gas menu. Finally, this command
         # is used to set the energy value during energy calibration
-        self.laser.write('EGY=%s' % mJ)
+        self.laser.write('EGY=%s' % mj)
 
     def set_energy_range(self, pct):
         # Allows setting the limits for energy setting by percentage of
         # the factory limits. Range of 1 to 100.
         self.laser.write('EGY RANGE=%s' % pct)
 
-    def set_pulse_averaging(self, numAvg):
+    def set_pulse_averaging(self, sample_pop):
         # Sets the number of pulses the laser will used to calculate an
         # average beam energy. If it is out of range this input will be
         # ignored. Valid values: 0, 1, 2, 4, 8, 16.
-        validNumAvg = [0, 1, 2, 4, 8, 16]
-        if numAvg in validNumAvg:
-            self.laser.write('FILTER=%s' % numAvg)
+        valid_sample_pop = [0, 1, 2, 4, 8, 16]
+        if sample_pop in valid_sample_pop:
+            self.laser.write('FILTER=%s' % sample_pop)
         else:
             try:
                 raise LaserOutOfRangeError()
@@ -209,8 +208,8 @@ class VisaLaser:
 
     def set_gas_mode(self, mode):
         # Changes the laser between single gas and premix operating modes
-        validGasModes = ['SINGLE GASES', 'PREMIX']
-        if mode.upper() in validGasModes:
+        valid_gas_modes = ['SINGLE GASES', 'PREMIX']
+        if mode.upper() in valid_gas_modes:
             self.laser.write('GASMODE=%s' % mode)
         else:
             try:
@@ -218,11 +217,11 @@ class VisaLaser:
             except LaserOutOfRangeError:
                 print('Tried to set invalid gas mode, command not sent')
 
-    def set_halogenP(self, mbar):
+    def set_halogen_press(self, mbar):
         # Sets the partial pressure of gas connected to halogen line
         self.laser.write('HALOGEN=%s' % mbar)
 
-    def set_HV(self, hv):
+    def set_hv(self, hv):
         # Sets the voltage in HV constant mode
         if self.laser.query('MODE?') == 'HV':
             self.laser.write('HV=%s' % hv)
@@ -235,13 +234,13 @@ class VisaLaser:
     # FIXME: This would be a really useful function as we could set the energy
     # from the programs then let the laser figure out the HV value
     # NOT FUNCTIONAL RIGHT NOW
-    def set_HV_energy(self, energy):
+    def set_hv_energy(self, energy):
         pass
 #        self.on()
 #        self.readTimer = QTimer(1000 / int(self.rd_reprate()))
 #        self.QTimer.timeout.connect(self.rd_energy)
 
-    def set_inertP(self, mbar):
+    def set_inert_press(self, mbar):
         # Sets the partial pressure of gas connected to inert line
         self.laser.write('INERT=%s' % mbar)
 
@@ -262,8 +261,8 @@ class VisaLaser:
 
     def set_mode(self, mode):
         # Sets the laser operating mode
-        validModes = ['HV', 'EGY PGR', 'EGY NGR']
-        if mode.upper() in validModes:
+        valid_modes = ['HV', 'EGY PGR', 'EGY NGR']
+        if mode.upper() in valid_modes:
             self.laser.write('MODE=%s' % mode.upper())
         else:
             try:
@@ -271,7 +270,7 @@ class VisaLaser:
             except LaserOutOfRangeError:
                 print('Invalid operating mode supplied, command not sent')
 
-    def set_rareP(self, mbar):
+    def set_rare_press(self, mbar):
         # Sets the partial pressure of gas connected to rare line
         self.laser.write('INERT=%s' % mbar)
 
@@ -282,8 +281,8 @@ class VisaLaser:
     def set_roomtemp_hilow(self, rt):
         # Only for use with an HCl source as the source reaction is very temp
         # sensitive. Can be set to high (above 22C) or low (below 22C).
-        validRT = ['HIGH', 'LOW']
-        if rt.upper() in validRT:
+        valid_rt = ['HIGH', 'LOW']
+        if rt.upper() in valid_rt:
             self.laser.write('ROOMTEMP=%s' % rt.upper())
         else:
             try:
@@ -305,8 +304,8 @@ class VisaLaser:
                       command not sent')
 
     def set_trigger(self, trigger):
-        validTrigger = ['INT', 'EXT']
-        if trigger.upper() in validTrigger:
+        valid_trigger = ['INT', 'EXT']
+        if trigger.upper() in valid_trigger:
             self.laser.write('TRIGGER=%s' % trigger.upper())
         else:
             try:
@@ -324,7 +323,7 @@ class VisaLaser:
         # source installed.
         return self.laser.query('ACCU?')
 
-    def rd_bufferP(self):
+    def rd_buffer_press(self):
         # Reads the partial pressure of the buffer gas in mbar
         return self.laser.query('BUFFER?')
 
@@ -376,15 +375,15 @@ class VisaLaser:
         # Reads the current gas mode setting.
         return self.laser.query('GASMODE?')
 
-    def rd_halogenP(self):
+    def rd_halogen_press(self):
         # Reads the current partial pressure of the halogen gas in mbar.
         return self.laser.query('HALOGEN?')
 
-    def rd_HV(self):
+    def rd_hv(self):
         # Reads the charging voltage in HV mode.
         return self.laser.query('HV?')
 
-    def rd_inertP(self):
+    def rd_inert_press(self):
         # Reads the current partial pressure of the inert gas.
         return self.laser.query('INERT?')
 
@@ -396,13 +395,13 @@ class VisaLaser:
         return self.laser.query('INTERLOCK?')
 
     def rd_leak_rate(self):
-        # For a flourine source, reads the leak rate of the tube as measured
+        # For a fluorine source, reads the leak rate of the tube as measured
         # during the new fill procedure. Units of [mbar/2min]
         return self.laser.query('LEAKRATE?')
 
     def rd_menu(self):
         # Reads the current gas menu number, wavelength, and gas mixture as a
-        # a touple.
+        # a tuple.
         return str.split(self.laser.query('MENU?'), ' ')
 
     def rd_mode(self):
@@ -422,7 +421,7 @@ class VisaLaser:
             return True
         return False
 
-    def rd_tubeP(self):
+    def rd_tube_press(self):
         # Reads the current tube pressure in mbar.
         return self.laser.query('PRESSURE?')
 
@@ -434,7 +433,7 @@ class VisaLaser:
         # WE ARE GETTING THE CORRECT NUMBER OF PULSES.
         return self.laser.query('PULSE DIFF?')
 
-    def rd_rareP(self):
+    def rd_rare_press(self):
         # Reads the partial pressure of the Rare in mbar.
         return self.laser.query('RARE?')
 
@@ -447,7 +446,7 @@ class VisaLaser:
         # no halogen source, returns high.
         return self.laser.query('ROOMTEMP?')
 
-    def rd_fSourc_temp(self):
+    def rd_f_source_temp(self):
         # Reads the temperature in fluorine source, returns 0 if there is no
         # fluorine source is attached.
         return self.laser.query('TEMP?')
@@ -476,5 +475,5 @@ class VisaLaser:
         return self.laser.query('VERSION?')
 
     def interpret_opmode(self):
-        currentOpmode = self.rd_opmode()
-        return currentOpmode, self.laserCodes[currentOpmode]
+        current_opmode = self.rd_opmode()
+        return current_opmode, self.laserCodes[current_opmode]

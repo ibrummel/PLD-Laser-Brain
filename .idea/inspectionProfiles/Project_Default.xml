@@ -7,6 +7,7 @@
           <option value="PyQt5.QtCore.timeout.*" />
           <option value="PyQt5.QtWidgets.currentTextChanged.*" />
           <option value="PyQt5.QtWidgets.returnPressed.*" />
+          <option value="pyvisa.resources.resource.Resource.*" />
         </list>
       </option>
     </inspection_tool>
