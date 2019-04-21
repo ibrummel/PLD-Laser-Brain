@@ -54,6 +54,7 @@ class LaserStatusControl(QWidget):
         self.hvVal = QLineEdit(self.laser.rd_HV())
         self.reprateLabel = QLabel('Reprate: ')
         self.reprateVal = QLineEdit(self.laser.rd_reprate())
+        self.btnOnOff = QPushButton("Start Laser")
         self.terminal = QLineEdit()
         self.hbox = QHBoxLayout()
         self.vbox = QVBoxLayout()
@@ -128,7 +129,7 @@ class LaserStatusControl(QWidget):
 
         # Moved from main() into the function
         self.updateTimer.timeout.connect(self.update_lsc)
-        self.updateTimer.start(int(1000 / self.laser.rd_reprate()))
+        self.updateTimer.start(int(1000 / int(self.laser.rd_reprate())))
 
     # Updater for the laser status readouts. Only updates for fields that are
     # not currently selected.
@@ -194,7 +195,7 @@ class LaserStatusControl(QWidget):
 
         # Re-enables the updater for the LSC
         time.sleep(0.01)
-        self.updateTimer.start(int(1000 / self.laser.rd_reprate()))
+        self.updateTimer.start(int(1000 / int(self.laser.rd_reprate())))
 
     # def pause_LSC(self):
     #     self.isLSCUpdating = not self.isLSCUpdating
@@ -205,7 +206,7 @@ class LaserStatusControl(QWidget):
 
     def set_energy(self):
         self.laser.set_energy(self.egyVal.text())
-        self.eqyVal.clearFocus()
+        self.egyVal.clearFocus()
 
     def set_hv(self):
         self.laser.set_hv(self.hvVal.text())
@@ -498,11 +499,6 @@ class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
             pass
 
 
-# =============================================================================
-# Start the GUI (set up for testing for now)
-# FIXME: Need to finalize main loop for proper operation
-# =============================================================================
-
 class MainWindow(QMainWindow):
 
     def __init__(self, laser):
@@ -511,6 +507,7 @@ class MainWindow(QMainWindow):
 
         # Create a docked widget to hold the LSC module
         self.lscDocked = QDockWidget()
+        self.init_ui()
 
     def init_ui(self):
         self.setObjectName('Main Window')
@@ -522,8 +519,6 @@ class MainWindow(QMainWindow):
         self.setCorner(Qt.TopLeftCorner | Qt.TopRightCorner, Qt.TopDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner | Qt.BottomRightCorner, Qt.BottomDockWidgetArea)
         self.addDockWidget(Qt.TopDockWidgetArea, self.lscDocked)
-
-        self.init_ui()
 
 
 def main():
@@ -540,5 +535,9 @@ def main():
     sys.exit(app.exec_())
 
 
+# =============================================================================
+# Start the GUI (set up for testing for now)
+# FIXME: Need to finalize main loop for proper operation
+# =============================================================================
 if __name__ == '__main__':
     main()
