@@ -529,7 +529,10 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     # Start LaserComm and connect to laser
-    laser = VisaLaser('ASRLCOM3::INSTR', '@py')
+    # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
+    # the working directory
+    laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
+    # laser = VisaLaser('ASRLCOM3::INSTR', '@py')
 
     ex = MainWindow(laser)
     ex.show()
