@@ -49,29 +49,31 @@ class LaserStatusControl(QWidget):
         # Create widgets and other GUI elements
         self.modeSelLabel = QLabel('Mode: ')
         self.modeSel = QComboBox()
+
         self.egyLabel = QLabel('Energy: ')
-        self.egyVal = QLineEdit(self.laser.rd_energy())
+        self.current_egy = self.laser.rd_energy()
+        self.egy_val = QLineEdit(self.current_egy)
+        self.egy_val.setInputMask('000')
+
         self.hvLabel = QLabel('HV: ')
-        self.hvVal = QLineEdit(self.laser.rd_hv())
+        self.current_hv = self.laser.rd_hv()
+        self.hv_val = QLineEdit(self.current_hv)
+        self.hv_val.setInputMask('00.0')
+
         self.reprateLabel = QLabel('Reprate: ')
-        self.reprateVal = QLineEdit(self.laser.rd_reprate())
+        self.current_reprate = self.laser.rd_reprate()
+        self.reprate_val = QLineEdit(self.current_reprate)
+        self.reprate_val.setInputMask('00')
+
         self.rasterLabel = QLabel('Raster? ')
         self.rasterCheck = QCheckBox()
+
         self.btnOnOff = QPushButton("Start Laser")
+
         self.terminal = QLineEdit()
         self.hbox = QHBoxLayout()
         self.vbox = QVBoxLayout()
         self.updateTimer = QTimer()
-
-        # Create validators for the input fields (limit values to valid numbers
-        # FIXME: Check the actual limits for energy, HV and reprate on the laser (below are just known safe values)
-        self.egyValidator = QIntValidator(50, 650)
-        self.hvValidator = QDoubleValidator(17.0, 27.0)
-        self.reprateValidator = QIntValidator(1, 20)
-
-        self.egyVal.setValidator(self.egyValidator)
-        self.hvVal.setValidator(self.hvValidator)
-        self.reprateVal.setValidator(self.reprateValidator)
 
         # Define/Create widgets for laser status and control
         self.title = QLabel('Laser Status')
@@ -97,15 +99,15 @@ class LaserStatusControl(QWidget):
         # Energy reading/setting box: while laser is running, will display
         # last pulse avg value, otherwise will display setting for egy mode
         # and last pulse energy for hv mode.
-        self.egyVal.returnPressed.connect(self.set_energy)
+        self.egy_val.returnPressed.connect(self.set_energy)
 
         # HV setting box: Displays currently set HV for HV mode. For EGY mode
         # displays the HV set by the laser to match energy setting.
-        self.hvVal.returnPressed.connect(self.set_hv)
+        self.hv_val.returnPressed.connect(self.set_hv)
 
         # Reprate setting box: Displays current reprate. Will display "EXT" if
         # the laser is set to external triggering
-        self.reprateVal.returnPressed.connect(self.set_reprate)
+        self.reprate_val.returnPressed.connect(self.set_reprate)
 
         # Start Stop Button
         # self.btnOnOff.setAlignment(Qt.AlignCenter)
@@ -124,11 +126,11 @@ class LaserStatusControl(QWidget):
         self.hbox.addWidget(self.modeSelLabel)
         self.hbox.addWidget(self.modeSel)
         self.hbox.addWidget(self.egyLabel)
-        self.hbox.addWidget(self.egyVal)
+        self.hbox.addWidget(self.egy_val)
         self.hbox.addWidget(self.hvLabel)
-        self.hbox.addWidget(self.hvVal)
+        self.hbox.addWidget(self.hv_val)
         self.hbox.addWidget(self.reprateLabel)
-        self.hbox.addWidget(self.reprateVal)
+        self.hbox.addWidget(self.reprate_val)
         self.hbox.addWidget(self.rasterLabel)
         self.hbox.addWidget(self.rasterCheck)
 
@@ -149,19 +151,19 @@ class LaserStatusControl(QWidget):
     # Updater for the laser status readouts. Only updates for fields that are
     # not currently selected.
     def update_lsc(self):
-        if not self.egyVal.hasFocus():
-            self.egyVal.setText(self.laser.rd_energy())
+        if not self.egy_val.hasFocus():
+            self.egy_val.setText(self.laser.rd_energy())
 
-        if not self.hvVal.hasFocus():
-            self.hvVal.setText(self.laser.rd_hv())
+        if not self.hv_val.hasFocus():
+            self.hv_val.setText(self.laser.rd_hv())
 
-        if not self.reprateVal.hasFocus():
+        if not self.reprate_val.hasFocus():
             if self.laser.rd_trigger() == 'INT':
-                self.reprateVal.setText(self.laser.rd_reprate())
-                self.reprateVal.setDisabled(False)
+                self.reprate_val.setText(self.laser.rd_reprate())
+                self.reprate_val.setDisabled(False)
             elif self.laser.rd_trigger() == 'EXT':
-                self.reprateVal.setDisabled(True)
-                self.reprateVal.setText('External')
+                self.reprate_val.setDisabled(True)
+                self.reprate_val.setText('External')
 
     # Sends the command that was typed into the terminal.
     def terminal_send(self):
@@ -173,11 +175,11 @@ class LaserStatusControl(QWidget):
     def change_mode(self, mode):
         self.laser.set_mode(self.outModes[mode])
         if self.outModes[mode] == 'HV':
-            self.egyVal.setDisabled(True)
-            self.hvVal.setDisabled(False)
+            self.egy_val.setDisabled(True)
+            self.hv_val.setDisabled(False)
         if self.outModes[mode] == 'EGY NGR':
-            self.egyVal.setDisabled(False)
-            self.hvVal.setDisabled(True)
+            self.egy_val.setDisabled(False)
+            self.hv_val.setDisabled(True)
 
     def change_btn_on_off(self):
         on_opmodes = ['ON', 'OFF,WAIT']
@@ -219,17 +221,45 @@ class LaserStatusControl(QWidget):
     #     elif not self.isLSCUpdating:
     #         self.updateTimer.start(1000 / int(self.laser.rd_reprate()))
 
+    # FIXME: Check the actual limits for energy, HV and reprate on the laser (below are just known safe values)
     def set_energy(self):
-        self.laser.set_energy(self.egyVal.text())
-        self.egyVal.clearFocus()
+        if 50 <= int(self.egy_val.text()) <= 500:
+            self.current_egy = self.egy_val.text()
+            self.laser.set_energy(self.current_egy)
+        else:
+            value_error = QMessageBox.question(self, 'Value Error',
+                                               'The energy value entered is not within acceptable limits. Energy value\
+                                                will be reset to last good value.',
+                                               QMessageBox.Ok, QMessageBox.Ok)
+            if value_error == QMessageBox.Ok:
+                self.egy_val.setText(self.current_egy)
+        self.egy_val.clearFocus()
 
     def set_hv(self):
-        self.laser.set_hv(self.hvVal.text())
-        self.hvVal.clearFocus()
+        if 18.0 <= float(self.hv_val.text()) <= 27.0:
+            self.current_hv = self.hv_val.text()
+            self.laser.set_hv(self.current_hv)
+        else:
+            value_error = QMessageBox.question(self, 'Value Error',
+                                               'The HV value entered is not within acceptable limits. HV value will\
+                                               be reset to last good value.',
+                                               QMessageBox.Ok, QMessageBox.Ok)
+            if value_error == QMessageBox.Ok:
+                self.hv_val.setText(self.current_hv)
+        self.hv_val.clearFocus()
 
     def set_reprate(self):
-        self.laser.set_reprate(self.reprateVal.text())
-        self.reprateVal.clearFocus()
+        if 1 <= int(self.reprate_val.text()) <= 30:
+            self.current_reprate = self.reprate_val.text()
+            self.laser.set_reprate(self.current_reprate)
+        else:
+            value_error = QMessageBox.question(self, 'Value Error',
+                                               'The repitition rate entered is not within acceptable limits. Repitition\
+                                               rate will be reset to last good value.',
+                                               QMessageBox.Ok, QMessageBox.Ok)
+            if value_error == QMessageBox.Ok:
+                self.reprate_val.setText(self.current_reprate)
+        self.reprate_val.clearFocus()
 
 
 class DepControlBox(QWidget):
