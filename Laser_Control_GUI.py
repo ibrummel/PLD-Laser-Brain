@@ -6,9 +6,8 @@ Created on Mon Mar 11 10:01:53 2019
 """
 
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
-                             QDial, QDialog, QGridLayout, QGroupBox,
+from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator
+from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
                              QHBoxLayout, QLabel, QLineEdit, QProgressBar,
                              QPushButton, QRadioButton, QScrollBar,
                              QSizePolicy, QSlider, QSpinBox, QStyleFactory,
@@ -63,6 +62,16 @@ class LaserStatusControl(QWidget):
         self.hbox = QHBoxLayout()
         self.vbox = QVBoxLayout()
         self.updateTimer = QTimer()
+
+        # Create validators for the input fields (limit values to valid numbers
+        # FIXME: Check the actual limits for energy, HV and reprate on the laser (below are just known safe values)
+        self.egyValidator = QIntValidator(50, 650)
+        self.hvValidator = QDoubleValidator(17.0, 27.0)
+        self.reprateValidator = QIntValidator(1, 20)
+
+        self.egyVal.setValidator(self.egyValidator)
+        self.hvVal.setValidator(self.hvValidator)
+        self.reprateVal.setValidator(self.reprateValidator)
 
         # Define/Create widgets for laser status and control
         self.title = QLabel('Laser Status')
