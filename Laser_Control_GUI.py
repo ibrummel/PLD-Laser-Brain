@@ -22,6 +22,8 @@ from math import trunc
 
 
 def truncate(number, decimals=0):
+    # Deprecated with external triggering, everything should be calculated on pulse counts now and times should be
+    # rounded for display purposes
     if decimals < 0:
         raise ValueError('Cannot truncate to negative decimals ({})'
                          .format(decimals))
@@ -32,7 +34,7 @@ def truncate(number, decimals=0):
         return trunc(number * factor) / factor
 
 
-# FIXME: Add a raster target check for manual control
+# FIXME: Connect all raster items to respective controls
 class LaserStatusControl(QWidget):
 
     def __init__(self, laser):
@@ -54,6 +56,8 @@ class LaserStatusControl(QWidget):
         self.hvVal = QLineEdit(self.laser.rd_hv())
         self.reprateLabel = QLabel('Reprate: ')
         self.reprateVal = QLineEdit(self.laser.rd_reprate())
+        self.rasterLabel = QLabel('Raster? ')
+        self.rasterCheck = QCheckBox()
         self.btnOnOff = QPushButton("Start Laser")
         self.terminal = QLineEdit()
         self.hbox = QHBoxLayout()
@@ -116,6 +120,8 @@ class LaserStatusControl(QWidget):
         self.hbox.addWidget(self.hvVal)
         self.hbox.addWidget(self.reprateLabel)
         self.hbox.addWidget(self.reprateVal)
+        self.hbox.addWidget(self.rasterLabel)
+        self.hbox.addWidget(self.rasterCheck)
 
         # Create a vertical box to set up title and LSC boxes
         self.vbox.addWidget(self.title)
@@ -307,6 +313,11 @@ class DepositionStepForm(QVBoxLayout):
         self.title = QLabel(self.stepTitle)
         self.form = QFormLayout()
 
+        # Connect controls to update functions
+        self.reprateLine.returnPressed.connect(self.recalculate_time)
+        self.pulseCountLine.returnPressed.connect(self.recalculate_time)
+        self.depTimeLine.returnPressed.connect(self.recalculate_pulses)
+
         self.init_form()
 
     def init_form(self):
@@ -327,6 +338,18 @@ class DepositionStepForm(QVBoxLayout):
 
         self.addWidget(self.title)
         self.addLayout(self.form)
+
+    def recalculate_time(self):
+        new_time = float(self.pulseCountLine.text())/float(self.reprateLine.text())
+        new_time = round(new_time, 2)
+        self.depTimeLine.setText(new_time)
+        # FIXME: Could throw errors trying to set text to a float
+
+    def recalculate_pulses(self):
+        new_pulses = float(self.depTimeLine.text()) * float(self.reprateLine.text())
+        new_pulses = trunc(new_pulses)
+        self.pulseCountLine.setText(new_pulses)
+        # FIXME: Could throw errors trying to set text to a float
 
     def return_layer_params(self):
         if self.layerCode == 0:
