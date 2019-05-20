@@ -6,12 +6,9 @@ Created on Mon Mar 11 10:01:53 2019
 """
 
 from PyQt5.QtCore import Qt, QTimer, QObject
-from PyQt5.QtGui import QFont, QValidator, QIntValidator, QDoubleValidator
+from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QFileDialog,
-                             QHBoxLayout, QLabel, QLineEdit, QProgressBar,
-                             QPushButton, QRadioButton, QScrollBar,
-                             QSizePolicy, QSlider, QSpinBox, QStyleFactory,
-                             QTableWidget, QTabWidget, QTextEdit, QVBoxLayout,
+                             QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout,
                              QWidget, QMessageBox, QFormLayout, QStackedWidget,
                              QFrame, QMainWindow, QDockWidget)
 import sys
@@ -34,6 +31,26 @@ def truncate(number, decimals=0):
         factor = float(10 ** decimals)
         return trunc(number * factor) / factor
 
+# FIXME: Attempt at making validator behavior more pleasing by reimplementing QLineEdit. Default behavior for now.
+# class QLineEdit(QLineEdit):
+#
+#     def __init__(self, *__args):
+#         super().__init__()
+#         self.return_validator = None
+#         self.returnPressed.connect(self.validate)
+#
+#     def set_return_validator(self, QValidator):
+#         self.return_validator = QValidator
+#
+#     def validate(self):
+#         if self.return_validator is None:
+#             pass
+#         else:
+#             if self.return_validator.validate(self.text(), 0) != QValidator.Acceptable:
+#                 self.undo()
+#                 warn = QMessageBox.critical(self, "Input Error",
+#                                             "You have entered an invalid value for this field. Value will be reset.")
+
 
 # FIXME: Connect all raster items to respective controls
 class LaserStatusControl(QWidget):
@@ -55,17 +72,17 @@ class LaserStatusControl(QWidget):
         self.egyLabel = QLabel('Energy: ')
         self.current_egy = self.laser.rd_energy()
         self.egy_val = QLineEdit(self.current_egy)
-        # self.egy_val.setInputMask('000')
+        self.egy_val.setValidator(QIntValidator(50, 510))
 
         self.hvLabel = QLabel('HV: ')
         self.current_hv = self.laser.rd_hv()
         self.hv_val = QLineEdit(self.current_hv)
-        # self.hv_val.setInputMask('00.0')
+        self.hv_val.setValidator(QDoubleValidator(18, 27, 1))
 
         self.reprateLabel = QLabel('Reprate: ')
         self.current_reprate = self.laser.rd_reprate()
         self.reprate_val = QLineEdit(self.current_reprate)
-        # self.reprate_val.setInputMask('00')
+        self.reprate_val.setValidator(QIntValidator(0, 50))
 
         self.rasterLabel = QLabel('Raster? ')
         self.rasterCheck = QCheckBox()
@@ -225,7 +242,7 @@ class LaserStatusControl(QWidget):
 
     # FIXME: Check the actual limits for energy, HV and reprate on the laser (below are just known safe values)
     def set_energy(self):
-        if 50 <= int(self.egy_val.text()) <= 500:
+        if 50 <= int(self.egy_val.text()) <= 510:
             self.current_egy = self.egy_val.text()
             self.laser.set_energy(self.current_egy)
         else:
@@ -361,10 +378,10 @@ class DepositionStepForm(QWidget):
         self.vbox = QVBoxLayout()
 
         # Set masks to control the input to parameter fields
-        # self.reprate_line.setInputMask('00')
-        # self.pulse_count_line.setInputMask('0000000')
-        # self.energy_line.setValidator(QIntValidator(50, 600))
-        # self.dep_time_line.setInputMask('000000.0')
+        self.reprate_line.setValidator(QIntValidator(0, 50))
+        self.pulse_count_line.setValidator(QIntValidator(0, 9999999))
+        self.energy_line.setValidator(QIntValidator(50, 510))
+        self.dep_time_line.setValidator(QDoubleValidator(0, 9999999, 1))
 
         # Connect controls to update functions
         self.reprate_line.returnPressed.connect(self.recalculate_time)
@@ -395,7 +412,6 @@ class DepositionStepForm(QWidget):
         self.setLayout(self.vbox)
 
     def recalculate_time(self):
-        print("'"+self.reprate_line.text()+"'")
         if self.pulse_count_line.text() != "" and self.reprate_line.text() != "":
             new_time = float(self.pulse_count_line.text()) / float(self.reprate_line.text())
             new_time = round(new_time, 2)

@@ -192,8 +192,8 @@ devices:
         setter:
           q: "EGY={:d}"
         specs:
-          min: 150
-          max: 600
+          min: 0
+          max: 510
           type: int
       reprate:
         default: 5
@@ -204,7 +204,7 @@ devices:
           q: "REPRATE={:d}"
         specs:
           min: 1
-          max: 60
+          max: 50
           type: int
       opmode:
         default: INT
