@@ -333,7 +333,7 @@ class DepControlBox(QWidget):
         deposition.start()
 
 
-class DepositionStepForm(QVBoxLayout):
+class DepositionStepForm(QWidget):
 
     def __init__(self, step_title, layer_code):
         super().__init__()
@@ -352,17 +352,19 @@ class DepositionStepForm(QVBoxLayout):
             self.formatStr = "L{} ".format(self.layerCode)
 
         # Initialize controls for all types of deposition step form
-        self.reprateLine = QLineEdit()
-        self.pulseCountLine = QLineEdit()
-        self.depTimeLine = QLineEdit()
-        self.energyLine = QLineEdit()
+        self.reprate_line = QLineEdit()
+        self.pulse_count_line = QLineEdit()
+        self.dep_time_line = QLineEdit()
+        self.energy_line = QLineEdit()
         self.title = QLabel(self.stepTitle)
         self.form = QFormLayout()
+        self.vbox = QVBoxLayout()
 
         # Connect controls to update functions
-        self.reprateLine.returnPressed.connect(self.recalculate_time)
-        self.pulseCountLine.returnPressed.connect(self.recalculate_time)
-        self.depTimeLine.returnPressed.connect(self.recalculate_pulses)
+        self.reprate_line.returnPressed.connect(self.recalculate_time)
+        self.pulse_count_line.returnPressed.connect(self.recalculate_time)
+        self.dep_time_line.returnPressed.connect(self.recalculate_pulses)
+        self.energy_line.returnPressed.connect(self.focusNextChild)
 
         self.init_form()
 
@@ -374,27 +376,32 @@ class DepositionStepForm(QVBoxLayout):
             self.form.addRow("Run Equilibration", self.runEquilCheck)
             self.form.addRow("Raster Target (Applies to all Steps)", self.rasterCheck)
         self.form.addRow("{}Reprate: ".format(self.formatStr),
-                         self.reprateLine)
+                         self.reprate_line)
         self.form.addRow("{}Pulses: ".format(self.formatStr),
-                         self.pulseCountLine)
+                         self.pulse_count_line)
         self.form.addRow("{}Time: ".format(self.formatStr),
-                         self.depTimeLine)
+                         self.dep_time_line)
         self.form.addRow("{}Energy: ".format(self.formatStr),
-                         self.energyLine)
+                         self.energy_line)
 
-        self.addWidget(self.title)
-        self.addLayout(self.form)
+        self.vbox.addWidget(self.title)
+        self.vbox.addLayout(self.form)
+        self.setLayout(self.vbox)
 
     def recalculate_time(self):
-        new_time = float(self.pulseCountLine.text())/float(self.reprateLine.text())
-        new_time = round(new_time, 2)
-        self.depTimeLine.setText(new_time)
+        if self.pulse_count_line.text() != "" and self.reprate_line != "" and self.dep_time_line != "":
+            new_time = float(self.pulse_count_line.text()) / float(self.reprate_line.text())
+            new_time = round(new_time, 2)
+            self.dep_time_line.setText(str(new_time))
+        self.focusNextChild()
         # FIXME: Could throw errors trying to set text to a float
 
     def recalculate_pulses(self):
-        new_pulses = float(self.depTimeLine.text()) * float(self.reprateLine.text())
-        new_pulses = trunc(new_pulses)
-        self.pulseCountLine.setText(new_pulses)
+        if self.pulse_count_line.text() != "" and self.reprate_line != "" and self.dep_time_line != "":
+            new_pulses = float(self.dep_time_line.text()) * float(self.reprate_line.text())
+            new_pulses = trunc(new_pulses)
+            self.pulse_count_line.setText(str(new_pulses))
+        self.focusNextChild()
         # FIXME: Could throw errors trying to set text to a float
 
     def return_layer_params(self):
@@ -402,18 +409,18 @@ class DepositionStepForm(QVBoxLayout):
             return {"Layer Code": self.layerCode,
                     "Run Eq": self.runEquilCheck.isChecked(),
                     "Raster": self.rasterCheck.isChecked(),
-                    "Reprate": self.reprateLine.text(),
-                    "Pulses": self.pulseCountLine.text(),
-                    "Time": self.depTimeLine.text(),
-                    "Energy": self.energyLine.text()}
+                    "Reprate": self.reprate_line.text(),
+                    "Pulses": self.pulse_count_line.text(),
+                    "Time": self.dep_time_line.text(),
+                    "Energy": self.energy_line.text()}
         else:
             return {"Layer Code": self.layerCode,
                     "Run Eq": None,
                     "Raster": None,
-                    "Reprate": self.reprateLine.text(),
-                    "Pulses": self.pulseCountLine.text(),
-                    "Time": self.depTimeLine.text(),
-                    "Energy": self.energyLine.text()}
+                    "Reprate": self.reprate_line.text(),
+                    "Pulses": self.pulse_count_line.text(),
+                    "Time": self.dep_time_line.text(),
+                    "Energy": self.energy_line.text()}
 
 
 class StackParamForm(QVBoxLayout):
@@ -425,7 +432,7 @@ class StackParamForm(QVBoxLayout):
 
     def init_widget(self):
         for key in self.dictLayers:
-            self.addLayout(self.dictLayers[key])
+            self.addWidget(self.dictLayers[key])
 
     def return_stack_params(self):
         stack_params = {}
@@ -472,7 +479,7 @@ class StructureParamForm(QWidget):
         self.title.setFont(QFont('Arial', 12, QFont.Bold))
         self.structureParamForm.addRow("Stack Repetitions: ", self.stackRepLine)
 
-        self.vbox.addLayout(self.equilForm)
+        self.vbox.addWidget(self.equilForm)
         if self.isMulti:
             self.vbox.addWidget(self.title)
             self.vbox.addLayout(self.structureParamForm)
