@@ -309,9 +309,21 @@ class DepControlBox(QWidget):
 
         # Create the list of steps/deposition dictionary to use
         self.paramStack = QStackedWidget()
-        # FIXME: Need this to not be hardcoded for the dictionary or maybe it should be.
-        self.stdDepWidget = StructureParamForm(StackParamForm({"Main": DepositionStepForm("Main Deposition", 1),
-                                                               "Second": DepositionStepForm("Test", 2)}), False)
+        # FIXME: Write a custom deposition dictionary builder at some point. The default options will stay hard coded.
+
+        # Create the Standard Deposition Structure Form
+        layer = DepositionStepForm("Film", 1)
+        stack = StackParamForm({"Main": layer})
+        self.stdDepWidget = StructureParamForm(stack, False)
+
+        # Create Super Lattice Deposition Structure Form
+        layer1 = DepositionStepForm("Material/Composition 1", 1)
+        layer2 = DepositionStepForm("Material/Composition 2", 2)
+        stack = StackParamForm({"L1": layer1, "L2": layer2})
+        self.super_lattice_dep_widget = StructureParamForm(stack, True)
+
+        # FIXME: Create a PLID Deposition Structure Form
+
         # Set up UI elements
         self.init_ui()
 
@@ -487,7 +499,7 @@ class StructureParamForm(QWidget):
 
         # Pull in parameters
         self.stackForm = stack_form
-        self.isMulti = is_multi
+        self.multi_stack = is_multi
 
         # Create Form elements
         self.vbox = QVBoxLayout()
@@ -504,7 +516,7 @@ class StructureParamForm(QWidget):
         self.structureParamForm.addRow("Stack Repetitions: ", self.stackRepLine)
 
         self.vbox.addWidget(self.equilForm)
-        if self.isMulti:
+        if self.multi_stack:
             self.vbox.addWidget(self.title)
             self.vbox.addLayout(self.structureParamForm)
         self.vbox.addLayout(self.stackForm)
@@ -514,7 +526,7 @@ class StructureParamForm(QWidget):
     def return_deposition_params(self):
         equil_params = self.equilForm.return_layer_params()
         dep_params = self.stackForm.return_stack_params()
-        if self.isMulti:
+        if self.multi_stack:
             dep_params['#Stacks'] = self.stackRepLine.text()
         else:
             dep_params['#Stacks'] = 1
