@@ -82,7 +82,7 @@ class LaserStatusControl(QWidget):
         self.reprateLabel = QLabel('Reprate: ')
         self.current_reprate = self.laser.rd_reprate()
         self.reprate_val = QLineEdit(self.current_reprate)
-        self.reprate_val.setValidator(QIntValidator(0, 50))
+        self.reprate_val.setValidator(QIntValidator(0, 20))  # Laser caps at 50, but >20 needs cooling water
 
         self.rasterLabel = QLabel('Raster? ')
         self.rasterCheck = QCheckBox()
@@ -378,15 +378,18 @@ class DepositionStepForm(QWidget):
         self.vbox = QVBoxLayout()
 
         # Set masks to control the input to parameter fields
-        self.reprate_line.setValidator(QIntValidator(0, 50))
+        self.reprate_line.setValidator(QIntValidator(0, 20))  # Laser caps at 50, but >20 needs cooling water
         self.pulse_count_line.setValidator(QIntValidator(0, 9999999))
         self.energy_line.setValidator(QIntValidator(50, 510))
         self.dep_time_line.setValidator(QDoubleValidator(0, 9999999, 1))
 
         # Connect controls to update functions
-        self.reprate_line.returnPressed.connect(self.recalculate_time)
-        self.pulse_count_line.returnPressed.connect(self.recalculate_time)
-        self.dep_time_line.returnPressed.connect(self.recalculate_pulses)
+        self.reprate_line.editingFinished.connect(self.recalculate_time)
+        self.pulse_count_line.editingFinished.connect(self.recalculate_time)
+        self.dep_time_line.editingFinished.connect(self.recalculate_pulses)
+        self.reprate_line.returnPressed.connect(self.focusNextChild)
+        self.pulse_count_line.returnPressed.connect(self.focusNextChild)
+        self.dep_time_line.returnPressed.connect(self.focusNextChild)
         self.energy_line.returnPressed.connect(self.focusNextChild)
 
         self.init_form()
@@ -416,7 +419,6 @@ class DepositionStepForm(QWidget):
             new_time = float(self.pulse_count_line.text()) / float(self.reprate_line.text())
             new_time = round(new_time, 2)
             self.dep_time_line.setText(str(new_time))
-        self.focusNextChild()
         # FIXME: Could throw errors trying to set text to a float
 
     def recalculate_pulses(self):
@@ -424,7 +426,6 @@ class DepositionStepForm(QWidget):
             new_pulses = float(self.dep_time_line.text()) * float(self.reprate_line.text())
             new_pulses = trunc(new_pulses)
             self.pulse_count_line.setText(str(new_pulses))
-        self.focusNextChild()
         # FIXME: Could throw errors trying to set text to a float
 
     def return_layer_params(self):
