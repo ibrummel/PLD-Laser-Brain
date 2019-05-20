@@ -343,7 +343,7 @@ class DepControlBox(QWidget):
     def save_parameters(self):
         save_name = QFileDialog.getSaveFileName(self, "Save deposition profile...", os.path.expanduser('~'),
                                                 "Python Pickle Files (*.p)")
-        pickle.dump(self.paramStack.currentWidget.return_deposition_params(), open(save_name, 'wb'))
+        pickle.dump(self.paramStack.currentWidget().return_deposition_params(), open(save_name[0], 'wb'))
 
     def run_step(self):
         deposition = Deposition(self.paramStack.currentWidget(), self.laser)
@@ -515,9 +515,9 @@ class StructureParamForm(QWidget):
         equil_params = self.equilForm.return_layer_params()
         dep_params = self.stackForm.return_stack_params()
         if self.isMulti:
-            dep_params['# Stacks'] = self.stackRepLine.text()
+            dep_params['#Stacks'] = self.stackRepLine.text()
         else:
-            dep_params['# Stacks'] = 1
+            dep_params['#Stacks'] = 1
         dep_params[equil_params['Layer Code']] = equil_params
         print(dep_params)
         return dep_params
