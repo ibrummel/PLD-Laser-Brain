@@ -6,7 +6,7 @@ Created on Mon Mar 11 10:01:53 2019
 """
 
 from PyQt5.QtCore import Qt, QTimer, QObject
-from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator
+from PyQt5.QtGui import QFont, QValidator, QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QFileDialog,
                              QHBoxLayout, QLabel, QLineEdit, QProgressBar,
                              QPushButton, QRadioButton, QScrollBar,
@@ -55,17 +55,17 @@ class LaserStatusControl(QWidget):
         self.egyLabel = QLabel('Energy: ')
         self.current_egy = self.laser.rd_energy()
         self.egy_val = QLineEdit(self.current_egy)
-        self.egy_val.setInputMask('000')
+        # self.egy_val.setInputMask('000')
 
         self.hvLabel = QLabel('HV: ')
         self.current_hv = self.laser.rd_hv()
         self.hv_val = QLineEdit(self.current_hv)
-        self.hv_val.setInputMask('00.0')
+        # self.hv_val.setInputMask('00.0')
 
         self.reprateLabel = QLabel('Reprate: ')
         self.current_reprate = self.laser.rd_reprate()
         self.reprate_val = QLineEdit(self.current_reprate)
-        self.reprate_val.setInputMask('00')
+        # self.reprate_val.setInputMask('00')
 
         self.rasterLabel = QLabel('Raster? ')
         self.rasterCheck = QCheckBox()
@@ -360,6 +360,12 @@ class DepositionStepForm(QWidget):
         self.form = QFormLayout()
         self.vbox = QVBoxLayout()
 
+        # Set masks to control the input to parameter fields
+        # self.reprate_line.setInputMask('00')
+        # self.pulse_count_line.setInputMask('0000000')
+        # self.energy_line.setValidator(QIntValidator(50, 600))
+        # self.dep_time_line.setInputMask('000000.0')
+
         # Connect controls to update functions
         self.reprate_line.returnPressed.connect(self.recalculate_time)
         self.pulse_count_line.returnPressed.connect(self.recalculate_time)
@@ -389,7 +395,8 @@ class DepositionStepForm(QWidget):
         self.setLayout(self.vbox)
 
     def recalculate_time(self):
-        if self.pulse_count_line.text() != "" and self.reprate_line != "" and self.dep_time_line != "":
+        print("'"+self.reprate_line.text()+"'")
+        if self.pulse_count_line.text() != "" and self.reprate_line.text() != "":
             new_time = float(self.pulse_count_line.text()) / float(self.reprate_line.text())
             new_time = round(new_time, 2)
             self.dep_time_line.setText(str(new_time))
@@ -397,7 +404,7 @@ class DepositionStepForm(QWidget):
         # FIXME: Could throw errors trying to set text to a float
 
     def recalculate_pulses(self):
-        if self.pulse_count_line.text() != "" and self.reprate_line != "" and self.dep_time_line != "":
+        if self.reprate_line.text() != "" and self.dep_time_line.text() != "":
             new_pulses = float(self.dep_time_line.text()) * float(self.reprate_line.text())
             new_pulses = trunc(new_pulses)
             self.pulse_count_line.setText(str(new_pulses))
