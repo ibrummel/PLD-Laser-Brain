@@ -5,9 +5,9 @@ Created on Mon Mar 11 10:01:53 2019
 @author: Ian
 """
 
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QObject
 from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
+from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QFileDialog,
                              QHBoxLayout, QLabel, QLineEdit, QProgressBar,
                              QPushButton, QRadioButton, QScrollBar,
                              QSizePolicy, QSlider, QSpinBox, QStyleFactory,
@@ -15,6 +15,8 @@ from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox,
                              QWidget, QMessageBox, QFormLayout, QStackedWidget,
                              QFrame, QMainWindow, QDockWidget)
 import sys
+import os
+import pickle
 from VISA_Communications import VisaLaser
 import time
 from math import trunc
@@ -284,7 +286,7 @@ class DepControlBox(QWidget):
         # Connect Buttons to their functions
         self.runCurrentBtn.clicked.connect(self.run_step)
         # FIXME: The obvious way to do this is to use pickle
-        # self.saveBtn.clicked.connect(self.save_parameters)
+        self.saveBtn.clicked.connect(self.save_parameters)
         # FIXME: Build in the ability to load from a dictionary to the Structure parameter form
         # self.loadBtn.clicked.connect(self.load_parameters)
 
@@ -320,6 +322,11 @@ class DepControlBox(QWidget):
         self.hbox.addLayout(self.leftCol)
         self.hbox.addWidget(self.paramStack)
         self.setLayout(self.hbox)
+
+    def save_parameters(self):
+        save_name = QFileDialog.getSaveFileName(self, "Save deposition profile...", os.path.expanduser('~'),
+                                                "Python Pickle Files (*.p)")
+        pickle.dump(self.paramStack.currentWidget.return_deposition_params(), open(save_name, 'wb'))
 
     def run_step(self):
         deposition = Deposition(self.paramStack.currentWidget(), self.laser)
@@ -485,7 +492,7 @@ class StructureParamForm(QWidget):
         return dep_params
 
 
-class Deposition(QWidget):  # FIXME: Not sure what to subclass here.
+class Deposition(QObject):  # FIXME: Not sure what to subclass here.
 
     def __init__(self, structure_widget, laser):
         super().__init__()
