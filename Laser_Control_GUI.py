@@ -302,14 +302,14 @@ class DepControlBox(QWidget):
 
         # Connect Buttons to their functions
         self.runCurrentBtn.clicked.connect(self.run_step)
-        # FIXME: The obvious way to do this is to use pickle
         self.saveBtn.clicked.connect(self.save_parameters)
         # FIXME: Build in the ability to load from a dictionary to the Structure parameter form
         # self.loadBtn.clicked.connect(self.load_parameters)
 
         # Create the stacked widget to hold the currently selected deposition type widgets
         self.dep_forms_stack = QStackedWidget()
-        # FIXME: Write a custom deposition dictionary builder at some point. The default options will stay hard coded.
+        # TODO: Write a custom deposition dictionary builder at some point. The default options will stay hard coded.
+        # TODO: Add "custom" to the list of options in the combobox once the custom dep builder is written
 
         # Create the Standard Deposition Structure Form
         layer = DepositionStepForm("Deposition", 1)
@@ -357,7 +357,6 @@ class DepControlBox(QWidget):
         self.dep_forms_stack.addWidget(self.equilibration_dep_widget)
         self.dep_forms_stack.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.dep_forms_stack.setLineWidth(2)
-        # FIXME: Need to add other parameter widgets to the stack
 
         # Create the horizontal layout that will contain the program interaction
         # control column and the parameter setting stack

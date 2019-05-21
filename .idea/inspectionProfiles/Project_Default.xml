@@ -8,6 +8,8 @@
           <option value="PyQt5.QtWidgets.currentTextChanged.*" />
           <option value="PyQt5.QtWidgets.returnPressed.*" />
           <option value="pyvisa.resources.resource.Resource.*" />
+          <option value="BBB_Control.*" />
+          <option value="BBB_Hardware.*" />
         </list>
       </option>
     </inspection_tool>
