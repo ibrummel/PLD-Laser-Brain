@@ -292,8 +292,8 @@ class DepControlBox(QWidget):
         self.laser = laser
         # Initialize program interaction controls
         self.programModeComboLbl = QLabel("Mode:")
-        self.programModeCombo = QComboBox()
-        self.programModeCombo.addItems(self.modeList)
+        self.program_mode_combo = QComboBox()
+        self.program_mode_combo.addItems(self.modeList)
         self.loadBtn = QPushButton("Load...")
         self.saveBtn = QPushButton("Save...")
         self.runCurrentBtn = QPushButton("Run")
@@ -307,22 +307,29 @@ class DepControlBox(QWidget):
         # FIXME: Build in the ability to load from a dictionary to the Structure parameter form
         # self.loadBtn.clicked.connect(self.load_parameters)
 
-        # Create the list of steps/deposition dictionary to use
-        self.paramStack = QStackedWidget()
+        # Create the stacked widget to hold the currently selected deposition type widgets
+        self.dep_forms_stack = QStackedWidget()
         # FIXME: Write a custom deposition dictionary builder at some point. The default options will stay hard coded.
 
         # Create the Standard Deposition Structure Form
-        layer = DepositionStepForm("Film", 1)
+        layer = DepositionStepForm("Deposition", 1)
         stack = StackParamForm({"Main": layer})
-        self.stdDepWidget = StructureParamForm(stack, False)
+        self.std_dep_widget = StructureParamForm(stack, False, False)
 
         # Create Super Lattice Deposition Structure Form
         layer1 = DepositionStepForm("Material/Composition 1", 1)
         layer2 = DepositionStepForm("Material/Composition 2", 2)
         stack = StackParamForm({"L1": layer1, "L2": layer2})
-        self.super_lattice_dep_widget = StructureParamForm(stack, True)
+        self.super_lattice_dep_widget = StructureParamForm(stack, True, False)
 
-        # FIXME: Create a PLID Deposition Structure Form
+        # Create a PLID Deposition Structure Form
+        layer = DepositionStepForm("Deposition", 1)
+        stack = StackParamForm({"Main": layer})
+        self.plid_dep_widget = StructureParamForm(stack, False, True)
+
+        # Create a Deposition Structure that only contains and equilibrium step
+        stack = StackParamForm({})
+        self.equilibration_dep_widget = StructureParamForm(stack, False, False)
 
         # Set up UI elements
         self.init_ui()
@@ -331,7 +338,7 @@ class DepControlBox(QWidget):
         # Add all elements to the left column that will have program interaction controls
         self.leftCol.insertStretch(1)
         self.leftCol.addWidget(self.programModeComboLbl)
-        self.leftCol.addWidget(self.programModeCombo)
+        self.leftCol.addWidget(self.program_mode_combo)
         self.leftCol.addSpacing(50)
         self.leftCol.addWidget(self.loadBtn)
         self.leftCol.addWidget(self.saveBtn)
@@ -339,26 +346,43 @@ class DepControlBox(QWidget):
         self.leftCol.addWidget(self.runCurrentBtn)
         self.leftCol.insertStretch(1)
 
+        # Connect the controls to signals/slots
+        self.program_mode_combo.currentTextChanged.connect(self.dep_widget_switch)
+
         # Create a stacked widget that will contain the parameter settings for
         # the program that is loaded/being edited
-        self.paramStack.addWidget(self.stdDepWidget)
-        self.paramStack.setFrameStyle(QFrame.Panel | QFrame.Sunken)
-        self.paramStack.setLineWidth(2)
+        self.dep_forms_stack.addWidget(self.std_dep_widget)
+        self.dep_forms_stack.addWidget(self.super_lattice_dep_widget)
+        self.dep_forms_stack.addWidget(self.plid_dep_widget)
+        self.dep_forms_stack.addWidget(self.equilibration_dep_widget)
+        self.dep_forms_stack.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+        self.dep_forms_stack.setLineWidth(2)
         # FIXME: Need to add other parameter widgets to the stack
 
         # Create the horizontal layout that will contain the program interaction
         # control column and the parameter setting stack
         self.hbox.addLayout(self.leftCol)
-        self.hbox.addWidget(self.paramStack)
+        self.hbox.addWidget(self.dep_forms_stack)
         self.setLayout(self.hbox)
+
+    def dep_widget_switch(self):
+        widget = self.program_mode_combo.currentText()
+        if widget == "Standard Deposition":
+            self.dep_forms_stack.setCurrentWidget(self.std_dep_widget)
+        elif widget == "Super Lattice":
+            self.dep_forms_stack.setCurrentWidget(self.super_lattice_dep_widget)
+        elif widget == "PLID":
+            self.dep_forms_stack.setCurrentWidget(self.plid_dep_widget)
+        elif widget == "Equilibration":
+            self.dep_forms_stack.setCurrentWidget(self.equilibration_dep_widget)
 
     def save_parameters(self):
         save_name = QFileDialog.getSaveFileName(self, "Save deposition profile...", os.path.expanduser('~'),
                                                 "Python Pickle Files (*.p)")
-        pickle.dump(self.paramStack.currentWidget().return_deposition_params(), open(save_name[0], 'wb'))
+        pickle.dump(self.dep_forms_stack.currentWidget().return_deposition_params(), open(save_name[0], 'wb'))
 
     def run_step(self):
-        deposition = Deposition(self.paramStack.currentWidget(), self.laser)
+        deposition = Deposition(self.dep_forms_stack.currentWidget(), self.laser)
         deposition.start()
 
 
@@ -475,16 +499,6 @@ class StackParamForm(QVBoxLayout):
 
         for key in self.dictLayers:
             layer_params = self.dictLayers[key].return_layer_params()
-
-            # # FIXME: Commented for posterity, changing dep building structure so that the stack
-            # # will never have an equilibration step in it. Equilibration will always be set
-            # # in the StructureParamForm
-            # if layer_params['Run Eq'] is not None:
-            #     stack_params['Run Eq'] = layer_params['Run Eq']
-
-            # if layer_params['Raster'] is not None:
-            #     stack_params['Raster'] = layer_params['Raster']
-
             stack_params[layer_params['Layer Code']] = layer_params
 
         stack_params['#Layers'] = len(stack_params)
@@ -494,42 +508,54 @@ class StackParamForm(QVBoxLayout):
 
 class StructureParamForm(QWidget):
 
-    def __init__(self, stack_form, is_multi):
+    def __init__(self, stack_form, is_multi_stack, is_interval_dep):
         super().__init__()
 
         # Pull in parameters
         self.stackForm = stack_form
-        self.multi_stack = is_multi
+        self.is_multi_stack = is_multi_stack
+        self.is_interval_dep = is_interval_dep
 
         # Create Form elements
         self.vbox = QVBoxLayout()
-        self.equilForm = DepositionStepForm("Target Equilibration", layer_code=0)
+        self.equil_form = DepositionStepForm("Target Equilibration", layer_code=0)
         self.title = QLabel("Structure Parameters")
-        self.stackRepLine = QLineEdit()
-        self.structureParamForm = QFormLayout()
+        self.stack_rep_line = QLineEdit()
+        self.stack_rep_line.setValidator(QIntValidator(1, 1000))  # This is basically just so it has to be a number.
+        self.dead_time_line = QLineEdit()
+        self.dead_time_line.setValidator(QDoubleValidator(0, 3600, 1))  # ^^ No one should ever use 1 hour dead time
+        self.structure_param_form = QFormLayout()
 
         # Run form setup
         self.init_widget()
 
     def init_widget(self):
         self.title.setFont(QFont('Arial', 12, QFont.Bold))
-        self.structureParamForm.addRow("Stack Repetitions: ", self.stackRepLine)
+        if self.is_multi_stack:
+            self.structure_param_form.addRow("Stack Repetitions: ", self.stack_rep_line)
+        if self.is_interval_dep:
+            self.structure_param_form.addRow("Dead Time Interval: ", self.dead_time_line)
 
-        self.vbox.addWidget(self.equilForm)
-        if self.multi_stack:
+        self.vbox.addWidget(self.equil_form)
+        if self.is_multi_stack or self.is_interval_dep:
             self.vbox.addWidget(self.title)
-            self.vbox.addLayout(self.structureParamForm)
+            self.vbox.addLayout(self.structure_param_form)
+
         self.vbox.addLayout(self.stackForm)
 
         self.setLayout(self.vbox)
 
     def return_deposition_params(self):
-        equil_params = self.equilForm.return_layer_params()
+        equil_params = self.equil_form.return_layer_params()
         dep_params = self.stackForm.return_stack_params()
-        if self.multi_stack:
-            dep_params['#Stacks'] = self.stackRepLine.text()
+        if self.is_multi_stack:
+            dep_params['#Stacks'] = self.stack_rep_line.text()
         else:
             dep_params['#Stacks'] = 1
+        if self.is_interval_dep:
+            dep_params['Dead Time'] = self.dead_time_line.text()
+        else:
+            dep_params['Dead Time'] = 0
         dep_params[equil_params['Layer Code']] = equil_params
         print(dep_params)
         return dep_params
