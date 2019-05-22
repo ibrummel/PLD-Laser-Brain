@@ -240,7 +240,6 @@ class LaserStatusControl(QWidget):
     #     elif not self.isLSCUpdating:
     #         self.updateTimer.start(1000 / int(self.laser.rd_reprate()))
 
-    # FIXME: Check the actual limits for energy, HV and reprate on the laser (below are just known safe values)
     def set_energy(self):
         if 50 <= int(self.egy_val.text()) <= 510:
             self.current_egy = self.egy_val.text()
@@ -304,7 +303,7 @@ class DepControlBox(QWidget):
         self.runCurrentBtn.clicked.connect(self.run_step)
         self.saveBtn.clicked.connect(self.save_parameters)
         # FIXME: Build in the ability to load from a dictionary to the Structure parameter form
-        # self.loadBtn.clicked.connect(self.load_parameters)
+        self.loadBtn.clicked.connect(self.load_parameters)
 
         # Create the stacked widget to hold the currently selected deposition type widgets
         self.dep_forms_stack = QStackedWidget()
@@ -312,18 +311,18 @@ class DepControlBox(QWidget):
         # TODO: Add "custom" to the list of options in the combobox once the custom dep builder is written
 
         # Create the Standard Deposition Structure Form
-        layer = DepositionStepForm("Deposition", 1)
+        layer = ["Deposition", 1]
         stack = StackParamForm({"Main": layer})
         self.std_dep_widget = StructureParamForm(stack, False, False)
 
         # Create Super Lattice Deposition Structure Form
-        layer1 = DepositionStepForm("Material/Composition 1", 1)
-        layer2 = DepositionStepForm("Material/Composition 2", 2)
+        layer1 = ["Material/Composition 1", 1]
+        layer2 = ["Material/Composition 2", 2]
         stack = StackParamForm({"L1": layer1, "L2": layer2})
         self.super_lattice_dep_widget = StructureParamForm(stack, True, False)
 
         # Create a PLID Deposition Structure Form
-        layer = DepositionStepForm("Deposition", 1)
+        layer = ["Deposition", 1]
         stack = StackParamForm({"Main": layer})
         self.plid_dep_widget = StructureParamForm(stack, False, True)
 
@@ -380,6 +379,9 @@ class DepControlBox(QWidget):
                                                 "Python Pickle Files (*.p)")
         pickle.dump(self.dep_forms_stack.currentWidget().return_deposition_params(), open(save_name[0], 'wb'))
 
+    def load_parameters(self):
+        pass
+
     def run_step(self):
         deposition = Deposition(self.dep_forms_stack.currentWidget(), self.laser)
         deposition.start()
@@ -387,12 +389,12 @@ class DepControlBox(QWidget):
 
 class DepositionStepForm(QWidget):
 
-    def __init__(self, step_title, layer_code):
+    def __init__(self, layer_info_array):
         super().__init__()
 
         # Pull in parameters as variables
-        self.stepTitle = step_title + " Parameters"
-        self.layerCode = layer_code
+        self.stepTitle = layer_info_array[0] + " Parameters"
+        self.layerCode = layer_info_array[1]
 
         # Set up extra parts needed to create an equilibrium step
         if self.layerCode == 0:
@@ -454,14 +456,12 @@ class DepositionStepForm(QWidget):
             new_time = float(self.pulse_count_line.text()) / float(self.reprate_line.text())
             new_time = round(new_time, 2)
             self.dep_time_line.setText(str(new_time))
-        # FIXME: Could throw errors trying to set text to a float
 
     def recalculate_pulses(self):
         if self.reprate_line.text() != "" and self.dep_time_line.text() != "":
             new_pulses = float(self.dep_time_line.text()) * float(self.reprate_line.text())
             new_pulses = trunc(new_pulses)
             self.pulse_count_line.setText(str(new_pulses))
-        # FIXME: Could throw errors trying to set text to a float
 
     def return_layer_params(self):
         if self.layerCode == 0:
@@ -486,23 +486,24 @@ class StackParamForm(QVBoxLayout):
 
     def __init__(self, layer_dict):  # FIXME: Need another function to build the layer dict
         super().__init__()
-        self.dictLayers = layer_dict
+        # TODO: Redo this so that self.layer_dict is more useable on output
+        self.layer_dict = layer_dict
         self.init_widget()
 
     def init_widget(self):
-        for key in self.dictLayers:
-            self.addWidget(self.dictLayers[key])
+        for key in self.layer_dict:
+            self.addWidget(DepositionStepForm(self.layer_dict[key]))
 
     def return_stack_params(self):
         stack_params = {}
 
-        for key in self.dictLayers:
-            layer_params = self.dictLayers[key].return_layer_params()
+        for key in self.layer_dict:
+            layer_params = self.layer_dict[key].return_layer_params()
             stack_params[layer_params['Layer Code']] = layer_params
 
         stack_params['#Layers'] = len(stack_params)
         print(stack_params)
-        return stack_params
+        return self.layer_dict, stack_params
 
 
 class StructureParamForm(QWidget):
@@ -511,13 +512,13 @@ class StructureParamForm(QWidget):
         super().__init__()
 
         # Pull in parameters
-        self.stackForm = stack_form
+        self.stack_form = stack_form
         self.is_multi_stack = is_multi_stack
         self.is_interval_dep = is_interval_dep
 
         # Create Form elements
         self.vbox = QVBoxLayout()
-        self.equil_form = DepositionStepForm("Target Equilibration", layer_code=0)
+        self.equil_form = DepositionStepForm(["Target Equilibration", 0])
         self.title = QLabel("Structure Parameters")
         self.stack_rep_line = QLineEdit()
         self.stack_rep_line.setValidator(QIntValidator(1, 1000))  # This is basically just so it has to be a number.
@@ -540,13 +541,14 @@ class StructureParamForm(QWidget):
             self.vbox.addWidget(self.title)
             self.vbox.addLayout(self.structure_param_form)
 
-        self.vbox.addLayout(self.stackForm)
+        self.vbox.addLayout(self.stack_form)
 
         self.setLayout(self.vbox)
 
     def return_deposition_params(self):
         equil_params = self.equil_form.return_layer_params()
-        dep_params = self.stackForm.return_stack_params()
+        layer_dict = self.stack_form.return_stack_params()[0]
+        dep_params = self.stack_form.return_stack_params()[1]
         if self.is_multi_stack:
             dep_params['#Stacks'] = self.stack_rep_line.text()
         else:
@@ -555,6 +557,7 @@ class StructureParamForm(QWidget):
             dep_params['Dead Time'] = self.dead_time_line.text()
         else:
             dep_params['Dead Time'] = 0
+        dep_params["Structure Dictionary"] = layer_dict
         dep_params[equil_params['Layer Code']] = equil_params
         print(dep_params)
         return dep_params
