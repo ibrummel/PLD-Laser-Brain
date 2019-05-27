@@ -312,22 +312,22 @@ class DepControlBox(QWidget):
 
         # Create the Standard Deposition Structure Form
         layer = ["Deposition", 1]
-        stack = StackParamForm({"Main": layer})
+        stack = {"Main": layer}
         self.std_dep_widget = StructureParamForm(stack, False, False)
 
         # Create Super Lattice Deposition Structure Form
         layer1 = ["Material/Composition 1", 1]
         layer2 = ["Material/Composition 2", 2]
-        stack = StackParamForm({"L1": layer1, "L2": layer2})
+        stack = {"L1": layer1, "L2": layer2}
         self.super_lattice_dep_widget = StructureParamForm(stack, True, False)
 
         # Create a PLID Deposition Structure Form
         layer = ["Deposition", 1]
-        stack = StackParamForm({"Main": layer})
+        stack = {"Main": layer}
         self.plid_dep_widget = StructureParamForm(stack, False, True)
 
         # Create a Deposition Structure that only contains and equilibrium step
-        stack = StackParamForm({})
+        stack = {}
         self.equilibration_dep_widget = StructureParamForm(stack, False, False)
 
         # Set up UI elements
@@ -465,7 +465,7 @@ class DepositionStepForm(QWidget):
 
     def return_layer_params(self):
         if self.layerCode == 0:
-            return {"Layer Code": self.layerCode,
+            return {"Step Code": self.layerCode,
                     "Run Eq": self.runEquilCheck.isChecked(),
                     "Raster": self.rasterCheck.isChecked(),
                     "Reprate": self.reprate_line.text(),
@@ -473,7 +473,7 @@ class DepositionStepForm(QWidget):
                     "Time": self.dep_time_line.text(),
                     "Energy": self.energy_line.text()}
         else:
-            return {"Layer Code": self.layerCode,
+            return {"Step Code": self.layerCode,
                     "Run Eq": None,
                     "Raster": None,
                     "Reprate": self.reprate_line.text(),
@@ -488,18 +488,21 @@ class StackParamForm(QVBoxLayout):
         super().__init__()
         # TODO: Redo this so that self.layer_dict is more useable on output
         self.layer_dict = layer_dict
+        self.layer_widgets = {}
+        for key in self.layer_dict:
+            self.layer_widgets[key] = DepositionStepForm(self.layer_dict[key])
         self.init_widget()
 
     def init_widget(self):
-        for key in self.layer_dict:
-            self.addWidget(DepositionStepForm(self.layer_dict[key]))
+        for key in self.layer_widgets:
+            self.addWidget(self.layer_widgets[key])
 
     def return_stack_params(self):
         stack_params = {}
 
         for key in self.layer_dict:
-            layer_params = self.layer_dict[key].return_layer_params()
-            stack_params[layer_params['Layer Code']] = layer_params
+            layer_params = self.layer_widgets[key].return_layer_params()
+            stack_params[layer_params['Step Code']] = layer_params
 
         stack_params['#Layers'] = len(stack_params)
         print(stack_params)
@@ -508,11 +511,11 @@ class StackParamForm(QVBoxLayout):
 
 class StructureParamForm(QWidget):
 
-    def __init__(self, stack_form, is_multi_stack, is_interval_dep):
+    def __init__(self, stack_dict, is_multi_stack, is_interval_dep):
         super().__init__()
 
         # Pull in parameters
-        self.stack_form = stack_form
+        self.stack_form = StackParamForm(stack_dict)
         self.is_multi_stack = is_multi_stack
         self.is_interval_dep = is_interval_dep
 
@@ -547,6 +550,7 @@ class StructureParamForm(QWidget):
 
     def return_deposition_params(self):
         equil_params = self.equil_form.return_layer_params()
+        # Split the returned tuple
         layer_dict = self.stack_form.return_stack_params()[0]
         dep_params = self.stack_form.return_stack_params()[1]
         if self.is_multi_stack:
@@ -558,7 +562,7 @@ class StructureParamForm(QWidget):
         else:
             dep_params['Dead Time'] = 0
         dep_params["Structure Dictionary"] = layer_dict
-        dep_params[equil_params['Layer Code']] = equil_params
+        dep_params[equil_params['Step Code']] = equil_params
         print(dep_params)
         return dep_params
 
