@@ -287,6 +287,7 @@ class DepControlBox(QWidget):
         self.modeList = ["Standard Deposition",
                          "Super Lattice",
                          "PLID",
+                         "Custom",
                          "Equilibration"]
         self.laser = laser
         # Initialize program interaction controls
@@ -311,8 +312,14 @@ class DepControlBox(QWidget):
         # TODO: Add "custom" to the list of options in the combobox once the custom dep builder is written
 
         # Create the Standard Deposition Structure Form
+        # FIXME: See below
+        """ 
+        Currently stack dictionaries must have labels of the form L#, not sure how to make the loading 
+        function arbitrary without assuming either this or the order of the dictionary entries.
+        """
+
         layer = ["Deposition", 1]
-        stack = {"Main": layer}
+        stack = {"L1": layer}
         self.std_dep_widget = StructureParamForm(stack, False, False)
 
         # Create Super Lattice Deposition Structure Form
@@ -323,12 +330,17 @@ class DepControlBox(QWidget):
 
         # Create a PLID Deposition Structure Form
         layer = ["Deposition", 1]
-        stack = {"Main": layer}
+        stack = {"L1": layer}
         self.plid_dep_widget = StructureParamForm(stack, False, True)
 
         # Create a Deposition Structure that only contains and equilibrium step
         stack = {}
         self.equilibration_dep_widget = StructureParamForm(stack, False, False)
+
+        # Create a blank widget to fill the custom widget until a custom widget is built/inserted
+        self.custom_dep_widget = QFrame()
+        # self.custom_widget_layout = QVBoxLayout()
+        # self.custom_dep_widget.setLayout(self.custom_widget_layout)
 
         # Set up UI elements
         self.init_ui()
@@ -353,6 +365,7 @@ class DepControlBox(QWidget):
         self.dep_forms_stack.addWidget(self.std_dep_widget)
         self.dep_forms_stack.addWidget(self.super_lattice_dep_widget)
         self.dep_forms_stack.addWidget(self.plid_dep_widget)
+        self.dep_forms_stack.addWidget(self.custom_dep_widget)
         self.dep_forms_stack.addWidget(self.equilibration_dep_widget)
         self.dep_forms_stack.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.dep_forms_stack.setLineWidth(2)
@@ -373,6 +386,8 @@ class DepControlBox(QWidget):
             self.dep_forms_stack.setCurrentWidget(self.plid_dep_widget)
         elif widget == "Equilibration":
             self.dep_forms_stack.setCurrentWidget(self.equilibration_dep_widget)
+        elif widget == "Custom":
+            self.dep_forms_stack.setCurrentWidget(self.custom_dep_widget)
 
     def save_parameters(self):
         save_name = QFileDialog.getSaveFileName(self, "Save deposition profile...", os.path.expanduser('~'),
@@ -380,7 +395,23 @@ class DepControlBox(QWidget):
         pickle.dump(self.dep_forms_stack.currentWidget().return_deposition_params(), open(save_name[0], 'wb'))
 
     def load_parameters(self):
-        pass
+        # Prompt user to find the file to load then save it to load_params
+        load_name = QFileDialog.getOpenFileName(self, "Load deposition profile...", os.path.expanduser('~'),
+                                                "Python Pickle Files (*.p)")
+        load_params = pickle.load(open(load_name[0], 'rb'))
+
+        # Load a new StructureParamForm with passed parameters
+        loaded_widget = StructureParamForm({})
+        loaded_widget.load_deposition_params(load_params)
+
+        # Remove the custom widget from the stack, set custom widget to the loaded widget, then insert it into the stack
+        self.dep_forms_stack.removeWidget(self.custom_dep_widget)
+        self.custom_dep_widget = loaded_widget
+        self.dep_forms_stack.addWidget(self.custom_dep_widget)
+
+        # self.custom_widget_layout.addWidget(loaded_widget)
+        self.dep_forms_stack.setCurrentWidget(self.custom_dep_widget)
+        self.program_mode_combo.setCurrentText("Custom")
 
     def run_step(self):
         deposition = Deposition(self.dep_forms_stack.currentWidget(), self.laser)
@@ -481,19 +512,35 @@ class DepositionStepForm(QWidget):
                     "Time": self.dep_time_line.text(),
                     "Energy": self.energy_line.text()}
 
+    def load_layer_params(self, params):
+        if params["Step Code"] == 0:
+            self.runEquilCheck.setChecked(params["Run Eq"])
+            self.rasterCheck.setChecked(params["Raster"])
+            self.reprate_line.setText(params["Reprate"])
+            self.pulse_count_line.setText(params["Pulses"])
+            self.dep_time_line.setText(params["Time"])
+            self.energy_line.setText(params["Energy"])
+        else:
+            self.reprate_line.setText(params["Reprate"])
+            self.pulse_count_line.setText(params["Pulses"])
+            self.dep_time_line.setText(params["Time"])
+            self.energy_line.setText(params["Energy"])
+
 
 class StackParamForm(QVBoxLayout):
 
     def __init__(self, layer_dict):  # FIXME: Need another function to build the layer dict
         super().__init__()
-        # TODO: Redo this so that self.layer_dict is more useable on output
         self.layer_dict = layer_dict
         self.layer_widgets = {}
-        for key in self.layer_dict:
-            self.layer_widgets[key] = DepositionStepForm(self.layer_dict[key])
         self.init_widget()
 
     def init_widget(self):
+        # Create dictionary of widgets corresponding to the passed arrays of parameters
+        for key in self.layer_dict:
+            self.layer_widgets[key] = DepositionStepForm(self.layer_dict[key])
+
+        # Add each widget in the dictionary to the layout
         for key in self.layer_widgets:
             self.addWidget(self.layer_widgets[key])
 
@@ -508,10 +555,25 @@ class StackParamForm(QVBoxLayout):
         print(stack_params)
         return self.layer_dict, stack_params
 
+    def load_stack_params(self, load_params):
+        # Clear out existing widgets before generating the loaded widget
+        for widget in self.children():
+            self.removeWidget(widget)
+
+        # Overwrite the layer_dict and re initialize the widget with new deposition steps
+        self.layer_dict = load_params["Structure Dictionary"]
+        self.layer_widgets = {}  # Clear any old widgets to prevent double adding them
+        self.init_widget()
+
+        # Step through new widgets and load the passed parameters into them.
+        for key in self.layer_widgets:
+            layer_code = int(key.split("L")[1])
+            self.layer_widgets[key].load_layer_params(load_params[layer_code])
+
 
 class StructureParamForm(QWidget):
 
-    def __init__(self, stack_dict, is_multi_stack, is_interval_dep):
+    def __init__(self, stack_dict, is_multi_stack=False, is_interval_dep=False):
         super().__init__()
 
         # Pull in parameters
@@ -550,9 +612,12 @@ class StructureParamForm(QWidget):
 
     def return_deposition_params(self):
         equil_params = self.equil_form.return_layer_params()
+
         # Split the returned tuple
-        layer_dict = self.stack_form.return_stack_params()[0]
-        dep_params = self.stack_form.return_stack_params()[1]
+        layer_dict, dep_params = self.stack_form.return_stack_params()
+        dep_params[equil_params['Step Code']] = equil_params
+        dep_params["Multi Stack"] = self.is_multi_stack
+        dep_params["Interval Dep"] = self.is_interval_dep
         if self.is_multi_stack:
             dep_params['#Stacks'] = self.stack_rep_line.text()
         else:
@@ -562,9 +627,29 @@ class StructureParamForm(QWidget):
         else:
             dep_params['Dead Time'] = 0
         dep_params["Structure Dictionary"] = layer_dict
-        dep_params[equil_params['Step Code']] = equil_params
         print(dep_params)
         return dep_params
+
+    def load_deposition_params(self, load_params):
+        # Set internal instance variables for rebuilding the widget
+        self.is_multi_stack = load_params["Multi Stack"]
+        self.is_interval_dep = load_params["Interval Dep"]
+
+        # Create a black StackParamForm then fill it using the load_stack_params function
+        self.stack_form = StackParamForm({})
+        self.stack_form.load_stack_params(load_params)
+
+        # Reinitialize the widget to build equilibrium and structure parameter fields
+        self.init_widget()
+
+        # Load saved parameters in to the equilibratrion fields
+        self.equil_form.load_layer_params(load_params[0])
+
+        # Set values in structure parameter fields
+        if self.is_multi_stack:
+            self.stack_rep_line.setText(load_params["#Stacks"])
+        if self.is_interval_dep:
+            self.dead_time_line.setText(load_params["Dead Time"])
 
 
 class Deposition(QObject):  # FIXME: Not sure what to subclass here.
