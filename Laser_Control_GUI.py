@@ -211,20 +211,10 @@ class LaserStatusControl(QWidget):
             self.laser.off()
             self.btnOnOff.setText('&Start Laser')
         elif self.laser.rd_opmode() == 'OFF:31':
-            timeout_clear = QMessageBox.question(self, 'Laser Status: Timeout',
-                                                 "Press Ok to clear laser\
-                                                 timeout and start lasing.",
-                                                 QMessageBox.Ok |
-                                                 QMessageBox.Cancel,
-                                                 QMessageBox.Cancel)
-            if timeout_clear == QMessageBox.Ok:
-                self.laser.set_timeout(False)
-                time.sleep(0.01)
-                self.laser.on()
-                self.btnOnOff.setText('Stop Laser')
-            elif timeout_clear == QMessageBox.Cancel:
-                pass
-
+            self.laser_timeout_handler()
+        elif self.laser.rd_opmode() == 'OFF:21':
+            # FIXME: Add a countdown timer?
+            self.warmup_warn()
         else:
             self.laser.on()
             self.btnOnOff.setText('Stop Laser')
@@ -232,6 +222,35 @@ class LaserStatusControl(QWidget):
         # Re-enables the updater for the LSC
         time.sleep(0.01)
         self.updateTimer.start(int(1000 / int(self.laser.rd_reprate())))
+
+    def laser_timeout_handler(self):
+        timeout_clear = QMessageBox.question(self, 'Laser Status: Timeout',
+                                             "Press Ok to clear laser\
+                                             timeout and start lasing.",
+                                             QMessageBox.Ok |
+                                             QMessageBox.Cancel,
+                                             QMessageBox.Cancel)
+        if timeout_clear == QMessageBox.Ok:
+            self.laser.set_timeout(False)
+            time.sleep(0.01)
+            self.laser.on()
+            self.btnOnOff.setText('Stop Laser')
+        elif timeout_clear == QMessageBox.Cancel:
+            pass
+
+    def warmup_warn(self):
+        warmup_clear = QMessageBox.question(self, 'Laser Status: Warm-Up',
+                                            "Press retry to check again if the warmup is over, cancel to wait",
+                                            QMessageBox.Retry |
+                                            QMessageBox.Cancel,
+                                            QMessageBox.Retry)
+        if warmup_clear == QMessageBox.Ok and self.laser.rd_opmode() == 'OFF:21':
+            self.warmup_warn()
+        elif warmup_clear == QMessageBox.Ok and not self.laser.rd_opmode() == 'OFF:21':
+            notify = QMessageBox.question(self, 'Laser Warmup Complete', 'Laser is ready for use',
+                                          QMessageBox.Ok, QMessageBox.Ok)
+            if notify == QMessageBox.Ok:
+                pass
 
     # def pause_LSC(self):
     #     self.isLSCUpdating = not self.isLSCUpdating
@@ -755,8 +774,8 @@ def main():
     # Start LaserComm and connect to laser
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
-    laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
-    # laser = VisaLaser('ASRLCOM3::INSTR', '@py')
+    #laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
+    laser = VisaLaser('ASRLCOM3::INSTR', '@py')
 
     ex = MainWindow(laser)
     ex.show()
