@@ -186,8 +186,11 @@ class LaserStatusControl(QWidget):
 
     # Sends the command that was typed into the terminal.
     def terminal_send(self):
-        self.terminal.setText(self.laser.query(self.terminal.text()))
-        print("Terminal Command Sent")
+        try:
+            self.terminal.setText(self.laser.query(self.terminal.text()))
+            print("Terminal Command Sent")
+        except:
+            print("An error occurred on sending terminal command")
 
     # Sends a command to the laser to change mode. Also sets which parameters
     # are editable from the LSC.
@@ -774,8 +777,8 @@ def main():
     # Start LaserComm and connect to laser
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
-    #laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
-    laser = VisaLaser('ASRLCOM3::INSTR', '@py')
+    # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
+    laser = VisaLaser('ASRL/dev/ttyS1::INSTR', '@py')
 
     ex = MainWindow(laser)
     ex.show()
