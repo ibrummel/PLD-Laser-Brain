@@ -225,13 +225,20 @@ class LaserStatusControl(QWidget):
         time.sleep(0.01)
 
         if self.laser.rd_opmode() in on_opmodes:
-            self.laser.off()
+            if self.laser.rd_trigger() == 'INT':
+                self.laser.off()
+            elif self.laser.rd_trigger() == 'EXT':
+                self.brain.stop_pulsing()
+
             self.btnOnOff.setText('&Start Laser')
+
         elif self.laser.rd_opmode() == 'OFF:31':
             self.laser_timeout_handler()
+
         elif self.laser.rd_opmode() == 'OFF:21':
             # FIXME: Add a countdown timer?
             self.warmup_warn()
+
         else:
             if self.laser.rd_trigger() == 'EXT':
                 self.brain.start_pulsing(self.ext_reprate_current)
