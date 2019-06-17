@@ -18,6 +18,8 @@ class BeagleBoneHardware(QObject):
         # Define class variables for pins
         self.trigger_pin = "P8_17"
 
+        self.setup_pins()
+
     def setup_pins(self):
         # Set up pins
         GPIO.setup(self.trigger_pin, GPIO.OUT)
