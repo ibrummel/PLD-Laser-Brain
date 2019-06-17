@@ -17,6 +17,7 @@ import pickle
 from VISA_Communications import VisaLaser
 import time
 from math import trunc
+from BBB_Hardware import BeagleBoneHardware
 
 
 def truncate(number, decimals=0):
@@ -55,7 +56,7 @@ def truncate(number, decimals=0):
 # FIXME: Connect all raster items to respective controls
 class LaserStatusControl(QWidget):
 
-    def __init__(self, laser):
+    def __init__(self, laser, bbb_brain):
         super().__init__()
 
         # Set up permissible modes list
@@ -64,6 +65,10 @@ class LaserStatusControl(QWidget):
 
         # Pull in parameters
         self.laser = laser
+        self.brain = bbb_brain
+
+        # Create internal variables and set values
+        self.ext_reprate_current = self.laser.rd_reprate()
 
         # Create widgets and other GUI elements
         self.modeSelLabel = QLabel('Mode: ')
@@ -80,12 +85,16 @@ class LaserStatusControl(QWidget):
         self.hv_val.setValidator(QDoubleValidator(18, 27, 1))
 
         self.reprateLabel = QLabel('Reprate: ')
-        self.current_reprate = self.laser.rd_reprate()
-        self.reprate_val = QLineEdit(self.current_reprate)
+        self.int_reprate_current = self.laser.rd_reprate()
+        self.reprate_val = QLineEdit(self.int_reprate_current)
         self.reprate_val.setValidator(QIntValidator(0, 20))  # Laser caps at 50, but >20 needs cooling water
 
-        self.rasterLabel = QLabel('Raster? ')
         self.rasterCheck = QCheckBox()
+        self.extTriggerCheck = QCheckBox()
+
+        self.checkForm = QFormLayout()
+        self.checkForm.addRow('Raster?', self.rasterCheck)
+        self.checkForm.addRow('EXT Trig?', self.extTriggerCheck)
 
         self.btnOnOff = QPushButton("Start Laser")
 
@@ -128,14 +137,16 @@ class LaserStatusControl(QWidget):
         # the laser is set to external triggering
         self.reprate_val.returnPressed.connect(self.set_reprate)
 
+        # Set up check boxes. Default raster to on, and set external trigger check
+        # based on current laser configuration
+        self.rasterCheck.setChecked(True)
+        if self.laser.rd_trigger() == "EXT":
+            self.extTriggerCheck.setChecked(True)
+        self.extTriggerCheck.stateChanged.connect(self.change_trigger)
+
         # Start Stop Button
         # self.btnOnOff.setAlignment(Qt.AlignCenter)
-        self.btnOnOff.clicked.connect(self.change_btn_on_off)
-
-        # DEBUG: Create a pause LSC update button
-        # self.isLSCUpdating = True
-        # self.btnPauseUpdate = QPushButton("Pause LSC Updates")
-        # self.btnPauseUpdate.clicked.connect(self.pause_LSC)
+        self.btnOnOff.clicked.connect(self.change_on_off)
 
         # Terminal box for debug
         self.terminal.setPlaceholderText('Enter a command here')
@@ -150,8 +161,7 @@ class LaserStatusControl(QWidget):
         self.hbox.addWidget(self.hv_val)
         self.hbox.addWidget(self.reprateLabel)
         self.hbox.addWidget(self.reprate_val)
-        self.hbox.addWidget(self.rasterLabel)
-        self.hbox.addWidget(self.rasterCheck)
+        self.hbox.addLayout(self.checkForm)
 
         # Create a vertical box to set up title and LSC boxes
         self.vbox.addWidget(self.title)
@@ -179,10 +189,8 @@ class LaserStatusControl(QWidget):
         if not self.reprate_val.hasFocus():
             if self.laser.rd_trigger() == 'INT':
                 self.reprate_val.setText(self.laser.rd_reprate())
-                self.reprate_val.setDisabled(False)
             elif self.laser.rd_trigger() == 'EXT':
-                self.reprate_val.setDisabled(True)
-                self.reprate_val.setText('External')
+                self.reprate_val.setText(self.ext_reprate_current)
 
     # Sends the command that was typed into the terminal.
     def terminal_send(self):
@@ -203,7 +211,13 @@ class LaserStatusControl(QWidget):
             self.egy_val.setDisabled(False)
             self.hv_val.setDisabled(True)
 
-    def change_btn_on_off(self):
+    def change_trigger(self):
+        if self.extTriggerCheck.isChecked():
+            self.laser.set_trigger('EXT')
+        elif not self.extTriggerCheck.isChecked():
+            self.laser.set_trigger('INT')
+
+    def change_on_off(self):
         on_opmodes = ['ON', 'OFF,WAIT']
         # On button press stops the timer that updates the display so that
         # we don't see timeouts on pressing the button to stop/start
@@ -219,8 +233,12 @@ class LaserStatusControl(QWidget):
             # FIXME: Add a countdown timer?
             self.warmup_warn()
         else:
-            self.laser.on()
-            self.btnOnOff.setText('Stop Laser')
+            if self.laser.rd_trigger() == 'EXT':
+                self.brain.start_pulsing(self.ext_reprate_current)
+                self.btnOnOff.setText('Stop External Trigger')
+            elif self.laser.rd_trigger() == 'INT':
+                self.laser.on()
+                self.btnOnOff.setText('Stop Internal Trigger')
 
         # Re-enables the updater for the LSC
         time.sleep(0.01)
@@ -289,16 +307,28 @@ class LaserStatusControl(QWidget):
         self.hv_val.clearFocus()
 
     def set_reprate(self):
-        if 1 <= int(self.reprate_val.text()) <= 30:
-            self.current_reprate = self.reprate_val.text()
-            self.laser.set_reprate(self.current_reprate)
-        else:
-            value_error = QMessageBox.question(self, 'Value Error',
-                                               'The repitition rate entered is not within acceptable limits. Repitition\
-                                               rate will be reset to last good value.',
-                                               QMessageBox.Ok, QMessageBox.Ok)
-            if value_error == QMessageBox.Ok:
-                self.reprate_val.setText(self.current_reprate)
+        if self.laser.rd_trigger() == 'INT':
+            if 1 <= int(self.reprate_val.text()) <= 30:
+                self.int_reprate_current = self.reprate_val.text()
+                self.laser.set_reprate(self.int_reprate_current)
+            else:
+                value_error = QMessageBox.question(self, 'Value Error',
+                                                   'The repitition rate entered is not within acceptable limits. Repitition\
+                                                   rate will be reset to last good value.',
+                                                   QMessageBox.Ok, QMessageBox.Ok)
+                if value_error == QMessageBox.Ok:
+                    self.reprate_val.setText(self.int_reprate_current)
+        elif self.laser.rd_trigger() == 'EXT':
+            if 1 <= int(self.reprate_val.text()) <= 30:
+                self.ext_reprate_current = self.reprate_val.text()
+                # FIXME: make sure this is connected to the BBB triggering
+            else:
+                value_error = QMessageBox.question(self, 'Value Error',
+                                                   'The repitition rate entered is not within acceptable limits. Repitition\
+                                                   rate will be reset to last good value.',
+                                                   QMessageBox.Ok, QMessageBox.Ok)
+                if value_error == QMessageBox.Ok:
+                    self.reprate_val.setText(self.ext_reprate_current)
         self.reprate_val.clearFocus()
 
 
@@ -752,9 +782,10 @@ class Deposition(QObject):  # FIXME: Not sure what to subclass here.
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, laser):
+    def __init__(self, laser, brain):
         super().__init__()
         self.laser = laser
+        self.brain = brain
 
         # Create a docked widget to hold the LSC module
         self.lscDocked = QDockWidget()
@@ -765,7 +796,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('PLD Laser Control')
         self.setCentralWidget(DepControlBox(self.laser))
 
-        self.lscDocked.setWidget(LaserStatusControl(self.laser))
+        self.lscDocked.setWidget(LaserStatusControl(self.laser, self.brain))
         self.lscDocked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
         self.setCorner(Qt.TopLeftCorner | Qt.TopRightCorner, Qt.TopDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner | Qt.BottomRightCorner, Qt.BottomDockWidgetArea)
@@ -779,8 +810,9 @@ def main():
     # the working directory
     # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
     laser = VisaLaser('ASRL/dev/ttyS1::INSTR', '@py')
+    bbb_brain = BeagleBoneHardware()
 
-    ex = MainWindow(laser)
+    ex = MainWindow(laser, bbb_brain)
     ex.show()
 
     sys.exit(app.exec_())
