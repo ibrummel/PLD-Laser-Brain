@@ -33,6 +33,9 @@ class BeagleBoneHardware(QObject):
         self.trigger_timer.start(rep_time)
         self.pulse_count_target = pulse_count
 
+    def stop_pulsing(self):
+        self.trigger_timer.stop()
+
     def trigger_pulse(self):
         if self.allow_trigger:
             GPIO.output(self.trigger_pin, GPIO.HIGH)
