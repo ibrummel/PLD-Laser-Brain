@@ -16,7 +16,7 @@ class BeagleBoneHardware(QObject):
         self.trigger_timer.timeout.connect(self.trigger_pulse)
 
         # Define class variables for pins
-        self.trigger_pin = "P8_7"
+        self.trigger_pin = "P8_17"
 
     def setup_pins(self):
         # Set up pins
