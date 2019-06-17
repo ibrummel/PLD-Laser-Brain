@@ -16,14 +16,14 @@ class BeagleBoneHardware(QObject):
         self.trigger_timer.timeout.connect(self.trigger_pulse)
 
         # Define class variables for pins
-        self.trigger_pin = "P8_7"
+        self.trigger_pin = "P8_17"
 
     def setup_pins(self):
         # Set up pins
-        GPIO.setup(trigger_pin, GPIO.OUT)
+        GPIO.setup(self.trigger_pin, GPIO.OUT)
 
         # Write all set up pins to LOW
-        GPIO.output(trigger_pin, GPIO.LOW)
+        GPIO.output(self.trigger_pin, GPIO.LOW)
 
     def start_pulsing(self, reprate, pulse_count=None):
         # Reset allow_trigger so that we don't end up breaking things/needing to restart the GUI on deposition cancel.
