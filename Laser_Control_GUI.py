@@ -238,6 +238,7 @@ class LaserStatusControl(QWidget):
                 self.laser.off()
             elif self.laser.rd_trigger() == 'EXT':
                 self.brain.stop_pulsing()
+                self.laser.off()
 
             self.btnOnOff.setText('Start Laser')
 
@@ -251,8 +252,9 @@ class LaserStatusControl(QWidget):
         else:
             if self.laser.rd_trigger() == 'EXT':
                 self.laser.on()
+                time.sleep(0.01)
                 print('Sent laser on. Laser Status: {}'.format(self.laser.rd_opmode()))
-                self.brain.start_pulsing(self.ext_reprate_current)
+                QTimer.singleShot(3000, lambda: self.brain.start_pulsing(self.ext_reprate_current))
                 self.btnOnOff.setText('Stop External Trigger')
             elif self.laser.rd_trigger() == 'INT':
                 self.laser.on()
