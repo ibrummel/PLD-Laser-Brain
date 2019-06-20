@@ -180,6 +180,7 @@ class LaserStatusControl(QWidget):
     # Updater for the laser status readouts. Only updates for fields that are
     # not currently selected.
     def update_lsc(self):
+        on_opmodes = ['ON', 'OFF,WAIT']
         if not self.egy_val.hasFocus():
             self.egy_val.setText(self.laser.rd_energy())
 
@@ -191,6 +192,14 @@ class LaserStatusControl(QWidget):
                 self.reprate_val.setText(self.laser.rd_reprate())
             elif self.laser.rd_trigger() == 'EXT':
                 self.reprate_val.setText(self.ext_reprate_current)
+
+        if self.laser.rd_opmode() in on_opmodes:
+            if self.laser.rd_trigger() == 'INT':
+                self.btnOnOff.setText('Stop Laser (INT Trigger)')
+            elif self.laser.rd_trigger() == 'EXT':
+                self.btnOnOff.setText('Stop Laser (EXT Trigger)')
+        else:
+            self.btnOnOff.setText('Start Laser')
 
     # Sends the command that was typed into the terminal.
     def terminal_send(self):
@@ -230,7 +239,7 @@ class LaserStatusControl(QWidget):
             elif self.laser.rd_trigger() == 'EXT':
                 self.brain.stop_pulsing()
 
-            self.btnOnOff.setText('&Start Laser')
+            self.btnOnOff.setText('Start Laser')
 
         elif self.laser.rd_opmode() == 'OFF:31':
             self.laser_timeout_handler()
