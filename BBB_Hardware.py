@@ -31,7 +31,7 @@ class BeagleBoneHardware(QObject):
         # Reset allow_trigger so that we don't end up breaking things/needing to restart the GUI on deposition cancel.
         self.allow_trigger = True
         self.triggers_sent = 0
-        rep_time = float(1000 / reprate)
+        rep_time = float(1000 / float(reprate))
         self.trigger_timer.start(rep_time)
         self.pulse_count_target = pulse_count
 
