@@ -29,8 +29,6 @@ class BeagleBoneHardware(QObject):
 
     def start_pulsing(self, reprate, pulse_count=None):
         # Reset allow_trigger so that we don't end up breaking things/needing to restart the GUI on deposition cancel.
-        self.allow_trigger = True
-        self.triggers_sent = 0
         print('Starting pulsing')
         rep_time = float(1000 / float(reprate))
         self.trigger_timer.start(rep_time)

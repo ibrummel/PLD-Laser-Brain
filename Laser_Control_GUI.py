@@ -341,7 +341,7 @@ class LaserStatusControl(QWidget):
         elif self.laser.rd_trigger() == 'EXT':
             if 1 <= int(self.reprate_val.text()) <= 30:
                 self.ext_reprate_current = self.reprate_val.text()
-                # FIXME: make sure this is connected to the BBB triggering
+                self.brain.start_pulsing(self.ext_reprate_current)
             else:
                 value_error = QMessageBox.question(self, 'Value Error',
                                                    'The repitition rate entered is not within acceptable limits. Repitition\
