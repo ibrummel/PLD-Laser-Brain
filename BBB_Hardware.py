@@ -5,88 +5,6 @@ from PyQt5.QtWidgets import QMessageBox, QDialog, QPushButton
 from time import sleep
 
 
-class HomeTargetsDialog(QDialog):
-    def __init__(self, brain: BeagleBoneHardware):
-        super().__init__()
-
-        self.brain = brain
-        self.setWindowTitle('Home Target Carousel')
-
-        self.right_btn = QPushButton()
-        self.right_btn.setAutoRepeat(True)
-        self.right_btn.setAutoRepeatInterval(10)
-        self.right_btn.setAutoRepeatDelay(200)
-
-        self.left_btn = QPushButton()
-        self.left_btn.setAutoRepeat(True)
-        self.left_btn.setAutoRepeatInterval(10)
-        self.left_btn.setAutoRepeatDelay(200)
-
-        self.left_icon = QIcon()
-        self.right_icon = QIcon()
-        self.right_icon.addFile('.\\src\\img\\right_btn.svg')
-        self.left_icon.addFile('.\\src\\img\\left_btn.svg')
-        self.right_btn.setIcon(self.right_icon)
-        self.left_btn.setIcon(self.left_icon)
-
-        self.apply_btn = QPushButton("Apply")
-        self.cancel_btn = QPushButton("Cancel")
-
-        self.left_sc = QShortcut(QKeySequence(Qt.Key_Left), self)
-        self.right_sc = QShortcut(QKeySequence(Qt.Key_Right), self)
-
-        self.instruction_label = QLabel('Use the buttons below or the left and right arrow keys to align the ' +
-                                        '"home mark" on the motor and coupling, then press Accept to confirm ' +
-                                        'the new home position. Pressing reject will cancel the home routine ' +
-                                        'and preserve current settings.')
-        self.instruction_label.setWordWrap(True)
-
-        self.hbox = QHBoxLayout()
-        self.vbox = QVBoxLayout()
-
-        self.init_layout()
-        self.init_connections()
-
-    def init_connections(self):
-        self.right_btn.clicked.connect(self.right)
-        self.left_btn.clicked.connect(self.left)
-        self.left_sc.activated.connect(self.left)
-        self.right_sc.activated.connect(self.right)
-        self.apply_btn.clicked.connect(self.apply_home)
-        self.cancel_btn.clicked.connect(self.cancel_home)
-
-    def init_layout(self):
-        self.setFixedWidth(700)
-        self.setFixedHeight(230)
-        self.hbox.addWidget(self.left_btn)
-        self.hbox.addWidget(self.right_btn)
-        self.hbox.addSpacerItem(QSpacerItem(220, 20))
-        self.hbox.addWidget(self.apply_btn)
-        self.hbox.addWidget(self.cancel_btn)
-
-        self.vbox.addWidget(self.instruction_label)
-        self.vbox.addSpacerItem(QSpacerItem(700, 28))
-        self.vbox.addLayout(self.hbox)
-
-        self.setLayout(self.vbox)
-
-    def right(self):
-        if self.brain.get_target_dir() != 'cw':
-            self.brain.set_target_dir('cw')
-        self.brain.step_target()
-
-    def left(self):
-        if self.brain.get_target_dir() != 'ccw':
-            self.brain.set_target_dir('ccw')
-        self.brain.step_target()
-
-    def apply_home(self):
-        self.accept()
-
-    def cancel_home(self):
-        self.reject()
-
-
 class BeagleBoneHardware(QObject):
 
     def __init__(self):
@@ -326,3 +244,85 @@ class BeagleBoneHardware(QObject):
 
     def __del__(self):
         GPIO.cleanup()
+
+
+class HomeTargetsDialog(QDialog):
+    def __init__(self, brain: BeagleBoneHardware):
+        super().__init__()
+
+        self.brain = brain
+        self.setWindowTitle('Home Target Carousel')
+
+        self.right_btn = QPushButton()
+        self.right_btn.setAutoRepeat(True)
+        self.right_btn.setAutoRepeatInterval(10)
+        self.right_btn.setAutoRepeatDelay(200)
+
+        self.left_btn = QPushButton()
+        self.left_btn.setAutoRepeat(True)
+        self.left_btn.setAutoRepeatInterval(10)
+        self.left_btn.setAutoRepeatDelay(200)
+
+        self.left_icon = QIcon()
+        self.right_icon = QIcon()
+        self.right_icon.addFile('.\\src\\img\\right_btn.svg')
+        self.left_icon.addFile('.\\src\\img\\left_btn.svg')
+        self.right_btn.setIcon(self.right_icon)
+        self.left_btn.setIcon(self.left_icon)
+
+        self.apply_btn = QPushButton("Apply")
+        self.cancel_btn = QPushButton("Cancel")
+
+        self.left_sc = QShortcut(QKeySequence(Qt.Key_Left), self)
+        self.right_sc = QShortcut(QKeySequence(Qt.Key_Right), self)
+
+        self.instruction_label = QLabel('Use the buttons below or the left and right arrow keys to align the ' +
+                                        '"home mark" on the motor and coupling, then press Accept to confirm ' +
+                                        'the new home position. Pressing reject will cancel the home routine ' +
+                                        'and preserve current settings.')
+        self.instruction_label.setWordWrap(True)
+
+        self.hbox = QHBoxLayout()
+        self.vbox = QVBoxLayout()
+
+        self.init_layout()
+        self.init_connections()
+
+    def init_connections(self):
+        self.right_btn.clicked.connect(self.right)
+        self.left_btn.clicked.connect(self.left)
+        self.left_sc.activated.connect(self.left)
+        self.right_sc.activated.connect(self.right)
+        self.apply_btn.clicked.connect(self.apply_home)
+        self.cancel_btn.clicked.connect(self.cancel_home)
+
+    def init_layout(self):
+        self.setFixedWidth(700)
+        self.setFixedHeight(230)
+        self.hbox.addWidget(self.left_btn)
+        self.hbox.addWidget(self.right_btn)
+        self.hbox.addSpacerItem(QSpacerItem(220, 20))
+        self.hbox.addWidget(self.apply_btn)
+        self.hbox.addWidget(self.cancel_btn)
+
+        self.vbox.addWidget(self.instruction_label)
+        self.vbox.addSpacerItem(QSpacerItem(700, 28))
+        self.vbox.addLayout(self.hbox)
+
+        self.setLayout(self.vbox)
+
+    def right(self):
+        if self.brain.get_target_dir() != 'cw':
+            self.brain.set_target_dir('cw')
+        self.brain.step_target()
+
+    def left(self):
+        if self.brain.get_target_dir() != 'ccw':
+            self.brain.set_target_dir('ccw')
+        self.brain.step_target()
+
+    def apply_home(self):
+        self.accept()
+
+    def cancel_home(self):
+        self.reject()
