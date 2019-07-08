@@ -121,8 +121,8 @@ class BeagleBoneHardware(QObject):
 
         # Define class variables for
         # FIXME: Determine/setup pin designations
-        self.out_pins = {"trigger": "P8_17", "sub_dir": "PDUNNO",
-                         "sub_step": "PDUNNO", "target_dir": "PDUNNO",
+        self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_17",
+                         "sub_step": "P9_18", "target_dir": "PDUNNO",
                          "target_step": "PDUNNO"}
         self.in_pins = {"sub_home": "PDUNNNO", }
 
