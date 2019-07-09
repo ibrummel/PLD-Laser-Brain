@@ -60,7 +60,7 @@ class BeagleBoneHardware(QObject):
 
         for key in self.hi_pins:
             GPIO.setup(self.hi_pins[key], GPIO.OUT)
-            GPIO.setup(self.hi_pins[key], GPIO.HI)
+            GPIO.setup(self.hi_pins[key], GPIO.HIGH)
 
     def start_pulsing(self, reprate, pulse_count=None):
         # Reset allow_trigger so that we don't end up breaking things/needing to restart the GUI on deposition cancel.
