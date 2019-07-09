@@ -61,7 +61,7 @@ class BeagleBoneHardware(QObject):
 
         for key in self.hi_pins:
             GPIO.setup(self.hi_pins[key], GPIO.OUT)
-            GPIO.setup(self.hi_pins[key], GPIO.HIGH)
+            GPIO.output(self.hi_pins[key], GPIO.HIGH)
 
     def start_pulsing(self, reprate, pulse_count=None):
         # Reset allow_trigger so that we don't end up breaking things/needing to restart the GUI on deposition cancel.
@@ -124,9 +124,9 @@ class BeagleBoneHardware(QObject):
     def step_sub(self):
         def step_pulse():
             if self.get_sub_dir() == 'up':
-                self.sub_position += 1
-            elif self.get_sub_dir() == 'down':
                 self.sub_position -= 1
+            elif self.get_sub_dir() == 'down':
+                self.sub_position += 1
 
             GPIO.output(self.out_pins['sub_step'], GPIO.HIGH)
             sleep(0.000001)
@@ -170,6 +170,9 @@ class BeagleBoneHardware(QObject):
 
     def get_sub_dir(self):
         return self.sub_dir
+
+    def stop_sub(self):
+        self.sub_step_timer.stop()
 
     def home_targets(self):
         self.home_target_dialog.exec_()
@@ -249,6 +252,9 @@ class BeagleBoneHardware(QObject):
 
     def get_target_dir(self):
         return self.target_dir
+
+    def stop_target(self):
+        self.target_step_timer.stop()
 
     def __del__(self):
         GPIO.cleanup()
