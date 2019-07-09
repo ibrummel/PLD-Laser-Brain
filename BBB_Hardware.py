@@ -105,7 +105,7 @@ class BeagleBoneHardware(QObject):
             self.set_sub_dir('up')
             # FIXME: this delay sets the speed of the substrate movement, fine tune speed
             if not self.sub_step_timer.isActive():
-                self.sub_step_timer.start(1)
+                self.start_sub()
         if GPIO.input(self.in_pins['sub_home']):
             self.sub_goal = 0
             self.sub_position = 0
@@ -119,7 +119,7 @@ class BeagleBoneHardware(QObject):
             self.set_sub_dir('down')
 
         # FIXME: this delay sets the speed of the substrate movement, fine tune speed
-        self.sub_step_timer.start(1)
+        self.start_sub()
 
     def step_sub(self):
         def step_pulse():
@@ -174,6 +174,9 @@ class BeagleBoneHardware(QObject):
     def stop_sub(self):
         self.sub_step_timer.stop()
 
+    def start_sub(self):
+        self.sub_step_timer.start(1)
+
     def home_targets(self):
         self.home_target_dialog.exec_()
 
@@ -207,7 +210,7 @@ class BeagleBoneHardware(QObject):
                 return
 
             # FIXME: Timing and movement speed yada yada
-            self.target_step_timer.start(1)
+            self.start_target()
 
     def step_target(self):
         def step_pulse():
@@ -252,6 +255,9 @@ class BeagleBoneHardware(QObject):
 
     def get_target_dir(self):
         return self.target_dir
+
+    def start_target(self):
+        self.target_step_timer.start(1)
 
     def stop_target(self):
         self.target_step_timer.stop()
