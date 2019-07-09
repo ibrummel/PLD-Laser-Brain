@@ -1,8 +1,8 @@
 # Imports
 import Adafruit_BBIO.GPIO as GPIO
-from PyQt5.QtCore import QObject, QTimer
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox, QDialog, QPushButton, QShortcut
+from PyQt5.QtCore import Qt, QObject, QTimer
+from PyQt5.QtGui import QIcon, QKeySequence
+from PyQt5.QtWidgets import QLabel, QMessageBox, QDialog, QPushButton, QShortcut
 from time import sleep
 
 
