@@ -2,6 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QCheckBox, QHBoxLayout, QLabel, QLineEdit, QPushButton,
                              QWidget, QGroupBox, QGridLayout, QSlider)
+from pathlib import Path
 
 
 class MotorControlPanel(QWidget):
@@ -34,8 +35,10 @@ class MotorControlPanel(QWidget):
         self.down_sub_btn.setAutoRepeatDelay(500)
         self.up_icon = QIcon()
         self.down_icon = QIcon()
-        self.up_icon.addFile('.\\src\\img\\up_btn.svg')
-        self.down_icon.addFile('.\\src\\img\\down_btn.svg')
+        up_btn_path = Path('src/img').absolute() / 'up_btn.svg'
+        down_btn_path = Path('src/img').absolute() / 'down_btn.svg'
+        self.up_icon.addFile(str(up_btn_path))
+        self.down_icon.addFile(str(down_btn_path))
         self.up_sub_btn.setIcon(self.up_icon)
         self.down_sub_btn.setIcon(self.down_icon)
 

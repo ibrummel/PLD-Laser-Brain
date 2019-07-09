@@ -5,6 +5,7 @@ from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton, QShortcut,
                              QSpacerItem, QWidget)
 from time import sleep
+from pathlib import Path
 
 
 class BeagleBoneHardware(QObject):
@@ -272,8 +273,10 @@ class HomeTargetsDialog(QDialog):
 
         self.left_icon = QIcon()
         self.right_icon = QIcon()
-        self.right_icon.addFile('.\\src\\img\\right_btn.svg')
-        self.left_icon.addFile('.\\src\\img\\left_btn.svg')
+        right_btn_path = Path('src/img').absolute() / 'right_btn.svg'
+        left_btn_path = Path('src/img').absolute() / 'left_btn.svg'
+        self.right_icon.addFile(str(right_btn_path))
+        self.left_icon.addFile(str(left_btn_path))
         self.right_btn.setIcon(self.right_icon)
         self.left_btn.setIcon(self.left_icon)
 
