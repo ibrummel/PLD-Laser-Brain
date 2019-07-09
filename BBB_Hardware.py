@@ -2,7 +2,7 @@
 import Adafruit_BBIO.GPIO as GPIO
 from PyQt5.QtCore import Qt, QObject, QTimer
 from PyQt5.QtGui import QIcon, QKeySequence
-from PyQt5.QtWidgets import QLabel, QMessageBox, QDialog, QPushButton, QShortcut
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton, QShortcut, QSpacerItem
 from time import sleep
 
 
@@ -40,21 +40,27 @@ class BeagleBoneHardware(QObject):
 
         # Define class variables for
         # FIXME: Determine/setup pin designations
-        self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_17",
-                         "sub_step": "P9_18", "target_dir": "PDUNNO",
-                         "target_step": "PDUNNO"}
-        self.in_pins = {"sub_home": "PDUNNNO", }
+        self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_19",
+                         "sub_step": "P9_17", "target_dir": "P9_25",
+                         "target_step": "P9_23"}
+        self.in_pins = {"sub_home": "P8_9"}
+	self.hi_pins = {"sub_home": "P8_10"}
 
         self.setup_pins()
 
     def setup_pins(self):
         # Set up pins (all output pins default to low (0))
         for pin in self.out_pins:
-            GPIO.setup(pin, GPIO.OUT)
+		print(pin)
+	    GPIO.setup(pin, GPIO.OUT)
             GPIO.output(pin, GPIO.LOW)
 
         for pin in self.in_pins:
             GPIO.setup(pin, GPIO.IN)
+
+	for pin in self.hi_pins:
+		GPIO.setup(pin, GPIO.OUT)
+		GPIO.setup(pin, GPIO.HI)
 
     def start_pulsing(self, reprate, pulse_count=None):
         # Reset allow_trigger so that we don't end up breaking things/needing to restart the GUI on deposition cancel.
