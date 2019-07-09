@@ -8,7 +8,7 @@ from time import sleep
 from pathlib import Path
 
 
-class BeagleBoneHardware(QObject):
+class BeagleBoneHardware(QWidget):
 
     def __init__(self):
         # Fixme: need to evaluate if using self.parent() returns a widget for this object for use in
@@ -183,12 +183,12 @@ class BeagleBoneHardware(QObject):
         if self.home_target_dialog:
             self.target_position = 0
             self.current_target = 1
-            target_home_info = QMessageBox.information(self.parent().parent(), 'Home Set',
+            target_home_info = QMessageBox.information(self, 'Home Set',
                                                        'New target carousel home position set',
                                                        QMessageBox.Ok, QMessageBox.Ok)
 
         else:
-            target_home_info = QMessageBox.warning(self.parent().parent(), 'Home Canceled',
+            target_home_info = QMessageBox.warning(self, 'Home Canceled',
                                                    'Target carousel home cancelled by user.',
                                                    QMessageBox.Ok, QMessageBox.Ok)
 
