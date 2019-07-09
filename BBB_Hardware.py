@@ -315,8 +315,8 @@ class HomeTargetsDialog(QDialog):
         self.left_btn.clicked.connect(self.left)
         self.left_sc.activated.connect(self.left)
         self.right_sc.activated.connect(self.right)
-        self.apply_btn.clicked.connect(self.apply_home)
-        self.cancel_btn.clicked.connect(self.cancel_home)
+        self.apply_btn.clicked.connect(self.accept)
+        self.cancel_btn.clicked.connect(self.reject)
 
     def init_layout(self):
         self.setFixedWidth(700)
@@ -342,9 +342,3 @@ class HomeTargetsDialog(QDialog):
         if self.brain.get_target_dir() != 'ccw':
             self.brain.set_target_dir('ccw')
         self.brain.step_target()
-
-    def apply_home(self):
-        self.accept()
-
-    def cancel_home(self):
-        self.reject()
