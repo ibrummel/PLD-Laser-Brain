@@ -180,14 +180,14 @@ class BeagleBoneHardware(QWidget):
     def home_targets(self):
         self.home_target_dialog.exec_()
 
-        print(self.home_target_dialog, ',', type(self.home_target_dialog))
-        if self.home_target_dialog == QDialog.Accepted:
+        print(self.home_target_dialog.result(), ',', type(self.home_target_dialog.result()))
+        if self.home_target_dialog.result() == QDialog.Accepted:
             self.target_position = 0
             self.current_target = 1
             target_home_info = QMessageBox.information(self, 'Home Set',
                                                        'New target carousel home position set',
                                                        QMessageBox.Ok, QMessageBox.Ok)
-        elif self.home_target_dialog == QDialog.Rejected:
+        elif self.home_target_dialog.result() == QDialog.Rejected:
             target_home_info = QMessageBox.warning(self, 'Home Canceled',
                                                    'Target carousel home cancelled by user.',
                                                    QMessageBox.Ok, QMessageBox.Ok)
@@ -315,8 +315,8 @@ class HomeTargetsDialog(QDialog):
         self.left_btn.clicked.connect(self.left)
         self.left_sc.activated.connect(self.left)
         self.right_sc.activated.connect(self.right)
-        self.apply_btn.clicked.connect(self.apply_home)
-        self.cancel_btn.clicked.connect(self.cancel_home)
+        self.apply_btn.clicked.connect(self.accept)
+        self.cancel_btn.clicked.connect(self.reject)
 
     def init_layout(self):
         self.setFixedWidth(700)
@@ -342,9 +342,3 @@ class HomeTargetsDialog(QDialog):
         if self.brain.get_target_dir() != 'ccw':
             self.brain.set_target_dir('ccw')
         self.brain.step_target()
-
-    def apply_home(self):
-        self.accept()
-
-    def cancel_home(self):
-        self.reject()
