@@ -224,7 +224,7 @@ class BeagleBoneHardware(QObject):
             sleep(0.000001)
             GPIO.output(self.out_pins['target_step'], GPIO.LOW)
 
-        if self.target_goal is None and self.target_position_goal is None:
+        if self.target_goal is None and self.target_pos_goal is None:
             step_pulse()
         elif self.target_goal is not None:  # If there is a goal target
             # Set the target position goal if that has not already been done
