@@ -2,7 +2,8 @@
 import Adafruit_BBIO.GPIO as GPIO
 from PyQt5.QtCore import Qt, QObject, QTimer
 from PyQt5.QtGui import QIcon, QKeySequence
-from PyQt5.QtWidgets import QLabel, QMessageBox, QDialog, QPushButton, QShortcut
+from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton, QShortcut,
+                             QSpacerItem, QWidget)
 from time import sleep
 
 
@@ -40,26 +41,32 @@ class BeagleBoneHardware(QObject):
 
         # Define class variables for
         # FIXME: Determine/setup pin designations
-        self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_17",
-                         "sub_step": "P9_18", "target_dir": "PDUNNO",
-                         "target_step": "PDUNNO"}
-        self.in_pins = {"sub_home": "PDUNNNO", }
+        self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_19",
+                         "sub_step": "P9_17", "target_dir": "P9_25",
+                         "target_step": "P9_23"}
+        self.in_pins = {"sub_home": "P8_9"}
+        self.hi_pins = {"sub_home": "P8_10"}
 
         self.setup_pins()
 
     def setup_pins(self):
         # Set up pins (all output pins default to low (0))
         for pin in self.out_pins:
+            print(pin)
             GPIO.setup(pin, GPIO.OUT)
             GPIO.output(pin, GPIO.LOW)
 
         for pin in self.in_pins:
             GPIO.setup(pin, GPIO.IN)
 
+    for pin in self.hi_pins:
+        GPIO.setup(pin, GPIO.OUT)
+        GPIO.setup(pin, GPIO.HI)
+
     def start_pulsing(self, reprate, pulse_count=None):
         # Reset allow_trigger so that we don't end up breaking things/needing to restart the GUI on deposition cancel.
         print('Starting pulsing')
-        rep_time = float(1000 / float(reprate))
+        rep_time = int(1000 / int(reprate))
         self.trigger_timer.start(rep_time)
         print('Started Timer with timeout of {}'.format(rep_time))
         self.pulse_count_target = pulse_count
@@ -130,7 +137,7 @@ class BeagleBoneHardware(QObject):
                 step_pulse()
             elif self.sub_position == 0 or GPIO.input(self.in_pins['sub_home']):
                 # If the substrate is at end of range warn user and offer to rehome stage if there are issues.
-                max_range = QMessageBox.question(self.parent(), 'Substrate End of Range',
+                max_range = QMessageBox.question(QWidget, 'Substrate End of Range',
                                                  'Press ok to continue or press reset to home the substrate',
                                                  QMessageBox.Ok | QMessageBox.Reset,
                                                  QMessageBox.Ok)
@@ -170,12 +177,12 @@ class BeagleBoneHardware(QObject):
         if self.home_target_dialog:
             self.target_position = 0
             self.current_target = 1
-            target_home_info = QMessageBox.information(self.parent(), 'Home Set',
+            target_home_info = QMessageBox.information(QWidget, 'Home Set',
                                                        'New target carousel home position set',
                                                        QMessageBox.Ok, QMessageBox.Ok)
 
         else:
-            target_home_info = QMessageBox.warning(self.parent(), 'Home Canceled',
+            target_home_info = QMessageBox.warning(QWidget, 'Home Canceled',
                                                    'Target carousel home cancelled by user.',
                                                    QMessageBox.Ok, QMessageBox.Ok)
 
