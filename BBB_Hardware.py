@@ -38,7 +38,7 @@ class BeagleBoneHardware(QWidget):
         self.target_goal = None
         self.target_position = 0
         self.target_pos_goal = None
-        self.target_dir = 'cw'
+        self.target_dir = 'ccw'
 
         # Define class variables for
         # FIXME: Determine/setup pin designations
