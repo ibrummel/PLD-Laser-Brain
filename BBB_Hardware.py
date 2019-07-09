@@ -180,14 +180,13 @@ class BeagleBoneHardware(QWidget):
     def home_targets(self):
         self.home_target_dialog.exec_()
 
-        if self.home_target_dialog:
+        if self.home_target_dialog == QDialog.Accepted:
             self.target_position = 0
             self.current_target = 1
             target_home_info = QMessageBox.information(self, 'Home Set',
                                                        'New target carousel home position set',
                                                        QMessageBox.Ok, QMessageBox.Ok)
-
-        else:
+        elif self.home_target_dialog == QDialog.Rejected:
             target_home_info = QMessageBox.warning(self, 'Home Canceled',
                                                    'Target carousel home cancelled by user.',
                                                    QMessageBox.Ok, QMessageBox.Ok)
