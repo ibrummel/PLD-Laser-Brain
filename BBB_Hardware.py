@@ -59,7 +59,7 @@ class BeagleBoneHardware(QObject):
     def start_pulsing(self, reprate, pulse_count=None):
         # Reset allow_trigger so that we don't end up breaking things/needing to restart the GUI on deposition cancel.
         print('Starting pulsing')
-        rep_time = float(1000 / float(reprate))
+        rep_time = int(1000 / int(reprate))
         self.trigger_timer.start(rep_time)
         print('Started Timer with timeout of {}'.format(rep_time))
         self.pulse_count_target = pulse_count
@@ -81,8 +81,8 @@ class BeagleBoneHardware(QObject):
             if self.triggers_sent <= self.pulse_count_target:
                 self.allow_trigger = False
                 self.trigger_timer.stop()
-                print('Stop signal sent. (Number of triggers ({}) >= target pulse count ({})'.format(self.triggers_sent,
-                                                                                                     self.pulse_count_target))
+                print('Stop signal sent. (Number of triggers ({}) >= target \
+                 pulse count ({})'.format(self.triggers_sent, self.pulse_count_target))
 
     def reset_trigger(self):
         print('Initiating trigger reset. Triggers sent: {}, Allow Trigger: {}'.format(self.triggers_sent,
@@ -130,7 +130,7 @@ class BeagleBoneHardware(QObject):
                 step_pulse()
             elif self.sub_position == 0 or GPIO.input(self.in_pins['sub_home']):
                 # If the substrate is at end of range warn user and offer to rehome stage if there are issues.
-                max_range = QMessageBox.question(self.parent(), 'Substrate End of Range',
+                max_range = QMessageBox.question(self.parent().parent(), 'Substrate End of Range',
                                                  'Press ok to continue or press reset to home the substrate',
                                                  QMessageBox.Ok | QMessageBox.Reset,
                                                  QMessageBox.Ok)
@@ -170,12 +170,12 @@ class BeagleBoneHardware(QObject):
         if self.home_target_dialog:
             self.target_position = 0
             self.current_target = 1
-            target_home_info = QMessageBox.information(self.parent(), 'Home Set',
+            target_home_info = QMessageBox.information(self.parent().parent(), 'Home Set',
                                                        'New target carousel home position set',
                                                        QMessageBox.Ok, QMessageBox.Ok)
 
         else:
-            target_home_info = QMessageBox.warning(self.parent(), 'Home Canceled',
+            target_home_info = QMessageBox.warning(self.parent().parent(), 'Home Canceled',
                                                    'Target carousel home cancelled by user.',
                                                    QMessageBox.Ok, QMessageBox.Ok)
 

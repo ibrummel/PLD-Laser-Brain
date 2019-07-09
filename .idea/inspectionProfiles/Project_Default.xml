@@ -10,6 +10,8 @@
           <option value="pyvisa.resources.resource.Resource.*" />
           <option value="BBB_Control.*" />
           <option value="BBB_Hardware.*" />
+          <option value="PyQt5.QtWidgets.clicked.*" />
+          <option value="PyQt5.QtWidgets.activated.*" />
         </list>
       </option>
     </inspection_tool>
