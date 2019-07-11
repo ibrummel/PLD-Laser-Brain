@@ -4,13 +4,16 @@ from PyQt5.QtWidgets import (QCheckBox, QHBoxLayout, QLabel, QLineEdit, QPushBut
                              QWidget, QGroupBox, QGridLayout, QSlider, QApplication, QFormLayout, QVBoxLayout,
                              QToolButton)
 from pathlib import Path
+from BBB_Hardware import BeagleBoneHardware
 # For Testing
 import sys
 
 
 class MotorControlPanel(QWidget):
-    def __init__(self):
+    def __init__(self, brain: BeagleBoneHardware):
         super(MotorControlPanel, self).__init__()
+
+        self.brain = brain
 
         self.target_pos_val = 200
         self.pos1_btn = QPushButton('1')
@@ -103,19 +106,19 @@ class MotorControlPanel(QWidget):
         self.up_sub_btn.clicked.connect(lambda: self.move_sub_up(1))
         self.down_sub_btn.clicked.connect(lambda: self.move_sub_down(1))
 
-        self.pos1_btn.clicked.connect(lambda: self.set_target_pos(1))
-        self.pos2_btn.clicked.connect(lambda: self.set_target_pos(2))
-        self.pos3_btn.clicked.connect(lambda: self.set_target_pos(3))
-        self.pos4_btn.clicked.connect(lambda: self.set_target_pos(4))
-        self.pos5_btn.clicked.connect(lambda: self.set_target_pos(5))
-        self.pos6_btn.clicked.connect(lambda: self.set_target_pos(6))
-        # self.left_btn.clicked.connect(None)  # FIXME
-        # self.right_btn.clicked.connect(None)
-        self.raster_check.stateChanged.connect(self.raster_current_target)
+        self.pos1_btn.clicked.connect(lambda: self.brain.move_to_target(1))
+        self.pos2_btn.clicked.connect(lambda: self.brain.move_to_target(2))
+        self.pos3_btn.clicked.connect(lambda: self.brain.move_to_target(3))
+        self.pos4_btn.clicked.connect(lambda: self.brain.move_to_target(4))
+        self.pos5_btn.clicked.connect(lambda: self.brain.move_to_target(5))
+        self.pos6_btn.clicked.connect(lambda: self.brain.move_to_target(6))
+        self.left_btn.clicked.connect(self.target_left)
+        self.right_btn.clicked.connect(self.target_right)
+        self.raster_check.stateChanged.connect(self.raster_current_target)  # FIXME: Probably don't want this implementation
         self.speed_slide.valueChanged.connect(self.update_speed_line)
         self.speed_line.returnPressed.connect(self.update_speed_slide)
-        # self.home_target_btn.clicked.connect(None)  # FIXME
-        # self.home_sub_btn.clicked.connect(None)
+        self.home_target_btn.clicked.connect(self.brain.home_targets)
+        self.home_sub_btn.clicked.connect(self.brain.home_sub)
 
     def init_layout(self):
         raster_form = QFormLayout()
@@ -155,15 +158,25 @@ class MotorControlPanel(QWidget):
         self.hbox.addWidget(self.home_group)
         self.setLayout(self.hbox)
 
-    def move_sub_up(self, pulses=1):
+    def sub_up(self, pulses=1):
         for i in range(0, pulses):
             self.sub_pos_val += 1
             # self.brain.move_sub(self.sub_pos_val, self.get_speed_val())
 
-    def move_sub_down(self, pulses=1):
+    def sub_down(self, pulses=1):
         for i in range(0, pulses):
             self.sub_pos_val -= 1
             # self.brain.move_sub(self.sub_pos_val, self.get_speed_val())
+
+    def target_right(self):
+        if self.brain.get_target_dir() != 'cw':
+            self.brain.set_target_dir('cw')
+        self.brain.step_target()
+
+    def target_left(self):
+        if self.brain.get_target_dir() != 'ccw':
+            self.brain.set_target_dir('ccw')
+        self.brain.step_target()
 
     def get_speed_val(self):
         return self.speed_val
@@ -176,10 +189,6 @@ class MotorControlPanel(QWidget):
         self.speed_val = float(self.speed_line.text())
         self.speed_slide.setValue(self.speed_val)
 
-    def set_target_pos(self, position):
-        self.target_pos_val = 100 * position  # FIXME: Fix these values
-        # self.brain.move_to_target(position)
-
     def raster_current_target(self):
         if self.raster_check.isChecked():
             # self.brain.raster_target(True, self.get_current_target())
@@ -188,10 +197,6 @@ class MotorControlPanel(QWidget):
             # self.brain.raster_target(False, self.get_current_target())
             print('Raster Off')
         pass
-
-    def get_current_target(self):
-        return self.target_pos_val
-
 
 def main():
     app = QApplication(sys.argv)
