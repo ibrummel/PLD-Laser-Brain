@@ -280,8 +280,8 @@ class HomeTargetsDialog(QDialog):
 
         self.left_icon = QIcon()
         self.right_icon = QIcon()
-        right_btn_path = Path('src/img').absolute() / 'right_btn.svg'
-        left_btn_path = Path('src/img').absolute() / 'left_btn.svg'
+        right_btn_path = Path('src/img').absolute() / 'right.svg'
+        left_btn_path = Path('src/img').absolute() / 'left.svg'
         self.right_icon.addFile(str(right_btn_path))
         self.left_icon.addFile(str(left_btn_path))
         self.right_btn.setIcon(self.right_icon)
