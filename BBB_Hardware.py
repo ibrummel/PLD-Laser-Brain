@@ -11,8 +11,6 @@ from pathlib import Path
 class BeagleBoneHardware(QWidget):
 
     def __init__(self):
-        # Fixme: need to evaluate if using self.parent() returns a widget for this object for use in
-        #  calling popups
         super().__init__()
 
         self.allow_trigger = True  # Set this to false to stop triggering the laser
@@ -41,7 +39,6 @@ class BeagleBoneHardware(QWidget):
         self.target_dir = 'ccw'
 
         # Define class variables for
-        # FIXME: Determine/setup pin designations
         self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_19",
                          "sub_step": "P9_17", "target_dir": "P9_25",
                          "target_step": "P9_23"}
@@ -103,10 +100,10 @@ class BeagleBoneHardware(QWidget):
 
         if not GPIO.input(self.in_pins['sub_home']):
             self.set_sub_dir('up')
-            # FIXME: this delay sets the speed of the substrate movement, fine tune speed
             if not self.sub_step_timer.isActive():
                 self.start_sub()
         if GPIO.input(self.in_pins['sub_home']):
+            print('Started {} steps away from home. New home position set.'.format(abs(self.sub_position)))
             self.sub_goal = 0
             self.sub_position = 0
 
@@ -118,7 +115,6 @@ class BeagleBoneHardware(QWidget):
         elif self.sub_goal < self.sub_position:
             self.set_sub_dir('down')
 
-        # FIXME: this delay sets the speed of the substrate movement, fine tune speed
         self.start_sub()
 
     def step_sub(self):
@@ -158,7 +154,6 @@ class BeagleBoneHardware(QWidget):
     def set_sub_dir(self, direction):
         if direction.lower() == "up":
             # Set direction pin so that the substrate will be driven up (CCW)
-            # FIXME: Don't know which direction is which
             self.sub_dir = 'up'
             GPIO.output(self.out_pins['sub_dir'], GPIO.LOW)
         elif direction.lower() == "down":
@@ -175,6 +170,7 @@ class BeagleBoneHardware(QWidget):
         self.sub_step_timer.stop()
 
     def start_sub(self):
+        # FIXME: this delay sets the speed of the substrate movement, fine tune speed
         self.sub_step_timer.start(1)
 
     def home_targets(self):
@@ -206,10 +202,9 @@ class BeagleBoneHardware(QWidget):
             elif delta_pos > 0:
                 self.set_target_dir('ccw')
             else:
-                print('Target already in position {}'.format(self.target_goal))
+                print('Target {} already selected'.format(self.target_goal))
                 return
 
-            # FIXME: Timing and movement speed yada yada
             self.start_target()
 
     def step_target(self):
@@ -243,7 +238,6 @@ class BeagleBoneHardware(QWidget):
     def set_target_dir(self, direction):
         if direction.lower() == "ccw":
             # Set direction pin so that the substrate will be driven up (CCW)
-            # FIXME: Don't know which direction is which
             self.target_dir = 'ccw'
             GPIO.output(self.out_pins['target_dir'], GPIO.LOW)
         elif direction.lower() == "cw":
@@ -257,6 +251,7 @@ class BeagleBoneHardware(QWidget):
         return self.target_dir
 
     def start_target(self):
+        # FIXME: Timing and movement speed yada yada
         self.target_step_timer.start(1)
 
     def stop_target(self):
