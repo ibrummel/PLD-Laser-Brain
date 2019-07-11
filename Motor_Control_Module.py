@@ -27,12 +27,12 @@ class MotorControlPanel(QWidget):
 
         self.right_btn = QPushButton()
         self.right_btn.setAutoRepeat(True)
-        self.right_btn.setAutoRepeatInterval(10)
+        self.right_btn.setAutoRepeatInterval(1)
         self.right_btn.setAutoRepeatDelay(200)
 
         self.left_btn = QPushButton()
         self.left_btn.setAutoRepeat(True)
-        self.left_btn.setAutoRepeatInterval(10)
+        self.left_btn.setAutoRepeatInterval(1)
         self.left_btn.setAutoRepeatDelay(200)
 
         left_icon = QIcon()
@@ -52,11 +52,11 @@ class MotorControlPanel(QWidget):
         self.sub_mv_label = QLabel('Move\nSubstrate:')
         self.up_sub_btn = QPushButton()
         self.up_sub_btn.setAutoRepeat(True)
-        self.up_sub_btn.setAutoRepeatInterval(150)
+        self.up_sub_btn.setAutoRepeatInterval(10)
         self.up_sub_btn.setAutoRepeatDelay(500)
         self.down_sub_btn = QPushButton()
         self.down_sub_btn.setAutoRepeat(True)
-        self.down_sub_btn.setAutoRepeatInterval(150)
+        self.down_sub_btn.setAutoRepeatInterval(10)
         self.down_sub_btn.setAutoRepeatDelay(500)
         up_icon = QIcon()
         down_icon = QIcon()
