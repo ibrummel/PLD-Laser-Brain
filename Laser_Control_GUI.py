@@ -18,6 +18,7 @@ from VISA_Communications import VisaLaser
 import time
 from math import trunc
 from BBB_Hardware import BeagleBoneHardware
+from Motor_Control_Module import MotorControlPanel
 
 
 def truncate(number, decimals=0):
@@ -807,7 +808,8 @@ class MainWindow(QMainWindow):
         self.brain = brain
 
         # Create a docked widget to hold the LSC module
-        self.lscDocked = QDockWidget()
+        self.lsc_docked = QDockWidget()
+        self.motor_control_docked = QDockWidget()
         self.init_ui()
 
     def init_ui(self):
@@ -815,11 +817,14 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('PLD Laser Control')
         self.setCentralWidget(DepControlBox(self.laser))
 
-        self.lscDocked.setWidget(LaserStatusControl(self.laser, self.brain))
-        self.lscDocked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
+        self.lsc_docked.setWidget(LaserStatusControl(self.laser, self.brain))
+        self.lsc_docked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
+        self.motor_control_docked.setWidget(MotorControlPanel(self.brain))
+        self.motor_control_docked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
         self.setCorner(Qt.TopLeftCorner | Qt.TopRightCorner, Qt.TopDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner | Qt.BottomRightCorner, Qt.BottomDockWidgetArea)
-        self.addDockWidget(Qt.TopDockWidgetArea, self.lscDocked)
+        self.addDockWidget(Qt.TopDockWidgetArea, self.lsc_docked)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.motor_control_docked)
 
 
 def main():
