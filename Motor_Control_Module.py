@@ -1,8 +1,8 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QCheckBox, QHBoxLayout, QLabel, QLineEdit, QPushButton,
                              QWidget, QGroupBox, QGridLayout, QSlider, QApplication, QFormLayout, QVBoxLayout,
-                             QToolButton)
+                             QToolButton, QShortcut)
 from pathlib import Path
 from BBB_Hardware import BeagleBoneHardware
 # For Testing
@@ -44,6 +44,9 @@ class MotorControlPanel(QWidget):
         self.right_btn.setIcon(right_icon)
         self.left_btn.setIcon(left_icon)
 
+        self.left_sc = QShortcut(QKeySequence(Qt.Key_Left), self)
+        self.right_sc = QShortcut(QKeySequence(Qt.Key_Right), self)
+
         self.tts_label = QLabel('Current TTS:')
         self.tts_line = QLineEdit()
         self.tts_line.setPlaceholderText('Go to TTS')
@@ -66,6 +69,10 @@ class MotorControlPanel(QWidget):
         down_icon.addFile(str(down_btn_path))
         self.up_sub_btn.setIcon(up_icon)
         self.down_sub_btn.setIcon(down_icon)
+        self.up_sc1 = QShortcut(QKeySequence(Qt.Key_Up), self)
+        self.down_sc1 = QShortcut(QKeySequence(Qt.Key_Plus), self)
+        self.up_sc2 = QShortcut(QKeySequence(Qt.Key_Down), self)
+        self.down_sc2 = QShortcut(QKeySequence(Qt.Key_Minus), self)
 
         self.speed_val = 5
         self.speed_label = QLabel('Up/Down Speed (mm/s):')
@@ -105,6 +112,10 @@ class MotorControlPanel(QWidget):
     def connect_controls(self):
         self.up_sub_btn.clicked.connect(self.sub_up)
         self.down_sub_btn.clicked.connect(self.sub_down)
+        self.up_sc1.activated.connect(self.sub_up)
+        self.down_sc1.activated.connect(self.sub_down)
+        self.up_sc2.activated.connect(self.sub_up)
+        self.down_sc2.activated.connect(self.sub_down)
         self.pos1_btn.clicked.connect(lambda: self.brain.move_to_target(1))
         self.pos2_btn.clicked.connect(lambda: self.brain.move_to_target(2))
         self.pos3_btn.clicked.connect(lambda: self.brain.move_to_target(3))
@@ -113,6 +124,8 @@ class MotorControlPanel(QWidget):
         self.pos6_btn.clicked.connect(lambda: self.brain.move_to_target(6))
         self.left_btn.clicked.connect(self.target_left)
         self.right_btn.clicked.connect(self.target_right)
+        self.left_sc.activated.connect(self.target_left)
+        self.right_sc.activated.connect(self.target_right)
         self.raster_check.stateChanged.connect(self.raster_current_target)  # FIXME: Probably don't want this implementation
         self.speed_slide.valueChanged.connect(self.update_speed_line)
         self.speed_line.returnPressed.connect(self.update_speed_slide)
