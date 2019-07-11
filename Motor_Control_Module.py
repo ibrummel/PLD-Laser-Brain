@@ -170,12 +170,12 @@ class MotorControlPanel(QWidget):
         self.hbox.addWidget(self.home_group)
         self.setLayout(self.hbox)
 
-    def sub_up(self, pulses=1):
+    def sub_up(self):
         if self.brain.get_sub_dir() != 'up':
             self.brain.set_sub_dir('up')
         self.brain.step_sub()
 
-    def sub_down(self, pulses=1):
+    def sub_down(self):
         if self.brain.get_sub_dir() != 'down':
             self.brain.set_sub_dir('down')
         self.brain.step_sub()
