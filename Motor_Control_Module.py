@@ -103,9 +103,8 @@ class MotorControlPanel(QWidget):
         self.init_layout()
 
     def connect_controls(self):
-        self.up_sub_btn.clicked.connect(lambda: self.move_sub_up(1))
-        self.down_sub_btn.clicked.connect(lambda: self.move_sub_down(1))
-
+        self.up_sub_btn.clicked.connect(self.sub_up)
+        self.down_sub_btn.clicked.connect(self.sub_down)
         self.pos1_btn.clicked.connect(lambda: self.brain.move_to_target(1))
         self.pos2_btn.clicked.connect(lambda: self.brain.move_to_target(2))
         self.pos3_btn.clicked.connect(lambda: self.brain.move_to_target(3))
@@ -159,14 +158,14 @@ class MotorControlPanel(QWidget):
         self.setLayout(self.hbox)
 
     def sub_up(self, pulses=1):
-        for i in range(0, pulses):
-            self.sub_pos_val += 1
-            # self.brain.move_sub(self.sub_pos_val, self.get_speed_val())
+        if self.brain.get_sub_dir() != 'up':
+            self.brain.set_sub_dir('up')
+        self.brain.step_sub()
 
     def sub_down(self, pulses=1):
-        for i in range(0, pulses):
-            self.sub_pos_val -= 1
-            # self.brain.move_sub(self.sub_pos_val, self.get_speed_val())
+        if self.brain.get_sub_dir() != 'down':
+            self.brain.set_sub_dir('down')
+        self.brain.step_sub()
 
     def target_right(self):
         if self.brain.get_target_dir() != 'cw':
