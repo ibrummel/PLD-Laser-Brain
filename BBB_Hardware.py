@@ -129,7 +129,7 @@ class BeagleBoneHardware(QWidget):
         # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
         def step_start():
             GPIO.output(self.out_pins['sub_step'], GPIO.HIGH)
-            off_timer.start(delay_us)
+            off_timer.start(self.sub_delay_us)
 
         def step_finish():
             if self.get_target_dir() == 'cw':
