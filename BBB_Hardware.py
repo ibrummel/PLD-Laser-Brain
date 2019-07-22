@@ -1,6 +1,6 @@
 # Imports
 import Adafruit_BBIO.GPIO as GPIO
-from PyQt5.QtCore import Qt, QObject, QTimer
+from PyQt5.QtCore import Qt, QObject, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton, QShortcut,
                              QSpacerItem, QWidget)
@@ -42,7 +42,7 @@ class BeagleBoneHardware(QWidget):
         self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_19",
                          "sub_step": "P9_17", "target_dir": "P9_25",
                          "target_step": "P9_23"}
-        self.in_pins = {"sub_home": "P8_9"}
+        self.in_pins = {"sub_home": "P8_9", "aux": "P9_15"}
         self.hi_pins = {"sub_home": "P8_10"}
 
         self.setup_pins()
@@ -259,6 +259,28 @@ class BeagleBoneHardware(QWidget):
 
     def __del__(self):
         GPIO.cleanup()
+
+
+class MotorPulser(QObject):
+    def __init__(self, step_pin, rps=1, steps_per_rev=200):
+        super().__init__()
+
+        # Intake Data
+        self.rps = rps
+        self.steps = steps_per_rev
+        self.step_pin = step_pin
+
+        # Create timers for signals
+        self.on_timer = QTimer()
+        self.on_timer.isSingleShot(True)
+        self.off_timer = QTimer()
+        self.off_timer.isSingleShot(True)
+
+        # Create signals
+        self.on = pyqtSignal()
+        self.off = pyqtSignal()
+
+
 
 
 class HomeTargetsDialog(QDialog):
