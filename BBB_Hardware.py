@@ -181,7 +181,7 @@ class BeagleBoneHardware(QWidget):
     def get_sub_dir(self):
         return self.sub_dir
 
-    def set_sub_speed(self, speed=self.sub_rps):
+    def set_sub_speed(self, speed):
         self.sub_rps = speed
 
     def stop_sub(self):
