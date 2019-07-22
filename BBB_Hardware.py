@@ -29,6 +29,7 @@ class BeagleBoneHardware(QWidget):
         self.sub_dir = 'up'
         self.sub_steps_per_rev = 1000
         self.sub_rps = 0.5
+        self.sub_delay_us = 3
 
         self.current_target = 1
         self.target_goal = None
@@ -37,6 +38,7 @@ class BeagleBoneHardware(QWidget):
         self.target_dir = 'ccw'
         self.target_steps_per_rev = 1000
         self.target_rps = 2
+        self.target_delay_us = 1
 
         # Define class variables for
         self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_19",
@@ -118,9 +120,6 @@ class BeagleBoneHardware(QWidget):
         self.step_sub()
 
     def step_sub(self):
-        # Calculate delay per step from speed
-        delay_us = round(((self.sub_rps ** -1) * (self.sub_steps_per_rev ** -1)) / 2)
-
         # Set up timers
         on_timer = QTimer()
         on_timer.isSingleShot(True)
@@ -181,8 +180,10 @@ class BeagleBoneHardware(QWidget):
     def get_sub_dir(self):
         return self.sub_dir
 
-    def set_sub_speed(self, speed):
-        self.sub_rps = speed
+    def set_sub_speed(self, rps):
+        self.sub_rps = rps
+        # Calculate delay per step from speed
+        self.sub_delay_us = round(((self.sub_rps ** -1) * (self.sub_steps_per_rev ** -1)) / 2)
 
     def stop_sub(self):
         self.sub_goal = None
@@ -222,9 +223,6 @@ class BeagleBoneHardware(QWidget):
             self.step_target()
 
     def step_target(self):
-        # Calculate delay per step from speed
-        delay_us = round(((self.target_rps ** -1) * (self.target_steps_per_rev ** -1)) / 2)
-
         # Set up timers
         on_timer = QTimer()
         on_timer.isSingleShot(True)
@@ -275,6 +273,11 @@ class BeagleBoneHardware(QWidget):
             GPIO.output(self.out_pins['target_dir'], GPIO.HIGH)
         else:
             print('Invalid direction argument for the target motor supplied')
+
+    def set_target_speed(self, rps):
+        self.target_rps = rps
+        # Calculate delay per step from speed
+        self.target_delay_us = round(((self.target_rps ** -1) * (self.target_steps_per_rev ** -1)) / 2)
 
     def get_target_dir(self):
         return self.target_dir
