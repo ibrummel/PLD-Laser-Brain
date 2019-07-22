@@ -12,14 +12,14 @@ GPIO.setup(sub_step, GPIO.OUT)
 GPIO.output(sub_dir, GPIO.HIGH)
 sdir = 1
 
-while 1:
+while 1==1:
     GPIO.output(sub_step, GPIO.HIGH)
-    sleep(0.01)
+    sleep(0.0005)
     GPIO.output(sub_step, GPIO.LOW)
-    sleep(0.01)
-    if not GPIO.input(cancel):
+    sleep(0.0005)
+    if GPIO.input(cancel):
         sleep(2)
-        if not GPIO.input(cancel):
+        if GPIO.input(cancel):
             break
         elif sdir == 1:
             GPIO.output(sub_dir, GPIO.LOW)
