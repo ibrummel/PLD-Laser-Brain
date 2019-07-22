@@ -122,9 +122,9 @@ class BeagleBoneHardware(QWidget):
     def step_sub(self):
         # Set up timers
         on_timer = QTimer()
-        on_timer.isSingleShot(True)
+        on_timer.setSingleShot(True)
         off_timer = QTimer()
-        off_timer.isSingleShot(True)
+        off_timer.setSingleShot(True)
 
         # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
         def step_start():
@@ -225,9 +225,9 @@ class BeagleBoneHardware(QWidget):
     def step_target(self):
         # Set up timers
         on_timer = QTimer()
-        on_timer.isSingleShot(True)
+        on_timer.setSingleShot(True)
         off_timer = QTimer()
-        off_timer.isSingleShot(True)
+        off_timer.setSingleShot(True)
 
         # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
         def step_start():
@@ -299,12 +299,12 @@ class HomeTargetsDialog(QDialog):
 
         self.right_btn = QPushButton()
         self.right_btn.setAutoRepeat(True)
-        self.right_btn.setAutoRepeatInterval(10)
+        self.right_btn.setAutoRepeatInterval(3)
         self.right_btn.setAutoRepeatDelay(200)
 
         self.left_btn = QPushButton()
         self.left_btn.setAutoRepeat(True)
-        self.left_btn.setAutoRepeatInterval(10)
+        self.left_btn.setAutoRepeatInterval(3)
         self.left_btn.setAutoRepeatDelay(200)
 
         self.left_icon = QIcon()
