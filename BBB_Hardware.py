@@ -18,25 +18,25 @@ class BeagleBoneHardware(QWidget):
         self.pulse_count_target = None
         self.trigger_timer = QTimer()
         self.trigger_timer.timeout.connect(self.trigger_pulse)
-        self.sub_step_timer = QTimer()
-        self.sub_step_timer.timeout.connect(self.step_sub)
-        self.target_step_timer = QTimer()
-        self.target_step_timer.timeout.connect(self.step_target)
         self.home_target_dialog = HomeTargetsDialog(self)
 
-        # Define limits for substrate motion
+        # Define limits/constants for substrate motion
         # FIXME: All limit values are guesses and need to be set.
         self.sub_bottom = 0
         self.sub_top = 24000
         self.sub_position = 24000
         self.sub_goal = None
         self.sub_dir = 'up'
+        self.sub_steps_per_rev = 1000
+        self.sub_rps = 0.5
 
         self.current_target = 1
         self.target_goal = None
         self.target_position = 0
         self.target_pos_goal = None
         self.target_dir = 'ccw'
+        self.target_steps_per_rev = 1000
+        self.target_rps = 2
 
         # Define class variables for
         self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_19",
@@ -101,7 +101,7 @@ class BeagleBoneHardware(QWidget):
         if not GPIO.input(self.in_pins['sub_home']):
             self.set_sub_dir('up')
             if not self.sub_step_timer.isActive():
-                self.start_sub()
+                self.step_sub()
         if GPIO.input(self.in_pins['sub_home']):
             print('Started {} steps away from home. New home position set.'.format(abs(self.sub_position)))
             self.sub_goal = 0
@@ -115,22 +115,38 @@ class BeagleBoneHardware(QWidget):
         elif self.sub_goal < self.sub_position:
             self.set_sub_dir('down')
 
-        self.start_sub()
+        self.step_sub()
 
     def step_sub(self):
-        def step_pulse():
-            if self.get_sub_dir() == 'up':
-                self.sub_position -= 1
-            elif self.get_sub_dir() == 'down':
-                self.sub_position += 1
+        # Calculate delay per step from speed
+        delay_us = round(((self.sub_rps ** -1) * (self.sub_steps_per_rev ** -1)) / 2)
 
+        # Set up timers
+        on_timer = QTimer()
+        on_timer.isSingleShot(True)
+        off_timer = QTimer()
+        off_timer.isSingleShot(True)
+
+        # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
+        def step_start():
             GPIO.output(self.out_pins['sub_step'], GPIO.HIGH)
-            sleep(0.000001)
+            off_timer.start(delay_us)
+
+        def step_finish():
+            if self.get_target_dir() == 'cw':
+                self.target_position += 1
+            elif self.get_target_dir() == 'ccw':
+                self.target_position -= 1
+            self.target_position = self.target_position % 6000
             GPIO.output(self.out_pins['sub_step'], GPIO.LOW)
+
+        # Connect Timeouts
+        on_timer.timeout.connect(step_start)
+        off_timer.timeout.connect(step_finish)
 
         if self.sub_goal is None:
             if not GPIO.input(self.in_pins['sub_home']) or self.sub_position > 0:
-                step_pulse()
+                on_timer.start(delay_us)
             elif self.sub_position == 0 or GPIO.input(self.in_pins['sub_home']):
                 # If the substrate is at end of range warn user and offer to rehome stage if there are issues.
                 max_range = QMessageBox.question(QWidget, 'Substrate End of Range',
@@ -143,13 +159,12 @@ class BeagleBoneHardware(QWidget):
                     self.home_sub()
         elif self.sub_goal is not None:
             if self.sub_goal != self.sub_position or self.sub_goal == 'home':
-                step_pulse()
+                on_timer.start(delay_us)
                 if self.sub_goal == 'home':
                     self.home_sub()
             elif self.sub_goal == self.sub_position:
                 # Clear the goal position if the substrate is in that position
                 self.sub_goal = None
-                self.sub_step_timer.stop()
 
     def set_sub_dir(self, direction):
         if direction.lower() == "up":
@@ -166,12 +181,11 @@ class BeagleBoneHardware(QWidget):
     def get_sub_dir(self):
         return self.sub_dir
 
-    def stop_sub(self):
-        self.sub_step_timer.stop()
+    def set_sub_speed(self, speed=self.sub_rps):
+        self.sub_rps = speed
 
-    def start_sub(self):
-        # FIXME: this delay sets the speed of the substrate movement, fine tune speed
-        self.sub_step_timer.start(1)
+    def stop_sub(self):
+        self.sub_goal = None
 
     def home_targets(self):
         self.home_target_dialog.exec_()
@@ -205,29 +219,44 @@ class BeagleBoneHardware(QWidget):
                 print('Target {} already selected'.format(self.target_goal))
                 return
 
-            self.start_target()
+            self.step_target()
 
     def step_target(self):
-        def step_pulse():
+        # Calculate delay per step from speed
+        delay_us = round(((self.target_rps ** -1) * (self.target_steps_per_rev ** -1)) / 2)
+
+        # Set up timers
+        on_timer = QTimer()
+        on_timer.isSingleShot(True)
+        off_timer = QTimer()
+        off_timer.isSingleShot(True)
+
+        # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
+        def step_start():
+            GPIO.output(self.out_pins['target_step'], GPIO.HIGH)
+            off_timer.start(delay_us)
+
+        def step_finish():
             if self.get_target_dir() == 'cw':
                 self.target_position += 1
             elif self.get_target_dir() == 'ccw':
                 self.target_position -= 1
-
             self.target_position = self.target_position % 6000
-            GPIO.output(self.out_pins['target_step'], GPIO.HIGH)
-            sleep(0.000001)
             GPIO.output(self.out_pins['target_step'], GPIO.LOW)
 
+        # Connect Timeouts
+        on_timer.timeout.connect(step_start)
+        off_timer.timeout.connect(step_finish)
+
         if self.target_goal is None and self.target_pos_goal is None:
-            step_pulse()
+            on_timer.start(delay_us)
         elif self.target_goal is not None:  # If there is a goal target
             # Set the target position goal if that has not already been done
             if self.target_pos_goal is None:
                 self.target_pos_goal = 1000 * self.target_goal
 
             if self.target_position != self.target_pos_goal:
-                step_pulse()
+                on_timer.start(delay_us)
                 # FIXME: Come up with logic so that the targets rotate the CW or CCW
                 #  direction to minimize positioning time: WAIT DID I Already do that in the move to?
             elif self.target_position == self.target_pos_goal:
@@ -250,37 +279,12 @@ class BeagleBoneHardware(QWidget):
     def get_target_dir(self):
         return self.target_dir
 
-    def start_target(self):
-        # FIXME: Timing and movement speed yada yada
-        self.target_step_timer.start(1)
-
     def stop_target(self):
-        self.target_step_timer.stop()
+        self.target_goal = None
+        self.target_pos_goal = None
 
     def __del__(self):
         GPIO.cleanup()
-
-
-class MotorPulser(QObject):
-    def __init__(self, step_pin, rps=1, steps_per_rev=200):
-        super().__init__()
-
-        # Intake Data
-        self.rps = rps
-        self.steps = steps_per_rev
-        self.step_pin = step_pin
-
-        # Create timers for signals
-        self.on_timer = QTimer()
-        self.on_timer.isSingleShot(True)
-        self.off_timer = QTimer()
-        self.off_timer.isSingleShot(True)
-
-        # Create signals
-        self.on = pyqtSignal()
-        self.off = pyqtSignal()
-
-
 
 
 class HomeTargetsDialog(QDialog):
