@@ -77,10 +77,10 @@ class MotorControlPanel(QWidget):
         self.speed_val = 5
         self.speed_label = QLabel('Up/Down Speed (mm/s):')
         self.speed_slide = QSlider(Qt.Horizontal)
-        self.speed_slide.setMaximum(10)
-        self.speed_slide.setMinimum(0.1)
+        self.speed_slide.setMaximum(2)
+        self.speed_slide.setMinimum(0)
         self.speed_slide.setTickPosition(QSlider.TicksBothSides)
-        self.speed_slide.setTickInterval(1)
+        self.speed_slide.setTickInterval(0.2)
         self.speed_slide.setValue(self.speed_val)
         self.speed_line = QLineEdit(str(self.speed_val))
 
@@ -196,10 +196,16 @@ class MotorControlPanel(QWidget):
     def update_speed_line(self):
         self.speed_val = self.speed_slide.value()
         self.speed_line.setText(str(self.speed_val))
+        self.set_sub_speed()
 
     def update_speed_slide(self):
         self.speed_val = float(self.speed_line.text())
         self.speed_slide.setValue(self.speed_val)
+        self.set_sub_speed()
+
+    def set_sub_speed(self):
+        if self.speed_slide.value() == float(self.speed_line.text()):
+            self.brain.set_sub_speed(self.speed_slide.value())
 
     def raster_current_target(self):
         if self.raster_check.isChecked():
