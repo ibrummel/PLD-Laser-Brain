@@ -115,7 +115,7 @@ class BeagleBoneHardware(QWidget):
         if not GPIO.input(self.in_pins['sub_home']):
             if self.get_sub_dir() != 'up':
                 self.set_sub_dir('up')
-                self.step_sub()
+            self.step_sub()
         if GPIO.input(self.in_pins['sub_home']):
             print('Started {} steps away from home. New home position set.'.format(abs(self.sub_position)))
             self.sub_goal = 0
@@ -197,7 +197,6 @@ class BeagleBoneHardware(QWidget):
     def home_targets(self):
         self.home_target_dialog.exec_()
 
-        print(self.home_target_dialog.result(), ',', type(self.home_target_dialog.result()))
         if self.home_target_dialog.result() == QDialog.Accepted:
             self.target_position = 0
             self.current_target = 1
