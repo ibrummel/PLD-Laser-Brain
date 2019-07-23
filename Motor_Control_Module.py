@@ -27,12 +27,12 @@ class MotorControlPanel(QWidget):
 
         self.right_btn = QPushButton()
         self.right_btn.setAutoRepeat(True)
-        self.right_btn.setAutoRepeatInterval(5)
+        self.right_btn.setAutoRepeatInterval(3)
         self.right_btn.setAutoRepeatDelay(200)
 
         self.left_btn = QPushButton()
         self.left_btn.setAutoRepeat(True)
-        self.left_btn.setAutoRepeatInterval(5)
+        self.left_btn.setAutoRepeatInterval(3)
         self.left_btn.setAutoRepeatDelay(200)
 
         left_icon = QIcon()
@@ -55,12 +55,12 @@ class MotorControlPanel(QWidget):
         self.sub_mv_label = QLabel('Move\nSubstrate:')
         self.up_sub_btn = QPushButton()
         self.up_sub_btn.setAutoRepeat(True)
-        self.up_sub_btn.setAutoRepeatInterval(10)
-        self.up_sub_btn.setAutoRepeatDelay(500)
+        self.up_sub_btn.setAutoRepeatInterval(3)
+        self.up_sub_btn.setAutoRepeatDelay(200)
         self.down_sub_btn = QPushButton()
         self.down_sub_btn.setAutoRepeat(True)
-        self.down_sub_btn.setAutoRepeatInterval(10)
-        self.down_sub_btn.setAutoRepeatDelay(500)
+        self.down_sub_btn.setAutoRepeatInterval(3)
+        self.down_sub_btn.setAutoRepeatDelay(200)
         up_icon = QIcon()
         down_icon = QIcon()
         up_btn_path = Path('src/img').absolute() / 'up.svg'
@@ -74,14 +74,14 @@ class MotorControlPanel(QWidget):
         self.up_sc2 = QShortcut(QKeySequence(Qt.Key_Down), self)
         self.down_sc2 = QShortcut(QKeySequence(Qt.Key_Minus), self)
 
-        self.speed_val = 5
+        self.speed_val = 0.5
         self.speed_label = QLabel('Up/Down Speed (mm/s):')
         self.speed_slide = QSlider(Qt.Horizontal)
-        self.speed_slide.setMaximum(2)
-        self.speed_slide.setMinimum(0)
+        self.speed_slide.setMaximum(20)
+        self.speed_slide.setMinimum(1)
         self.speed_slide.setTickPosition(QSlider.TicksBothSides)
-        self.speed_slide.setTickInterval(0.2)
-        self.speed_slide.setValue(self.speed_val)
+        self.speed_slide.setTickInterval(1)
+        self.speed_slide.setValue(int(self.speed_val * 10))
         self.speed_line = QLineEdit(str(self.speed_val))
 
         self.home_sub_btn = QToolButton()
@@ -194,17 +194,17 @@ class MotorControlPanel(QWidget):
         return self.speed_val
 
     def update_speed_line(self):
-        self.speed_val = self.speed_slide.value()
+        self.speed_val = float(self.speed_slide.value() / 10)
         self.speed_line.setText(str(self.speed_val))
         self.set_sub_speed()
 
     def update_speed_slide(self):
         self.speed_val = float(self.speed_line.text())
-        self.speed_slide.setValue(self.speed_val)
+        self.speed_slide.setValue(self.speed_val * 10)
         self.set_sub_speed()
 
     def set_sub_speed(self):
-        if self.speed_slide.value() == float(self.speed_line.text()):
+        if float(self.speed_slide.value() / 10) == float(self.speed_line.text()):
             self.brain.set_sub_speed(self.speed_slide.value())
 
     def raster_current_target(self):
