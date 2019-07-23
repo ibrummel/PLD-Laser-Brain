@@ -46,7 +46,19 @@ class BeagleBoneHardware(QWidget):
                          "target_step": "P9_23"}
         self.in_pins = {"sub_home": "P8_9", "aux": "P9_15"}
         self.hi_pins = {"sub_home": "P8_10"}
-
+        
+        # Create timers for 50% duty non-blocking motors
+        # Target Axis
+        self.target_on_timer = QTimer()
+        self.target_on_timer.setSingleShot(True)
+        self.target_off_timer = QTimer()
+        self.target_off_timer.setSingleShot(True)
+        # Substrate Axis
+        self.sub_on_timer = QTimer()
+        self.sub_on_timer.setSingleShot(True)
+        self.sub_off_timer = QTimer()
+        self.sub_off_timer.setSingleShot(True)
+        
         self.setup_pins()
 
     def setup_pins(self):
@@ -120,16 +132,10 @@ class BeagleBoneHardware(QWidget):
         self.step_sub()
 
     def step_sub(self):
-        # Set up timers
-        on_timer = QTimer()
-        on_timer.setSingleShot(True)
-        off_timer = QTimer()
-        off_timer.setSingleShot(True)
-
         # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
         def step_start():
             GPIO.output(self.out_pins['sub_step'], GPIO.HIGH)
-            off_timer.start(self.sub_delay_us)
+            self.sub_off_timer.start(self.sub_delay_us)
 
         def step_finish():
             if self.get_target_dir() == 'cw':
@@ -140,12 +146,12 @@ class BeagleBoneHardware(QWidget):
             GPIO.output(self.out_pins['sub_step'], GPIO.LOW)
 
         # Connect Timeouts
-        on_timer.timeout.connect(step_start)
-        off_timer.timeout.connect(step_finish)
+        self.sub_on_timer.timeout.connect(step_start)
+        self.sub_off_timer.timeout.connect(step_finish)
 
         if self.sub_goal is None:
             if not GPIO.input(self.in_pins['sub_home']) or self.sub_position > 0:
-                on_timer.start(self.sub_delay_us)
+                self.sub_on_timer.start(self.sub_delay_us)
             elif self.sub_position == 0 or GPIO.input(self.in_pins['sub_home']):
                 # If the substrate is at end of range warn user and offer to rehome stage if there are issues.
                 max_range = QMessageBox.question(QWidget, 'Substrate End of Range',
@@ -158,7 +164,7 @@ class BeagleBoneHardware(QWidget):
                     self.home_sub()
         elif self.sub_goal is not None:
             if self.sub_goal != self.sub_position or self.sub_goal == 'home':
-                on_timer.start(self.sub_delay_us)
+                self.sub_on_timer.start(self.sub_delay_us)
                 if self.sub_goal == 'home':
                     self.home_sub()
             elif self.sub_goal == self.sub_position:
@@ -223,16 +229,10 @@ class BeagleBoneHardware(QWidget):
             self.step_target()
 
     def step_target(self):
-        # Set up timers
-        on_timer = QTimer()
-        on_timer.setSingleShot(True)
-        off_timer = QTimer()
-        off_timer.setSingleShot(True)
-
         # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
         def step_start():
             GPIO.output(self.out_pins['target_step'], GPIO.HIGH)
-            off_timer.start(self.target_delay_us)
+            self.target_off_timer.start(self.target_delay_us)
 
         def step_finish():
             if self.get_target_dir() == 'cw':
@@ -243,18 +243,18 @@ class BeagleBoneHardware(QWidget):
             GPIO.output(self.out_pins['target_step'], GPIO.LOW)
 
         # Connect Timeouts
-        on_timer.timeout.connect(step_start)
-        off_timer.timeout.connect(step_finish)
+        self.target_on_timer.timeout.connect(step_start)
+        self.target_off_timer.timeout.connect(step_finish)
 
         if self.target_goal is None and self.target_pos_goal is None:
-            on_timer.start(self.target_delay_us)
+            self.target_on_timer.start(self.target_delay_us)
         elif self.target_goal is not None:  # If there is a goal target
             # Set the target position goal if that has not already been done
             if self.target_pos_goal is None:
                 self.target_pos_goal = 1000 * self.target_goal
 
             if self.target_position != self.target_pos_goal:
-                on_timer.start(self.target_delay_us)
+                self.target_on_timer.start(self.target_delay_us)
                 # FIXME: Come up with logic so that the targets rotate the CW or CCW
                 #  direction to minimize positioning time: WAIT DID I Already do that in the move to?
             elif self.target_position == self.target_pos_goal:
