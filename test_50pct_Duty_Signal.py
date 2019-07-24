@@ -2,7 +2,7 @@ import Adafruit_BBIO.GPIO as GPIO
 from time import sleep
 import sys
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QObject
 
 app = QApplication(sys.argv)
 
@@ -53,3 +53,16 @@ dir_timer.timeout.connect(dir_check)
 
 dir_timer.start(2)
 on_timer.start(3)
+
+# class MotorPulser(QObject):
+#     def __init__(self, pin, rps=1, steps_per_rev=1000):
+#         # Bring in variables and calculate delay
+#         self.pin = pin
+#         self.rps = rps
+#         self.steps_per_rev = steps_per_rev
+#         self.delay_us = round(((self.rps ** -1) * (self.steps_per_rev ** -1)) / 2)
+#
+#         # Create timers
+#         self.on_timer = QTimer()
+#         self.off_timer = QTimer()
+
