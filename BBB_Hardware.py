@@ -116,10 +116,6 @@ class BeagleBoneHardware(QWidget):
             if self.get_sub_dir() != 'up':
                 self.set_sub_dir('up')
             self.step_sub()
-        if GPIO.input(self.in_pins['sub_home']):
-            print('Started {} steps away from home. New home position set.'.format(abs(self.sub_position)))
-            self.sub_goal = 0
-            self.sub_position = 0
 
     def move_sub_to(self, position):
         self.sub_goal = position
@@ -134,16 +130,24 @@ class BeagleBoneHardware(QWidget):
     def step_sub(self):
         # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
         def step_start():
-            GPIO.output(self.out_pins['sub_step'], GPIO.HIGH)
-            self.sub_off_timer.start(self.sub_delay_us)
+            if GPIO.input(self.in_pins['sub_home']):
+                print('Started {} steps away from home. New home position set.'.format(abs(self.sub_position)))
+                self.sub_goal = 0
+                self.sub_position = 0
+                return
+            elif not GPIO.input(self.in_pins['sub_home']):
+                GPIO.output(self.out_pins['sub_step'], GPIO.HIGH)
+                self.sub_off_timer.start(self.sub_delay_us)
 
         def step_finish():
-            if self.get_target_dir() == 'cw':
-                self.target_position += 1
-            elif self.get_target_dir() == 'ccw':
-                self.target_position -= 1
-            self.target_position = self.target_position % 6000
+            if self.get_sub_dir() == 'cw':
+                self.sub_position += 1
+            elif self.get_sub_dir() == 'ccw':
+                self.sub_position -= 1
             GPIO.output(self.out_pins['sub_step'], GPIO.LOW)
+
+            if self.sub_goal == 'home' and not GPIO.input(self.in_pins['sub_home']):
+                self.sub_on_timer.start(self.sub_delay_us)
 
         # Connect Timeouts
         self.sub_on_timer.timeout.connect(step_start)
@@ -165,8 +169,6 @@ class BeagleBoneHardware(QWidget):
         elif self.sub_goal is not None:
             if self.sub_goal != self.sub_position or self.sub_goal == 'home':
                 self.sub_on_timer.start(self.sub_delay_us)
-                if self.sub_goal == 'home':
-                    self.home_sub()
             elif self.sub_goal == self.sub_position:
                 # Clear the goal position if the substrate is in that position
                 self.sub_goal = None
