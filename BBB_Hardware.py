@@ -23,7 +23,7 @@ class BeagleBoneHardware(QWidget):
         # Define limits/constants for substrate motion
         # FIXME: All limit values are guesses and need to be set.
         self.sub_bottom = 0
-        self.sub_top = 24000
+        self.sub_top = 40035  # Measured using a duty cycle test for full motion range.
         self.sub_position = 24000
         self.sub_goal = None
         self.sub_dir = 'up'
