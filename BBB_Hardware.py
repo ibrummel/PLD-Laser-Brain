@@ -41,9 +41,9 @@ class BeagleBoneHardware(QWidget):
         self.target_delay_us = 1
 
         # Define class variables for
-        self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_19",
-                         "sub_step": "P9_17", "target_dir": "P9_25",
-                         "target_step": "P9_23"}
+        self.out_pins = {"trigger": "P8_17", "sub_dir": "P9_28",
+                         "sub_step": "P9_27", "target_dir": "P9_30",
+                         "target_step": "P9_29"}
         self.in_pins = {"sub_home": "P8_9", "aux": "P9_15"}
         self.hi_pins = {"sub_home": "P8_10"}
         
