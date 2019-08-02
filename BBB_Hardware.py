@@ -45,7 +45,7 @@ class BeagleBoneHardware(QWidget):
                          "sub_step": "P9_27", "target_dir": "P9_30",
                          "target_step": "P9_29"}
         self.in_pins = {"sub_home": "P8_9", "aux": "P9_15"}
-        self.hi_pins = {"sub_home": "P8_10"}
+        self.hi_pins = {"sub_home_hi": "P8_10"}
         
         # Create timers for 50% duty non-blocking motors
         # Target Axis
@@ -88,9 +88,8 @@ class BeagleBoneHardware(QWidget):
 
     def trigger_pulse(self):
         if self.allow_trigger:
-            print('Pulse {} was sent'.format(self.triggers_sent))
             GPIO.output(self.out_pins["trigger"], GPIO.HIGH)
-            sleep(0.000015)
+            sleep(0.001)
             GPIO.output(self.out_pins["trigger"], GPIO.LOW)
             self.triggers_sent += 1
 
