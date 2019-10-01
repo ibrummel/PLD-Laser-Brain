@@ -12,6 +12,7 @@
           <option value="BBB_Hardware.*" />
           <option value="PyQt5.QtWidgets.clicked.*" />
           <option value="PyQt5.QtWidgets.activated.*" />
+          <option value="RPi_Hardware.RPi" />
         </list>
       </option>
     </inspection_tool>
