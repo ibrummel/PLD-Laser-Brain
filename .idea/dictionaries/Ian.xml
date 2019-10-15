@@ -3,9 +3,11 @@
     <words>
       <w>arduino</w>
       <w>asrlcom</w>
+      <w>btns</w>
       <w>equil</w>
       <w>equilibratrion</w>
       <w>gpio</w>
+      <w>groupboxes</w>
       <w>hbox</w>
       <w>opmode</w>
       <w>opmodes</w>
@@ -13,6 +15,7 @@
       <w>repition</w>
       <w>repitition</w>
       <w>reprate</w>
+      <w>targ</w>
       <w>vbox</w>
       <w>warmup</w>
     </words>

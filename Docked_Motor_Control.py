@@ -132,7 +132,7 @@ class MotorControlPanel(QWidget):
         self.right_sc.activated.connect(self.target_right)
         # FIXME: Probably don't want this implementation of raster?
         self.raster_check.stateChanged.connect(self.raster_current_target)
-        self.brain.target_changed.connect(lambda: self.raster_check.setChecked(False))  # ToDo: Changes raster to match new target
+        self.brain.target_changed.connect(lambda: self.raster_check.setChecked(False))
         self.speed_slide.valueChanged.connect(self.update_speed_line)
         self.speed_line.returnPressed.connect(self.update_speed_slide)
         self.home_target_btn.clicked.connect(self.brain.home_targets)
@@ -209,7 +209,7 @@ class MotorControlPanel(QWidget):
 
     def update_speed_slide(self):
         self.mm_speed_val = float(self.speed_line.text())
-        self.speed_slide.setValue(self.mm_speed_val * 10)
+        self.speed_slide.setValue(int(self.mm_speed_val * 10))
         self.set_sub_speed()
 
     def set_sub_speed(self):
@@ -219,25 +219,10 @@ class MotorControlPanel(QWidget):
     def raster_current_target(self):
         if self.raster_check.isChecked():
             # ToDo: Need to set up an XML to store settings, positions, and target sizes.
-            target_size = self.parent.settings['carousel'][self.brain.current_target]['size']
+            find_string = "./target_carousel/target[@ID='{}']/Size".format(self.brain.current_target)
+            target_size = self.parent.preferences_dialog.pld_settings.find(find_string).text
             self.brain.arduino.update_motor_param('target', 'raster', target_size)
         else:
             # self.brain.raster_target(False, self.get_current_target())
             print('Raster Off')
         pass
-
-def main():
-    app = QApplication(sys.argv)
-
-    ex = MotorControlPanel()
-    ex.show()
-
-    sys.exit(app.exec_())
-
-
-# =============================================================================
-# Start the GUI (set up for testing for now)
-# FIXME: Need to finalize main loop for proper operation
-# =============================================================================
-if __name__ == '__main__':
-    main()
