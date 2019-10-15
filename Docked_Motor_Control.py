@@ -4,16 +4,19 @@ from PyQt5.QtWidgets import (QCheckBox, QHBoxLayout, QLabel, QLineEdit, QPushBut
                              QWidget, QGroupBox, QGridLayout, QSlider, QApplication, QFormLayout, QVBoxLayout,
                              QToolButton, QShortcut)
 from pathlib import Path
-from BBB_Hardware import BeagleBoneHardware
-# For Testing
+from RPi_Hardware import RPiHardware
 import sys
+import Global_Values as Global
 
 
 class MotorControlPanel(QWidget):
-    def __init__(self, brain: BeagleBoneHardware):
+    def __init__(self, brain: RPiHardware):
         super(MotorControlPanel, self).__init__()
 
+        # Declare brain as RPi interface object
         self.brain = brain
+
+        # Retrieve settings from XML
 
         self.target_pos_val = 200
         self.pos1_btn = QPushButton('1')
@@ -26,14 +29,9 @@ class MotorControlPanel(QWidget):
         self.raster_label = QLabel('Raster target?')
 
         self.right_btn = QPushButton()
-        self.right_btn.setAutoRepeat(True)
-        self.right_btn.setAutoRepeatInterval(3)
-        self.right_btn.setAutoRepeatDelay(200)
-
+        self.right_btn.setAutoRepeat(False)
         self.left_btn = QPushButton()
-        self.left_btn.setAutoRepeat(True)
-        self.left_btn.setAutoRepeatInterval(3)
-        self.left_btn.setAutoRepeatDelay(200)
+        self.left_btn.setAutoRepeat(False)
 
         left_icon = QIcon()
         right_icon = QIcon()
@@ -51,16 +49,16 @@ class MotorControlPanel(QWidget):
         self.tts_line = QLineEdit()
         self.tts_line.setPlaceholderText('Go to TTS')
 
-        self.sub_pos_val = 5000
+        self.sub_pos_val = self.brain.arduino.query_motor_parameters('sub', 'position')
         self.sub_mv_label = QLabel('Move\nSubstrate:')
         self.up_sub_btn = QPushButton()
         self.up_sub_btn.setAutoRepeat(True)
-        self.up_sub_btn.setAutoRepeatInterval(3)
-        self.up_sub_btn.setAutoRepeatDelay(200)
+        self.up_sub_btn.setAutoRepeatInterval(Global.SUB_STEPS_PER_REV / Global.SUB_MANUAL_SPEED)
+        self.up_sub_btn.setAutoRepeatDelay(Global.AUTO_REPEAT_DELAY)
         self.down_sub_btn = QPushButton()
         self.down_sub_btn.setAutoRepeat(True)
-        self.down_sub_btn.setAutoRepeatInterval(3)
-        self.down_sub_btn.setAutoRepeatDelay(200)
+        self.down_sub_btn.setAutoRepeatInterval(Global.SUB_STEPS_PER_REV / Global.SUB_MANUAL_SPEED)
+        self.down_sub_btn.setAutoRepeatDelay(Global.AUTO_REPEAT_DELAY)
         up_icon = QIcon()
         down_icon = QIcon()
         up_btn_path = Path('src/img').absolute() / 'up.svg'
@@ -74,15 +72,16 @@ class MotorControlPanel(QWidget):
         self.up_sc2 = QShortcut(QKeySequence(Qt.Key_Down), self)
         self.down_sc2 = QShortcut(QKeySequence(Qt.Key_Minus), self)
 
-        self.speed_val = 0.5
+        # ToDo: Determine how rps translates to mm in z per sec
+        self.mm_speed_val = 0.5
         self.speed_label = QLabel('Up/Down Speed (mm/s):')
         self.speed_slide = QSlider(Qt.Horizontal)
         self.speed_slide.setMaximum(20)
         self.speed_slide.setMinimum(1)
         self.speed_slide.setTickPosition(QSlider.TicksBothSides)
         self.speed_slide.setTickInterval(1)
-        self.speed_slide.setValue(int(self.speed_val * 10))
-        self.speed_line = QLineEdit(str(self.speed_val))
+        self.speed_slide.setValue(int(self.mm_speed_val * 10))
+        self.speed_line = QLineEdit(str(self.mm_speed_val))
 
         self.home_sub_btn = QToolButton()
         self.home_sub_btn.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
@@ -106,16 +105,21 @@ class MotorControlPanel(QWidget):
         self.home_group = QGroupBox('Home Axes:')
         self.home_group.setMinimumSize(85, 155)
         self.hbox = QHBoxLayout()
-        self.connect_controls()
+
+        self.init_connections()
         self.init_layout()
 
-    def connect_controls(self):
-        self.up_sub_btn.clicked.connect(self.sub_up)
-        self.down_sub_btn.clicked.connect(self.sub_down)
+    def init_connections(self):
+        self.up_sub_btn.pressed.connect(self.sub_up)
+        self.up_sub_btn.released.connect(self.sub_halt)
+        self.down_sub_btn.pressed.connect(self.sub_down)
+        self.down_sub_btn.released.connect(self.sub_halt)
+        # ToDo: address these shortcuts. Need to differentiate between keypress and key release here
         self.up_sc1.activated.connect(self.sub_up)
         self.down_sc1.activated.connect(self.sub_down)
         self.up_sc2.activated.connect(self.sub_up)
         self.down_sc2.activated.connect(self.sub_down)
+        # ToDo: This seems clunky and should be changed, maybe just a label denoting current target and arrows?
         self.pos1_btn.clicked.connect(lambda: self.brain.move_to_target(1))
         self.pos2_btn.clicked.connect(lambda: self.brain.move_to_target(2))
         self.pos3_btn.clicked.connect(lambda: self.brain.move_to_target(3))
@@ -126,7 +130,9 @@ class MotorControlPanel(QWidget):
         self.right_btn.clicked.connect(self.target_right)
         self.left_sc.activated.connect(self.target_left)
         self.right_sc.activated.connect(self.target_right)
-        self.raster_check.stateChanged.connect(self.raster_current_target)  # FIXME: Probably don't want this implementation
+        # FIXME: Probably don't want this implementation of raster?
+        self.raster_check.stateChanged.connect(self.raster_current_target)
+        self.brain.target_changed.connect(lambda: self.raster_check.setChecked(False))  # ToDo: Changes raster to match new target
         self.speed_slide.valueChanged.connect(self.update_speed_line)
         self.speed_line.returnPressed.connect(self.update_speed_slide)
         self.home_target_btn.clicked.connect(self.brain.home_targets)
@@ -170,47 +176,51 @@ class MotorControlPanel(QWidget):
         self.hbox.addWidget(self.home_group)
         self.setLayout(self.hbox)
 
+    def parse_xml_settings(self):
+        # ToDo: Read an XML file to determine target types/compositons/sizes
+        pass
+
+    def write_xml_settings(self):
+        # ToDo: dump all settings to a file. Should be edited in memory using ElementTree
+        pass
+
     def sub_up(self):
-        if self.brain.get_sub_dir() != 'up':
-            self.brain.set_sub_dir('up')
-        self.brain.step_sub()
+        self.brain.arduino.update_motor_param('sub', 'start', Global.SUB_UP)
 
     def sub_down(self):
-        if self.brain.get_sub_dir() != 'down':
-            self.brain.set_sub_dir('down')
-        self.brain.step_sub()
+        self.brain.arduino.update_motor_param('sub', 'start', Global.SUB_DOWN)
+
+    def sub_halt(self):
+        self.brain.arduino.halt_motor('sub')
 
     def target_right(self):
-        if self.brain.get_target_dir() != 'cw':
-            self.brain.set_target_dir('cw')
-        self.brain.step_target()
+        self.brain.move_to_target((self.brain.current_target + 1) % 6)
 
     def target_left(self):
-        if self.brain.get_target_dir() != 'ccw':
-            self.brain.set_target_dir('ccw')
-        self.brain.step_target()
+        self.brain.move_to_target((self.brain.current_target - 1) % 6)
 
     def get_speed_val(self):
-        return self.speed_val
+        return self.mm_speed_val
 
     def update_speed_line(self):
-        self.speed_val = float(self.speed_slide.value() / 10)
-        self.speed_line.setText(str(self.speed_val))
+        self.mm_speed_val = float(self.speed_slide.value() / 10)
+        self.speed_line.setText(str(self.mm_speed_val))
         self.set_sub_speed()
 
     def update_speed_slide(self):
-        self.speed_val = float(self.speed_line.text())
-        self.speed_slide.setValue(self.speed_val * 10)
+        self.mm_speed_val = float(self.speed_line.text())
+        self.speed_slide.setValue(self.mm_speed_val * 10)
         self.set_sub_speed()
 
     def set_sub_speed(self):
-        if float(self.speed_slide.value() / 10) == float(self.speed_line.text()):
-            self.brain.set_sub_speed(self.speed_slide.value())
+        # ToDo: convert this to be a mm/s value rather than an rps value
+        self.brain.arduino.update_laser_param('sub', 'speed', self.mm_speed_val)
 
     def raster_current_target(self):
         if self.raster_check.isChecked():
-            # self.brain.raster_target(True, self.get_current_target())
-            print('Raster On')
+            # ToDo: Need to set up an XML to store settings, positions, and target sizes.
+            target_size = self.parent.settings['carousel'][self.brain.current_target]['size']
+            self.brain.arduino.update_motor_param('target', 'raster', target_size)
         else:
             # self.brain.raster_target(False, self.get_current_target())
             print('Raster Off')

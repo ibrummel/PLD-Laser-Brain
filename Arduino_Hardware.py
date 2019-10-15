@@ -11,8 +11,8 @@ class LaserBrainArduino(QObject):
         self.arduino = serial.Serial(port, baudrate=115200, timeout=1.5)  # Standard port with 8N1 configuration
         self.arduino.open()
         self.serial_read_delay = 0.01
-        # FIXME: This is a guess at timing that probably needs adjusting but isn't relevant till we need
-        #  more serial ports
+        # FIXME: This is a guess at timing that probably needs adjusting but
+        #  isn't relevant till we need more serial ports
 
         self.valid_axes = {'laser': 'l', 'l': 'l',                      # l is for laser
                            'sub': 's', 'substrate': 's', 's': 's',      # s is for substrate
@@ -38,11 +38,12 @@ class LaserBrainArduino(QObject):
                                    'speed': 'v', 'velocity': 'v', 'v': 'v',
                                    'goal': 'g', 'g': 'g',
                                    'start': 'd', 'manual': 'd', 'd': 'd',
-                                   'raster': 'r', 'r': 'r'}
+                                   'raster': 'r', 'r': 'r',
+                                   'position': 'p', 'p': 'p'}
 
         self.valid_motor_queries = {'position': 'p', 'p': 'p',
                                     'max speed': 'm', 'm': 'm',
-                                    'speed': 'v', 'velocity': 'v', 'r': 'v',
+                                    'speed': 'v', 'velocity': 'v', 'v': 'v',
                                     'goal position': 'g', 'g': 'g',
                                     'distance to go': 'd', 'd': 'd',
                                     'is running': 'r', 'r': 'r'}

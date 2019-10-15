@@ -1,15 +1,18 @@
 # Imports
 import RPi.GPIO as GPIO
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QIcon, QKeySequence
-from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton, QShortcut,
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent
+from PyQt5.QtGui import QIcon, QKeyEvent
+from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton,
                              QSpacerItem, QWidget)
-from time import sleep
 from pathlib import Path
 from Arduino_Hardware import LaserBrainArduino
+import Global_Values as Global
 
 
 class RPiHardware(QWidget):
+
+    sub_home = pyqtSignal()
+    target_changed = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -27,29 +30,32 @@ class RPiHardware(QWidget):
         self.triggers_sent = 0
 
         # Define limits/constants for substrate motion
-        # FIXME: All limit values are guesses and need to be set.
-        self.sub_bottom = 0
-        self.sub_top = 40035  # Measured using a duty cycle test for full motion range.
         self.sub_position = 24000
-        self.sub_steps_per_rev = 1000
-        self.sub_rps = 0.5
+        self.sub_rps = self.arduino.query_motor_parameters('sub', 'speed') / Global.SUB_STEPS_PER_REV
+        self.stored_sub_pos = 0
 
-        self.current_target = 1
-        self.target_steps_per_rev = 1000
-        self.target_rps = 2
+        self.current_target = round(self.arduino.query_motor_parameters('target', 'position') / (Global.TARGET_STEPS_PER_REV / 6)) % 6
+        self.move_to_target(self.current_target)
+        self.target_rps = self.arduino.query_motor_parameters('target', 'speed') / Global.TARGET_STEPS_PER_REV
 
         # Define class variables for
-        # FIXME: These pins need to be updated to the correct numbers for the new brain
-        self.in_pins = {"sub_home": "P8_9", "aux": "P9_15"}
+        self.in_pins = {"sub_home": 23, "aux": 17}
         self.low_pins = {}
-        self.hi_pins = {"sub_home_hi": "P8_10", 'arduino_reset': 16}
+        self.hi_pins = {"sub_home_hi": 22, 'arduino_reset': 16}
 
         self.setup_pins()
 
     def setup_pins(self):
+        GPIO.setwarnings(False)
         # Set up pins (output pins are split by initialization value)
         for key in self.in_pins:
-            GPIO.setup(self.in_pins[key], GPIO.IN)
+            # FIXME: not sure I want pull down here
+            GPIO.setup(self.in_pins[key], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+        # Build the event detect for the sub home switch
+        GPIO.add_event_detect(self.in_pins['sub_home'], GPIO.RISING,
+                              callback=self.gpio_emit,
+                              bouncetime=200)
 
         for key in self.low_pins:
             GPIO.setup(self.low_pins[key], GPIO.OUT, initial=GPIO.LOW)
@@ -57,14 +63,17 @@ class RPiHardware(QWidget):
         for key in self.hi_pins:
             GPIO.setup(self.hi_pins[key], GPIO.OUT, initial=GPIO.HIGH)
 
+    def gpio_emit(self, channel):
+        if channel == self.in_pins['sub_bome']:
+            self.sub_home.emit()
+        # Add other GPIO signals here with an elif then an emit for
+        # the new signal
+
     def start_pulsing(self, reprate, pulse_count=None):
-        # Reset allow_trigger so that we don't end up breaking things/needing to restart the GUI on deposition cancel.
-        print('Starting pulsing')
         # Update the laser reprate as appropriate
         self.arduino.update_laser_param('reprate', reprate)
         # Keep track of the pulse count and target
         self.pulse_count_target = pulse_count
-        self.triggers_sent = 0
         # If we have a pulse count target, feed it to the laser.
         # This will begin pulsing automatically.
         if pulse_count is not None:
@@ -78,100 +87,47 @@ class RPiHardware(QWidget):
         self.arduino.halt_laser()
         # Get the number of pulses completed so we know how far off we were
         self.triggers_sent = self.arduino.query_laser_parameters('pulses')
-    # FIXME: Stopped here on revisions for new brain
-    def home_sub(self):
-        self.sub_goal = 'home'
+        # ToDo: Consider setting pulses to zero in the arduino
 
-        if not GPIO.input(self.in_pins['sub_home']):
-            if self.get_sub_dir() != 'up':
-                self.set_sub_dir('up')
-            self.step_sub()
+    def home_sub(self):
+        self.sub_home.connect(self.set_sub_home)
+
+        # Start moving the substrate upward, will be stopped and home position
+        # set by the function connected to the event switch
+        self.arduino.update_motor_param('sub', 'start', 0)
+
+    def set_sub_home(self):
+        self.arduino.halt_motor('sub')
+        # May be useful if I want to return to the previous position after homing
+        self.stored_sub_pos = self.arduino.query_motor_parameters('sub', 'position')
+        self.arduino.update_motor_param('sub', 'position', 0)
+        self.sub_home.disconnect(self.set_sub_home)
+        # Use this to return after homing
+        # self.arduino.update_motor_param('sub', 'goal', -1 * self.stored_sub_pos)
 
     def move_sub_to(self, position):
-        self.sub_goal = position
-
-        if self.sub_goal > self.sub_position:
-            self.set_sub_dir('up')
-        elif self.sub_goal < self.sub_position:
-            self.set_sub_dir('down')
-
-        self.step_sub()
-
-    def step_sub(self):
-        # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
-        def step_start():
-            if GPIO.input(self.in_pins['sub_home']):
-                print('Started {} steps away from home. New home position set.'.format(abs(self.sub_position)))
-                self.sub_goal = 0
-                self.sub_position = 0
-                return
-            elif not GPIO.input(self.in_pins['sub_home']):
-                GPIO.output(self.low_pins['sub_step'], GPIO.HIGH)
-                self.sub_off_timer.start(self.sub_delay_us)
-
-        def step_finish():
-            if self.get_sub_dir() == 'cw':
-                self.sub_position += 1
-            elif self.get_sub_dir() == 'ccw':
-                self.sub_position -= 1
-            GPIO.output(self.low_pins['sub_step'], GPIO.LOW)
-
-            if self.sub_goal == 'home' and not GPIO.input(self.in_pins['sub_home']):
-                self.sub_on_timer.start(self.sub_delay_us)
-
-        # Connect Timeouts
-        self.sub_on_timer.timeout.connect(step_start)
-        self.sub_off_timer.timeout.connect(step_finish)
-
-        if self.sub_goal is None:
-            if not GPIO.input(self.in_pins['sub_home']) or self.sub_position > 0:
-                self.sub_on_timer.start(self.sub_delay_us)
-            elif self.sub_position == 0 or GPIO.input(self.in_pins['sub_home']):
-                # If the substrate is at end of range warn user and offer to rehome stage if there are issues.
-                max_range = QMessageBox.question(QWidget, 'Substrate End of Range',
-                                                 'Press ok to continue or press reset to home the substrate',
-                                                 QMessageBox.Ok | QMessageBox.Reset,
-                                                 QMessageBox.Ok)
-                if max_range == QMessageBox.Ok:
-                    pass
-                elif max_range == QMessageBox.Reset:
-                    self.home_sub()
-        elif self.sub_goal is not None:
-            if self.sub_goal != self.sub_position or self.sub_goal == 'home':
-                self.sub_on_timer.start(self.sub_delay_us)
-            elif self.sub_goal == self.sub_position:
-                # Clear the goal position if the substrate is in that position
-                self.sub_goal = None
-
-    def set_sub_dir(self, direction):
-        if direction.lower() == "up":
-            # Set direction pin so that the substrate will be driven up (CCW)
-            self.sub_dir = 'up'
-            GPIO.output(self.low_pins['sub_dir'], GPIO.LOW)
-        elif direction.lower() == "down":
-            # Set direction pin so that the substrate will be driven down (CW)
-            self.sub_dir = 'down'
-            GPIO.output(self.low_pins['sub_dir'], GPIO.HIGH)
+        if Global.SUB_TOP < position < Global.SUB_BOTTOM:
+            self.arduino.update_motor_param('sub', 'goal', position)
         else:
-            print('Invalid direction argument for the substrate motor supplied.')
-
-    def get_sub_dir(self):
-        return self.sub_dir
+            print('Substrate position is out of range, sub max = {}, provided position = {}'.format(self.sub_bottom,
+                                                                                                    position))
 
     def set_sub_speed(self, rps):
         self.sub_rps = rps
-        # Calculate delay per step from speed
-        self.sub_delay_us = round(((self.sub_rps ** -1) * (self.sub_steps_per_rev ** -1)) / 2)
+        # Send a speed update to the arduino based on the requested rps and steps per rev
+        self.arduino.update_motor_param('sub', 'v', int(rps * Global.SUB_STEPS_PER_REV))
 
-    def stop_sub(self):
-        self.sub_goal = None
+    def halt_sub(self):
+        self.arduino.halt_motor('sub')
 
     def home_targets(self):
         self.home_target_dialog.exec_()
 
         if self.home_target_dialog.result() == QDialog.Accepted:
-            self.target_position = 0
-            self.current_target = 1
+            # Set pertinent variables to the home positions
+            self.current_target = 0
+            self.arduino.update_motor_param('target', 'position', 0)
+
             target_home_info = QMessageBox.information(self, 'Home Set',
                                                        'New target carousel home position set',
                                                        QMessageBox.Ok, QMessageBox.Ok)
@@ -180,103 +136,60 @@ class RPiHardware(QWidget):
                                                    'Target carousel home cancelled by user.',
                                                    QMessageBox.Ok, QMessageBox.Ok)
 
-    def move_to_target(self, target_goal):
-        self.target_goal = target_goal
+    def move_to_target(self, target_goal: int):
+        # NOTE: No checking if we are already at the goal target because
+        # we want the target to recenter in case of raster getting off
+        # Note that range is not inclusive of last value so this checks if target goal is 0-5
+        # ToDo: need to make sure that the laser stops before targets move and rastering is at least paused.
+        #  otherwise it will mess up positional set.
 
-        if self.target_goal != self.current_target:
-            delta_pos = abs(target_goal - self.current_target)
-
-            if delta_pos > 3:
-                delta_pos = ((delta_pos - 3) * 2) - delta_pos
-
-            if delta_pos < 0:
-                self.set_target_dir('cw')
-            elif delta_pos > 0:
-                self.set_target_dir('ccw')
-            else:
-                print('Target {} already selected'.format(self.target_goal))
-                return
-
-            self.step_target()
-
-    def step_target(self):
-        # Define function for step parts (NOTE: driver sends step on GPIO.LOW)
-        def step_start():
-            GPIO.output(self.low_pins['target_step'], GPIO.HIGH)
-            self.target_off_timer.start(self.target_delay_us)
-
-        def step_finish():
-            if self.get_target_dir() == 'cw':
-                self.target_position += 1
-            elif self.get_target_dir() == 'ccw':
-                self.target_position -= 1
-            self.target_position = self.target_position % 6000
-            GPIO.output(self.low_pins['target_step'], GPIO.LOW)
-
-        # Connect Timeouts
-        self.target_on_timer.timeout.connect(step_start)
-        self.target_off_timer.timeout.connect(step_finish)
-
-        if self.target_goal is None and self.target_pos_goal is None:
-            self.target_on_timer.start(self.target_delay_us)
-        elif self.target_goal is not None:  # If there is a goal target
-            # Set the target position goal if that has not already been done
-            if self.target_pos_goal is None:
-                self.target_pos_goal = 1000 * self.target_goal
-
-            if self.target_position != self.target_pos_goal:
-                self.target_on_timer.start(self.target_delay_us)
-                # FIXME: Come up with logic so that the targets rotate the CW or CCW
-                #  direction to minimize positioning time: WAIT DID I Already do that in the move to?
-            elif self.target_position == self.target_pos_goal:
-                self.target_pos_goal = None
-                self.target_goal = None
-                self.target_step_timer.stop()
-
-    def set_target_dir(self, direction):
-        if direction.lower() == "ccw":
-            # Set direction pin so that the substrate will be driven up (CCW)
-            self.target_dir = 'ccw'
-            GPIO.output(self.low_pins['target_dir'], GPIO.LOW)
-        elif direction.lower() == "cw":
-            # Set direction pin so that the substrate will be driven down (CW)
-            self.target_dir = 'cw'
-            GPIO.output(self.low_pins['target_dir'], GPIO.HIGH)
+        if target_goal in range(0, 6):
+            self.arduino.update_motor_param('target', 'raster', 0)
+            self.target_changed.emit()
+            position = (target_goal) * (Global.TARGET_STEPS_PER_REV / 6)
+            self.arduino.update_motor_param('target', 'goal', position)
+            # Set current target based on the goal
+            self.current_target = target_goal
         else:
-            print('Invalid direction argument for the target motor supplied')
+            print('Invalid goal target supplied to move_to_target: {}'.format(target_goal))
 
     def set_target_speed(self, rps):
         self.target_rps = rps
-        # Calculate delay per step from speed
-        self.target_delay_us = round(((self.target_rps ** -1) * (self.target_steps_per_rev ** -1)) / 2)
+        # Send a speed update to the arduino based on the requested rps and steps per rev
+        self.arduino.update_motor_param('target', 'speed', rps * Global.TARGET_STEPS_PER_REV)
 
-    def get_target_dir(self):
-        return self.target_dir
+    def halt_target(self):
+        self.arduino.halt_motor('target')
 
-    def stop_target(self):
-        self.target_goal = None
-        self.target_pos_goal = None
-
+    # ToDo: write out motor positions and status on delete so that they can be restored
+    #  on program boot
     def __del__(self):
         GPIO.cleanup()
 
 
 class HomeTargetsDialog(QDialog):
-    def __init__(self, brain: BeagleBoneHardware):
+    def __init__(self, brain: RPiHardware):
         super().__init__()
 
         self.brain = brain
         self.setWindowTitle('Home Target Carousel')
 
+        self.moving_right = False
+        self.moving_left = False
+        # Store the old speed and then set speed to a lower value so the
+        # position is easier to control by hand.
+        self.stored_speed = brain.arduino.query_motor_parameters('target', 'speed')
+        self.brain.arduino.update_motor_param('target', 'speed', Global.TARGET_MANUAL_SPEED)
+
         self.right_btn = QPushButton()
         self.right_btn.setAutoRepeat(True)
-        self.right_btn.setAutoRepeatInterval(3)
-        self.right_btn.setAutoRepeatDelay(200)
+        self.right_btn.setAutoRepeatInterval(Global.TARGET_STEPS_PER_REV / Global.TARGET_MANUAL_SPEED)
+        self.right_btn.setAutoRepeatDelay(Global.AUTO_REPEAT_DELAY)
 
         self.left_btn = QPushButton()
         self.left_btn.setAutoRepeat(True)
-        self.left_btn.setAutoRepeatInterval(3)
-        self.left_btn.setAutoRepeatDelay(200)
+        self.left_btn.setAutoRepeatInterval(Global.TARGET_STEPS_PER_REV / Global.TARGET_MANUAL_SPEED)
+        self.left_btn.setAutoRepeatDelay(Global.AUTO_REPEAT_DELAY)
 
         self.left_icon = QIcon()
         self.right_icon = QIcon()
@@ -290,8 +203,12 @@ class HomeTargetsDialog(QDialog):
         self.apply_btn = QPushButton("Apply")
         self.cancel_btn = QPushButton("Cancel")
 
-        self.left_sc = QShortcut(QKeySequence(Qt.Key_Left), self)
-        self.right_sc = QShortcut(QKeySequence(Qt.Key_Right), self)
+        # Install event filter on all buttons to make sure that arrow
+        # keys are processed as target carousel move commands
+        self.right_btn.installEventFilter(self)
+        self.right_btn.installEventFilter(self)
+        self.apply_btn.installEventFilter(self)
+        self.cancel_btn.installEventFilter(self)
 
         self.instruction_label = QLabel('Use the buttons below or the left and right arrow keys to align the ' +
                                         '"home mark" on the motor and coupling, then press Accept to confirm ' +
@@ -306,10 +223,11 @@ class HomeTargetsDialog(QDialog):
         self.init_connections()
 
     def init_connections(self):
-        self.right_btn.clicked.connect(self.right)
-        self.left_btn.clicked.connect(self.left)
-        self.left_sc.activated.connect(self.left)
-        self.right_sc.activated.connect(self.right)
+        self.right_btn.pressed.connect(self.right)
+        self.right_btn.released.connect(self.halt)
+        self.left_btn.pressed.connect(self.left)
+        self.left_btn.released.connect(self.halt)
+
         self.apply_btn.clicked.connect(self.accept)
         self.cancel_btn.clicked.connect(self.reject)
 
@@ -329,11 +247,42 @@ class HomeTargetsDialog(QDialog):
         self.setLayout(self.vbox)
 
     def right(self):
-        if self.brain.get_target_dir() != 'cw':
-            self.brain.set_target_dir('cw')
-        self.brain.step_target()
+        # ToDo: Check the if 0 or 1 goes left or right.
+        self.brain.arduino.update_motor_param('target', 'start', Global.TARGET_CW)
+        self.moving_right = True
+        self.moving_left = False
 
     def left(self):
-        if self.brain.get_target_dir() != 'ccw':
-            self.brain.set_target_dir('ccw')
-        self.brain.step_target()
+        self.brain.arduino.update_motor_param('target', 'start', Global.TARGET_CCW)
+        self.moving_left = True
+        self.moving_right = False
+
+    def halt(self):
+        self.brain.halt_target()
+        self.moving_right = False
+        self.moving_left = False
+
+    # Override the accept and reject methods to reset speed after homing/cancelling
+    def accept(self):
+        self.brain.arduino.update_motor_param('target', 'speed', self.stored_speed)
+        super().accept()
+
+    def reject(self):
+        self.brain.arduino.update_motor_param('target', 'speed', self.stored_speed)
+        super().reject()
+
+    # Override the event filter and the key release event to handle arrow keys
+    # as movement controls
+    def eventFilter(self, event, source):
+        if event.type() == QEvent.Keypress:
+            if event.key() == Qt.Key_Right and self.moving_right is False:
+                self.right()
+            elif event.key() == Qt.Key_Left and self.moving_left is False:
+                self.left()
+        return super().eventFilter(source, event)
+
+    def keyReleaseEvent(self, event: QKeyEvent):
+        key = event.key()
+        if key == Qt.Key_Right or key == Qt.Key_Left and not event.isAutoRepeat():
+            self.halt()
+
