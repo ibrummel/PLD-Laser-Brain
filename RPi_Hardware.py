@@ -120,7 +120,7 @@ class RPiHardware(QWidget):
     def halt_sub(self):
         self.arduino.halt_motor('sub')
 
-    def home_targets(self):
+    def home_carousel(self):
         self.home_target_dialog.exec_()
 
         if self.home_target_dialog.result() == QDialog.Accepted:
