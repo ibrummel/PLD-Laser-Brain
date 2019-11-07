@@ -1,8 +1,8 @@
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5 import uic
+from PyQt5.QtCore import Qt, QTimer, QRegExp
 from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator
-from PyQt5.QtWidgets import (QCheckBox, QComboBox,
-                             QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout,
-                             QWidget, QMessageBox, QFormLayout)
+from PyQt5.QtWidgets import (QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton,
+                             QWidget, QMessageBox)
 from VISA_Communications import VisaLaser
 import time
 from RPi_Hardware import RPiHardware
@@ -13,136 +13,90 @@ class LaserStatusControl(QWidget):
     def __init__(self, laser: VisaLaser, brain: RPiHardware):
         super().__init__()
 
+        # Load UI and discover necessary items
+        uic.loadUi('./src/ui/docked_laser_status_control.ui', self)
+
+        self.btns = {widget.objectName().split('btn_')[1]: widget
+                     for widget in self.findChildren(QPushButton, QRegExp('btn_*'))}
+        self.lines = {widget.objectName().split('line_')[1]: widget
+                      for widget in self.findChildren(QLineEdit, QRegExp('line_*'))}
+        self.labels = {widget.objectName().split('lbl_')[1]: widget
+                       for widget in self.findChildren(QLabel, QRegExp('lbl_*'))}
+        self.checks = {widget.objectName().split('check_')[1]: widget
+                       for widget in self.findChildren(QCheckBox, QRegExp('check_*'))}
+        self.combos = {widget.objectName().split('combo_')[1]: widget
+                       for widget in self.findChildren(QComboBox, QRegExp('combo_*'))}
+        # Add items to the laser mode combo
+        self.combos['laser_mode'].addItems(self.inModes.values())
+        # FIXME: Might want to force the laser into EGY NGR or HV mode if any
+        #  other mode is detected (i.e. index=-1)
+        index = self.combos['laser_mode'].findText(self.inModes[self.laser.rd_mode()])
+        self.combos['laser_mode'].setCurrentIndex(index)
+
         # Set up permissible modes list
         self.inModes = {'EGY NGR': 'Energy', 'HV': 'HV'}
         self.outModes = {'Energy': 'EGY NGR', 'HV': 'HV'}
 
-        # Pull in parameters
+        # Pull in operating interfaces
         self.laser = laser
         self.brain = brain
 
         # Create internal variables and set values
         self.ext_reprate_current = self.laser.rd_reprate()
+        self.int_reprate_current = self.laser.rd_reprate()
 
         # Create widgets and other GUI elements
-        self.modeSelLabel = QLabel('Mode: ')
-        self.modeSel = QComboBox()
-
-        self.egyLabel = QLabel('Energy: ')
         self.current_egy = self.laser.rd_energy()
-        self.egy_val = QLineEdit(self.current_egy)
-        self.egy_val.setValidator(QIntValidator(50, 510))
-
-        self.hvLabel = QLabel('HV: ')
+        # self.lines['energy'].setValidator(QIntValidator(50, 510))
         self.current_hv = self.laser.rd_hv()
-        self.hv_val = QLineEdit(self.current_hv)
-        self.hv_val.setValidator(QDoubleValidator(18, 27, 1))
-
-        self.reprateLabel = QLabel('Reprate: ')
-        self.int_reprate_current = self.laser.rd_reprate()
-        self.reprate_val = QLineEdit(self.int_reprate_current)
-        self.reprate_val.setValidator(QIntValidator(0, 20))  # Laser caps at 50, but >20 needs cooling water
-
-        self.extTriggerCheck = QCheckBox()
-
-        self.checkForm = QFormLayout()
-        self.checkForm.addRow('EXT Trig?', self.extTriggerCheck)
-
-        self.btnOnOff = QPushButton("Start Laser")
-
-        self.terminal = QLineEdit()
-        self.hbox = QHBoxLayout()
-        self.vbox = QVBoxLayout()
-        self.updateTimer = QTimer()
-
-        # Define/Create widgets for laser status and control
-        self.title = QLabel('Laser Status')
+        # self.lines['voltage'].setValidator(QDoubleValidator(18, 27, 1))
+        self.update_timer = QTimer()
 
         # Run function to adjust widget parameters/build the LSC
-        self.init_ui()
+        self.init_connections()
 
-    def init_ui(self):
-        """Manipulate and adjust laser status and manual control widgets"""
-        # Create and format title for LSC block
-        self.title.setAlignment(Qt.AlignCenter)
-        # FIXME: Change how this is handled to be general to other instances
-        self.title.setFont(QFont('Arial', 24, QFont.Bold))
-
+    def init_connections(self):
         # Mode Selection Box. Will default to current laser running mode
-        self.modeSel.addItems(self.inModes.values())
-        # FIXME: Might want to force the laser into EGY NGR or HV mode if any
-        # other mode is detected (i.e. index=-1)
-        index = self.modeSel.findText(self.inModes[self.laser.rd_mode()])
-        self.modeSel.setCurrentIndex(index)
-        self.modeSel.currentTextChanged.connect(self.change_mode)
+        self.combos['laser_mode'].currentTextChanged.connect(self.change_mode)
 
         # Energy reading/setting box: while laser is running, will display
         # last pulse avg value, otherwise will display setting for egy mode
         # and last pulse energy for hv mode.
-        self.egy_val.returnPressed.connect(self.set_energy)
+        self.lines['energy'].returnPressed.connect(self.set_energy)
 
         # HV setting box: Displays currently set HV for HV mode. For EGY mode
         # displays the HV set by the laser to match energy setting.
-        self.hv_val.returnPressed.connect(self.set_hv)
+        self.lines['voltage'].returnPressed.connect(self.set_hv)
 
         # Reprate setting box: Displays current reprate. Will display "EXT" if
         # the laser is set to external triggering
-        self.reprate_val.returnPressed.connect(self.set_reprate)
+        self.lines['reprate'].returnPressed.connect(self.set_reprate)
 
         # Set up check boxes. Default set external trigger check
         # based on current laser configuration
         if self.laser.rd_trigger() == "EXT":
-            self.extTriggerCheck.setChecked(True)
-        self.extTriggerCheck.stateChanged.connect(self.change_trigger)
-
-        # Start Stop Button
-        # self.btnOnOff.setAlignment(Qt.AlignCenter)
-        self.btnOnOff.clicked.connect(self.change_on_off)
-
-        # Terminal box for debug
-        self.terminal.setPlaceholderText('Enter a command here')
-        self.terminal.returnPressed.connect(self.terminal_send)
-
-        # Create a Horizontal Layout to contain the value and setting boxes
-        self.hbox.addWidget(self.modeSelLabel)
-        self.hbox.addWidget(self.modeSel)
-        self.hbox.addWidget(self.egyLabel)
-        self.hbox.addWidget(self.egy_val)
-        self.hbox.addWidget(self.hvLabel)
-        self.hbox.addWidget(self.hv_val)
-        self.hbox.addWidget(self.reprateLabel)
-        self.hbox.addWidget(self.reprate_val)
-        self.hbox.addLayout(self.checkForm)
-
-        # Create a vertical box to set up title and LSC boxes
-        self.vbox.addWidget(self.title)
-        self.vbox.addLayout(self.hbox)
-        self.vbox.addWidget(self.btnOnOff)
-        # self.vbox.addWidget(self.btnPauseUpdate)
-        self.vbox.addWidget(self.terminal)
-
-        self.setLayout(self.vbox)
-        self.change_mode(self.modeSel.currentText())
+            self.checks['ext_trigger'].setChecked(True)
+        self.checks['ext_trigger'].stateChanged.connect(self.change_trigger)
 
         # Moved from main() into the function
-        self.updateTimer.timeout.connect(self.update_lsc)
-        self.updateTimer.start(int(1000 / int(self.laser.rd_reprate())))
+        self.update_timer.timeout.connect(self.update_lsc)
+        self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
 
     # Updater for the laser status readouts. Only updates for fields that are
     # not currently selected.
     def update_lsc(self):
         on_opmodes = ['ON', 'OFF,WAIT']
-        if not self.egy_val.hasFocus():
-            self.egy_val.setText(self.laser.rd_energy())
+        if not self.lines['energy'].hasFocus():
+            self.lines['energy'].setText(self.laser.rd_energy())
 
-        if not self.hv_val.hasFocus():
-            self.hv_val.setText(self.laser.rd_hv())
+        if not self.lines['voltage'].hasFocus():
+            self.lines['voltage'].setText(self.laser.rd_hv())
 
-        if not self.reprate_val.hasFocus():
+        if not self.lines['reprate'].hasFocus():
             if self.laser.rd_trigger() == 'INT':
-                self.reprate_val.setText(self.laser.rd_reprate())
+                self.lines['reprate'].setText(self.laser.rd_reprate())
             elif self.laser.rd_trigger() == 'EXT':
-                self.reprate_val.setText(self.ext_reprate_current)
+                self.lines['reprate'].setText(self.ext_reprate_current)
 
         if self.laser.rd_opmode() in on_opmodes:
             if self.laser.rd_trigger() == 'INT':
@@ -165,23 +119,23 @@ class LaserStatusControl(QWidget):
     def change_mode(self, mode):
         self.laser.set_mode(self.outModes[mode])
         if self.outModes[mode] == 'HV':
-            self.egy_val.setDisabled(True)
-            self.hv_val.setDisabled(False)
+            self.lines['energy'].setDisabled(True)
+            self.lines['voltage'].setDisabled(False)
         if self.outModes[mode] == 'EGY NGR':
-            self.egy_val.setDisabled(False)
-            self.hv_val.setDisabled(True)
+            self.lines['energy'].setDisabled(False)
+            self.lines['voltage'].setDisabled(True)
 
     def change_trigger(self):
-        if self.extTriggerCheck.isChecked():
+        if self.checks['ext_trigger'].isChecked():
             self.laser.set_trigger('EXT')
-        elif not self.extTriggerCheck.isChecked():
+        elif not self.checks['ext_trigger'].isChecked():
             self.laser.set_trigger('INT')
 
     def change_on_off(self):
         on_opmodes = ['ON', 'OFF,WAIT']
         # On button press stops the timer that updates the display so that
         # we don't see timeouts on pressing the button to stop/start
-        self.updateTimer.stop()
+        self.update_timer.stop()
         time.sleep(0.01)
 
         if self.laser.rd_opmode() in on_opmodes:
@@ -191,7 +145,7 @@ class LaserStatusControl(QWidget):
                 self.brain.stop_pulsing()
                 self.laser.off()
 
-            self.btnOnOff.setText('Start Laser')
+            self.btn['start_stop'].setText('Start Laser')
 
         elif self.laser.rd_opmode() == 'OFF:31':
             self.laser_timeout_handler()
@@ -206,14 +160,14 @@ class LaserStatusControl(QWidget):
                 time.sleep(0.01)
                 print('Sent laser on. Laser Status: {}'.format(self.laser.rd_opmode()))
                 QTimer.singleShot(3000, lambda: self.brain.start_pulsing(self.ext_reprate_current))
-                self.btnOnOff.setText('Stop External Trigger')
+                self.btn['start_stop'].setText('Stop External Trigger')
             elif self.laser.rd_trigger() == 'INT':
                 self.laser.on()
-                self.btnOnOff.setText('Stop Internal Trigger')
+                self.btn['start_stop'].setText('Stop Internal Trigger')
 
         # Re-enables the updater for the LSC
         time.sleep(0.01)
-        self.updateTimer.start(int(1000 / int(self.laser.rd_reprate())))
+        self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
 
     def laser_timeout_handler(self):
         timeout_clear = QMessageBox.question(self, 'Laser Status: Timeout',
@@ -226,7 +180,7 @@ class LaserStatusControl(QWidget):
             self.laser.set_timeout(False)
             time.sleep(0.01)
             self.laser.on()
-            self.btnOnOff.setText('Stop Laser')
+            self.btn['start_stop'].setText('Stop Laser')
         elif timeout_clear == QMessageBox.Cancel:
             pass
 
@@ -252,8 +206,8 @@ class LaserStatusControl(QWidget):
     #         self.updateTimer.start(1000 / int(self.laser.rd_reprate()))
 
     def set_energy(self):
-        if 50 <= int(self.egy_val.text()) <= 510:
-            self.current_egy = self.egy_val.text()
+        if 50 <= int(self.lines['energy'].text()) <= 510:
+            self.current_egy = self.lines['energy'].text()
             self.laser.set_energy(self.current_egy)
         else:
             value_error = QMessageBox.question(self, 'Value Error',
@@ -261,12 +215,12 @@ class LaserStatusControl(QWidget):
                                                 will be reset to last good value.',
                                                QMessageBox.Ok, QMessageBox.Ok)
             if value_error == QMessageBox.Ok:
-                self.egy_val.setText(self.current_egy)
-        self.egy_val.clearFocus()
+                self.lines['energy'].setText(self.current_egy)
+        self.lines['energy'].clearFocus()
 
     def set_hv(self):
-        if 18.0 <= float(self.hv_val.text()) <= 27.0:
-            self.current_hv = self.hv_val.text()
+        if 18.0 <= float(self.lines['voltage'].text()) <= 27.0:
+            self.current_hv = self.lines['voltage'].text()
             self.laser.set_hv(self.current_hv)
         else:
             value_error = QMessageBox.question(self, 'Value Error',
@@ -274,13 +228,13 @@ class LaserStatusControl(QWidget):
                                                be reset to last good value.',
                                                QMessageBox.Ok, QMessageBox.Ok)
             if value_error == QMessageBox.Ok:
-                self.hv_val.setText(self.current_hv)
-        self.hv_val.clearFocus()
+                self.lines['voltage'].setText(self.current_hv)
+        self.lines['voltage'].clearFocus()
 
     def set_reprate(self):
         if self.laser.rd_trigger() == 'INT':
-            if 1 <= int(self.reprate_val.text()) <= 30:
-                self.int_reprate_current = self.reprate_val.text()
+            if 1 <= int(self.lines['reprate'].text()) <= 30:
+                self.int_reprate_current = self.lines['reprate'].text()
                 self.laser.set_reprate(self.int_reprate_current)
             else:
                 value_error = QMessageBox.question(self, 'Value Error',
@@ -288,10 +242,10 @@ class LaserStatusControl(QWidget):
                                                    rate will be reset to last good value.',
                                                    QMessageBox.Ok, QMessageBox.Ok)
                 if value_error == QMessageBox.Ok:
-                    self.reprate_val.setText(self.int_reprate_current)
+                    self.lines['reprate'].setText(self.int_reprate_current)
         elif self.laser.rd_trigger() == 'EXT':
-            if 1 <= int(self.reprate_val.text()) <= 30:
-                self.ext_reprate_current = self.reprate_val.text()
+            if 1 <= int(self.lines['reprate'].text()) <= 30:
+                self.ext_reprate_current = self.lines['reprate'].text()
                 self.brain.start_pulsing(self.ext_reprate_current)
             else:
                 value_error = QMessageBox.question(self, 'Value Error',
@@ -299,5 +253,5 @@ class LaserStatusControl(QWidget):
                                                    rate will be reset to last good value.',
                                                    QMessageBox.Ok, QMessageBox.Ok)
                 if value_error == QMessageBox.Ok:
-                    self.reprate_val.setText(self.ext_reprate_current)
-        self.reprate_val.clearFocus()
+                    self.lines['reprate'].setText(self.ext_reprate_current)
+        self.lines['reprate'].clearFocus()

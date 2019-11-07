@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         self.menu_actions = {}
         self.laser = laser
         self.brain = brain
-        self.preference_dialog = InstrumentPreferencesDialog()
+        self.settings = InstrumentPreferencesDialog()
 
         # Create a docked widget to hold the LSC module
         self.lsc_docked = QDockWidget()
@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
         self.menus['file'] = menubar.addMenu('&File')
 
     def open_preferences(self):
-        self.preference_dialog.open()
+        self.settings.open()
 
 
 def main():
@@ -59,8 +59,8 @@ def main():
     # Start LaserComm and connect to laser
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
-    # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
-    laser = VisaLaser('ASRL/dev/ttyS1::INSTR', '@py')
+    laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
+    # laser = VisaLaser('ASRL/dev/ttyS1::INSTR', '@py')
     brain = RPiHardware()
 
     ex = MainWindow(laser, brain)

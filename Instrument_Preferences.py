@@ -1,12 +1,11 @@
 import os
-import sys
 
 from PyQt5.QtCore import QRegExp
-from PyQt5.QtWidgets import QApplication, QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog
+from PyQt5.QtWidgets import QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog
 from PyQt5 import uic
 import xml.etree.ElementTree as ET
 
-
+# ToDo: Set up validators to limit settings?
 class InstrumentPreferencesDialog(QTabWidget):
 
     def __init__(self):
@@ -28,18 +27,18 @@ class InstrumentPreferencesDialog(QTabWidget):
                             for widget in self.findChildren(QPushButton, QRegExp("btn_cancel_*"))}
         self.btns_unlock = {widget.objectName().split('_')[1]: widget
                             for widget in self.findChildren(QToolButton, QRegExp("tbtn_*_settings_unlock"))}
-        self.groupboxes = {widget.objectName().split('_')[1]: widget
+        self.groupboxes = {widget.objectName().split('gbox_')[1]: widget
                            for widget in self.findChildren(QGroupBox, QRegExp("gbox_*"))}
-        self.lines_targ_motor = {'_'.join(widget.objectName().split('_')[2:]): widget
+        self.lines_targ_motor = {widget.objectName().split('line_target_')[1]: widget
                                  for widget in self.findChildren(QLineEdit, QRegExp("line_target_max_*"))}
-        self.lines_sub_motor = {'_'.join(widget.objectName().split('_')[2:]): widget
+        self.lines_sub_motor = {widget.objectName().split('line_substrate_')[1]: widget
                                 for widget in self.findChildren(QLineEdit, QRegExp("line_substrate_max_*"))}
-        self.lines_laser = {'_'.join(widget.objectName().split('_')[2:]): widget
-                                for widget in self.findChildren(QLineEdit, QRegExp("line_laser_max_*"))}
+        self.lines_laser = {widget.objectName().split('line_laser_')[1]: widget
+                            for widget in self.findChildren(QLineEdit, QRegExp("line_laser_max_*"))}
 
         # Class variables
         self.settings_file_path = 'settings.xml'
-        self.pld_settings = ET.Element
+        self.pld_settings = ET.Element  # Empty element tree, needs to be read in on the next line
         self.parse_xml_to_settings()
 
         self.init_connections()
@@ -96,6 +95,13 @@ class InstrumentPreferencesDialog(QTabWidget):
 
         self.write_settings_to_xml()
 
+    def get_target_roster(self):
+        target_roster = []
+        for key, value in self.lines_carousel_comp:
+            target_roster.append(str(key) + ' - ' + str(value))
+
+        return target_roster
+
     def cancel(self):
         self.hide()
 
@@ -104,6 +110,8 @@ class InstrumentPreferencesDialog(QTabWidget):
         self.hide()
 
     def parse_xml_to_settings(self, file: str):
+        # Make an initial attempt to parse the xml at the standard location
+        # Take provisions to find a new file if the file is missing
         try:
             parsed = ET.parse(file)
         except FileNotFoundError:
@@ -124,32 +132,26 @@ class InstrumentPreferencesDialog(QTabWidget):
             self.settings_file_path = file_name[0]
             self.parse_xml_to_settings(self.settings_file_path)
 
-        # settings = {'carousel': {}, 'target': {}, 'substrate': {}, 'laser': {}}
-        #
-        # for item in pld.findall('./target_carousel/target'):
-        #     item_id = item.get('ID')
-        #     settings['carousel'][item_id] = {}
-        #     settings['carousel'][item_id]['size'] = item.find('Size').text
-        #     settings['carousel'][item_id]['composition'] = item.find('Composition').text
-        #
-        # for item in pld.findall('./target/'):
-        #     settings['target'][item.tag] = item.text
-        #
-        # for item in pld.findall('./substrate/'):
-        #     settings['substrate'][item.tag] = item.text
-        #
-        # for item in pld.findall('./laser/'):
-        #     settings['laser'][item.tag] = item.text
+        # Actually do something with the parsed file
+        # ToDo: Verify this, I just inverted the apply function
+        for key, widget in self.lines_carousel_comp:
+            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Composition".format([key])).text)
+
+        for key, widget in self.lines_carousel_size:
+            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Size".format([key])).text)
+
+        for key, widget in self.lines_targ_motor:
+            widget.setText(self.pld_settings.find("./target/{}".format([key])).text)
+
+        for key, widget in self.lines_sub_motor:
+            widget.setText(self.pld_settings.find("./substrate/{}".format([key])).text)
+
+        for key, widget in self.lines_laser:
+            widget.setText(self.pld_settings.find("./laser/{}".format([key])).text)
 
         self.pld_settings = pld
-
 
     def write_settings_to_xml(self):
         etree = ET.ElementTree(self.pld_settings)
         self.settings_file_path = 'settings.xml'
         etree.write(self.settings_file_path)
-
-
-app = QApplication(sys.argv)
-window = InstrumentOptionsDialog()
-app.exec_()
