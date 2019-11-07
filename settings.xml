@@ -1,1 +1,39 @@
-<PLD><target_carousel><target ID="0"><Size>0</Size><Composition>Blank0</Composition></target><target ID="1"><Size>1</Size><Composition>Blank1</Composition></target><target ID="2"><Size>2</Size><Composition>Blank2</Composition></target><target ID="3"><Size>3</Size><Composition>Blank3</Composition></target><target ID="4"><Size>4</Size><Composition>Blank4</Composition></target><target ID="5"><Size>5</Size><Composition>Blank5</Composition></target></target_carousel><substrate><max_speed>2000</max_speed><acceleration>2000000</acceleration></substrate><target><max_speed>2000</max_speed><acceleration>2000000</acceleration></target><laser><max_reprate>30</max_reprate></laser></PLD>
+<PLD>
+	<target_carousel>
+		<target ID="0">
+			<Size>0</Size>
+			<Composition>Blank0</Composition>
+		</target>
+		<target ID="1">
+			<Size>1</Size>
+			<Composition>Blank1</Composition>
+		</target>
+		<target ID="2">
+			<Size>2</Size>
+			<Composition>Blank2</Composition>
+		</target>
+		<target ID="3">
+			<Size>3</Size>
+			<Composition>Blank3</Composition>
+		</target>
+		<target ID="4">
+			<Size>4</Size>
+			<Composition>Blank4</Composition>
+		</target>
+		<target ID="5">
+			<Size>5</Size>
+			<Composition>Blank5</Composition>
+		</target>
+	</target_carousel>
+	<substrate>
+		<max_speed>2000</max_speed>
+		<acceleration>2000000</acceleration>
+	</substrate>
+	<target>
+		<max_speed>2000</max_speed>
+		<acceleration>2000000</acceleration>
+	</target>
+	<laser>
+		<max_reprate>30</max_reprate>
+	</laser>
+</PLD>

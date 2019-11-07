@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>docked_motor_controls</class>
+ <widget class="QDockWidget" name="docked_motor_controls">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1500</width>
+    <height>380</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1500</width>
+    <height>380</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>PLD Motor Controls</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <item>
+     <widget class="QGroupBox" name="gbox_targets">
+      <property name="title">
+       <string>Target Carousel:</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QPushButton" name="btn_carousel_prev">
+           <property name="text">
+            <string>Previous Target</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../img/left.svg</normaloff>../img/left.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_carousel_home">
+           <property name="text">
+            <string>Home Carousel</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../img/home.svg</normaloff>../img/home.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_carousel_next">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Next Target</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../img/right.svg</normaloff>../img/right.svg</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QFormLayout" name="formLayout_2">
+         <property name="labelAlignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="formAlignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="lbl_current_target">
+           <property name="text">
+            <string>Current Target:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="lbl_raster">
+           <property name="text">
+            <string>Raster Target?</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="check_raster">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="line_current_target"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="gbox_substrate">
+      <property name="title">
+       <string>Substrate:</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QPushButton" name="btn_sub_up">
+           <property name="text">
+            <string>Move Up</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../img/up.svg</normaloff>../img/up.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_sub_home">
+           <property name="text">
+            <string>Home Substrate</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../img/home.svg</normaloff>../img/home.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_sub_down">
+           <property name="text">
+            <string>Move Down</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../img/down.svg</normaloff>../img/down.svg</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <layout class="QFormLayout" name="formLayout">
+           <property name="labelAlignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="formAlignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="lbl_sub_position">
+             <property name="text">
+              <string>Substrate Position:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="line_sub_position"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="lbl_sub_speed">
+             <property name="text">
+              <string>Substrate Speed:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="line_sub_speed"/>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QSlider" name="slide_sub_speed">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="invertedAppearance">
+            <bool>false</bool>
+           </property>
+           <property name="invertedControls">
+            <bool>false</bool>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksBothSides</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
