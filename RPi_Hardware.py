@@ -103,7 +103,7 @@ class RPiHardware(QWidget):
         self.arduino.update_motor_param('sub', 'position', 0)
         self.sub_home.disconnect(self.set_sub_home)
         # Use this to return after homing
-        # self.arduino.update_motor_param('sub', 'goal', -1 * self.stored_sub_pos)
+        # self.arduino.update_motor_param('sub', 'goal', self.stored_sub_pos)
 
     def move_sub_to(self, position):
         if Global.SUB_TOP < position < Global.SUB_BOTTOM:
@@ -146,12 +146,17 @@ class RPiHardware(QWidget):
         if target_goal in range(0, 6):
             self.arduino.update_motor_param('target', 'raster', 0)
             self.target_changed.emit()
-            position = (target_goal) * (Global.TARGET_STEPS_PER_REV / 6)
+            position = target_goal * (Global.TARGET_STEPS_PER_REV / 6)
             self.arduino.update_motor_param('target', 'goal', position)
             # Set current target based on the goal
             self.current_target = target_goal
         else:
             print('Invalid goal target supplied to move_to_target: {}'.format(target_goal))
+
+    def raster_current_target(self):
+        self.arduino.update_motor_param('target',
+                                        'raster',
+                                        self.parent.settings.lines_carousel_size[str(self.current_target)])
 
     def set_target_speed(self, rps):
         self.target_rps = rps
@@ -160,6 +165,24 @@ class RPiHardware(QWidget):
 
     def halt_target(self):
         self.arduino.halt_motor('target')
+
+    def motors_running(self):
+        if self.arduino.query_motor_parameters('sub', 'r') or self.arduino.query_motor_parameters('target', 'r'):
+            return True
+        else:
+            return False
+
+    def laser_running(self):
+        if self.arduino.query_laser_parameters('r'):
+            return True
+        else:
+            return False
+
+    def anything_running(self):
+        if self.motors_running() or self.laser_running():
+            return True
+        else:
+            return False
 
     # ToDo: write out motor positions and status on delete so that they can be restored
     #  on program boot

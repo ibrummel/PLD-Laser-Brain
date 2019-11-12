@@ -1,13 +1,15 @@
 import sys
 
 from PyQt5 import uic
-from PyQt5.QtCore import QTimer, QObject, QRegExp
+from PyQt5.QtCore import QTimer, QObject, QRegExp, QThread, pyqtSignal
 from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator, QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QLabel, QLineEdit, QVBoxLayout,
                              QWidget, QMessageBox, QFormLayout, QFrame, QPushButton, QListView, QListWidgetItem,
                              QListWidget, QComboBox, QApplication)
 import os
 import xml.etree.ElementTree as ET
+from RPi_Hardware import RPiHardware
+from VISA_Communications import VisaLaser
 from math import trunc
 
 # ToDo: Write validators for steps
@@ -96,7 +98,7 @@ class DepStepItem(QListWidgetItem):
 
 class DepControlBox(QWidget):
 
-    def __init__(self):
+    def __init__(self, laser: VisaLaser, brain: RPiHardware):
         super().__init__()
         # ToDo: I will probably need this when I set up the actual running of the deposition. Maybe that should just be
         #  worker class to allow for putting it on another thread... will also need access to the brain and maybe the
@@ -123,12 +125,12 @@ class DepControlBox(QWidget):
 
         self.list_view = self.findChildren(QListWidget, QRegExp('list_dep_steps'))[0]
         self.list_view.setSelectionMode(QListView.ExtendedSelection)
-        # self.list_model = QStandardItemModel(self.list_view)
-        # self.list_view.setModel(self.list_model)
         # FIXME: Build in the ability to load from an xml
 
-        # Keep track of step that is currently being edited
-        self.current_step_index = None
+        # Create a thread to use for running depositions and move the deposition worker to it.
+        self.deposition_thread = QThread()
+        self.dep_worker_obj = DepositionWorker(laser, brain)
+        self.dep_worker_obj.moveToThread()
 
         self.init_connections()
 
@@ -192,8 +194,7 @@ class DepControlBox(QWidget):
 
     def update_targets(self):
         self.combos['select_target'].clear()
-        self.combos['select_target'].addItems(['target 1', 'target 2'])
-        # self.parent.settings.get_target_roster())
+        self.combos['select_target'].addItems(self.parent.settings.get_target_roster())
         # Todo: get the non-blank targets from settings window?
 
     def add_deposition_step(self):
@@ -234,8 +235,115 @@ class DepControlBox(QWidget):
             self.list_view.addItem(temp)
 
     def run_deposition(self):
-        # ToDo: Write run deposition for real
+        # Get a list of steps and then sort it by index
+        xml = self.get_dep_xml()
+        deposition = xml.getroot()
+        steps = deposition.find('./step')
+        steps.sort(key=lambda x: x.get('step_index'), reverse=False)
+
+        self.dep_obj.start_deposition(steps)
+
         ET.dump(self.get_dep_xml())
+
+
+# ToDo: Write run deposition for real
+class DepositionWorker(QObject):
+
+    deposition_interrupted = pyqtSignal()
+    deposition_finished = pyqtSignal()
+
+    def __init__(self, laser: VisaLaser, brain: RPiHardware):
+        super().__init__()
+
+        self.laser = laser
+        self.brain = brain
+
+        self.stop = False
+        self.prev_tts = None
+        self.prev_target = None
+        self.curr_step_idx = None
+        self.steps = None
+
+    def start_deposition(self, steps: list):
+        self.steps = steps
+        if self.curr_step_idx is not None:
+            resume = QMessageBox.warning(self, 'Previous Deposition Aborted...',
+                                         'The previous deposition was aborted, would you like to resume? Press yes '
+                                         'to resume, no to restart from the beginning, and cancel to '
+                                         'take no action.',
+                                         QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+                                         QMessageBox.No)
+            if resume == QMessageBox.Yes:
+                steps = [x for x in steps if int(x.get('step_index')) >= self.curr_step_idx]
+                pass
+            elif resume == QMessageBox.No:
+                self.curr_step_idx = None
+                self.start_deposition(steps)
+            elif resume == QMessageBox.Cancel:
+                return
+
+        for step in steps:
+            self.curr_step_idx = step.get('step_index')
+
+            # Move the target carousel
+            if self.prev_target != step.find('./target').text:
+                self.brain.move_to_target(int(step.find('./target').text))
+            self.prev_target = step.find('./target').text
+
+            # Move the Substrate if necessary
+            if self.prev_tts != step.find('./tts_distance'):
+                # ToDo: Find a way to convert stepper steps to z translation
+                sub_position = int(step.find('./tts_distance'))
+                self.brain.sub_position(sub_position)
+
+            # Check that the sub and target positions are achieved. block until it is done
+            count = 0
+            while self.brain.motors_running() and not self.stop:
+                count += 1
+                # Make sure that the stop signal gets read before the motors come to completion.
+                QApplication.processEvents()
+                if count % 2 == 0:
+                    print('Waiting for motors to finish movement')
+
+            # If stop has been sent, halt all and emit interrupted signal
+            if self.stop:
+                self.abort_all()
+                break
+
+            # Start rastering target, if necessary. Abort if brain and step have mismatched targets
+            if bool(step.find('./raster')) and self.brain.current_target == int(step.find('./target')):
+                self.brain.raster_current_target()
+            elif self.brain.current_target != int(step.find('./target')):
+                print('Target setting error')
+                self.stop = True
+                self.abort_all()
+
+            # Start pulsing
+            self.brain.start_pulsing(step.find('./reprate').text, step.find('./num_pulses'))
+
+            # Block until laser is finished
+            while self.brain.laser_running() and not self.stop:
+                count += 1
+                # Make sure that the stop signal gets read before the motors come to completion.
+                QApplication.processEvents()
+                if count % 10 == 0:
+                    print('Laser pulses under way')
+
+            # If stop has been sent, halt all and emit interrupted signal
+            if self.stop:
+                self.abort_all()
+                break
+
+    def abort_all(self):
+        self.brain.halt_sub()
+        self.brain.halt_target()
+        self.brain.stop_pulsing()
+        self.deposition_interrupted.emit()
+
+    def halt_dep(self):
+        self.stop = True
+
+
 
 
 app = QApplication(sys.argv)
