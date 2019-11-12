@@ -12,6 +12,7 @@ from RPi_Hardware import RPiHardware
 from VISA_Communications import VisaLaser
 from math import trunc
 
+
 # ToDo: Write validators for steps
 
 class DepStepItem(QListWidgetItem):
@@ -32,10 +33,9 @@ class DepStepItem(QListWidgetItem):
                 'num_pulses': 100,
                 'reprate': 5,
                 'time_on_step': 20,
-                'delay': 0
+                'delay': 0,
+                'man_action': ''
             }
-
-        # self.setDropEnabled(False)
 
     def get_params(self):
         return self.step_params
@@ -56,7 +56,8 @@ class DepStepItem(QListWidgetItem):
             'num_pulses': xml.find('./num_pulses').text,
             'reprate': xml.find('./reprate').text,
             'time_on_step': xml.find('./time_on_step').text,
-            'delay': xml.find('./delay').text
+            'delay': xml.find('./delay').text,
+            'man_action': xml.find('./man_action')
         }
 
     def set_step_index(self, step_index):
@@ -97,6 +98,7 @@ class DepStepItem(QListWidgetItem):
 
 
 class DepControlBox(QWidget):
+    stop_deposition = pyqtSignal()
 
     def __init__(self, laser: VisaLaser, brain: RPiHardware):
         super().__init__()
@@ -140,8 +142,14 @@ class DepControlBox(QWidget):
         self.btns['delete_steps'].clicked.connect(self.delete_selected_steps)
         self.btns['copy_step'].clicked.connect(self.copy_deposition_step)
         self.lines['step_name'].editingFinished.connect(self.update_item_name)
-        self.btns['run_dep'].clicked.connect(self.run_deposition)
         self.list_view.currentItemChanged.connect(self.on_item_change)
+
+        # Cross thread communications
+        self.btns['run_dep'].clicked.connect(self.run_deposition)
+        self.dep_worker_obj.deposition_interrupted.connect(self.deposition_thread.quit)
+        self.dep_worker_obj.deposition_finished.connect(self.deposition_thread.quit)
+        self.stop_deposition.connect(self.dep_worker_obj.halt_dep)
+        self.deposition_thread.started.connect(self.dep_worker_obj.start_deposition)
 
     def on_item_change(self, current, previous):
         # Commit the changes by the user to the previously selected step
@@ -176,6 +184,7 @@ class DepControlBox(QWidget):
         self.lines['num_pulses'].setText(ret_params['num_pulses'])
         self.lines['reprate'].setText(ret_params['reprate'])
         self.lines['delay'].setText(ret_params['delay'])
+        self.lines['man_action'].setText(ret_params['man_action'])
 
     def commit_changes(self, item):
         step_params = {
@@ -187,7 +196,8 @@ class DepControlBox(QWidget):
             'num_pulses': self.lines['num_pulses'].text(),
             'reprate': self.lines['reprate'].text(),
             'time_on_step': str(int(self.lines['num_pulses'].text()) / int(self.lines['reprate'].text())),
-            'delay': self.lines['delay'].text()
+            'delay': self.lines['delay'].text(),
+            'man_action': self.lines['man_action'].text()
         }
 
         item.set_params(step_params)
@@ -235,20 +245,24 @@ class DepControlBox(QWidget):
             self.list_view.addItem(temp)
 
     def run_deposition(self):
-        # Get a list of steps and then sort it by index
-        xml = self.get_dep_xml()
-        deposition = xml.getroot()
-        steps = deposition.find('./step')
-        steps.sort(key=lambda x: x.get('step_index'), reverse=False)
+        # If the button has not been activated, check it then start the deposition
+        if not self.btns['run_dep'].isChecked():
+            self.btns['run_dep'].setChecked(True)
+            self.btns['run_dep'].setText('Stop Deposition')
+            # Get a list of steps and then sort it by index
 
-        self.dep_obj.start_deposition(steps)
+            self.deposition_thread.start()
+        # If the button is checked, uncheck and send the stop signal
+        elif self.btns['run_dep'].isChecked():
+            self.btns['run_dep'].setChecked(False)
+            self.btns['run_dep'].setText('Run Current Deposition')
+            self.stop_deposition.emit()
 
         ET.dump(self.get_dep_xml())
 
 
 # ToDo: Write run deposition for real
 class DepositionWorker(QObject):
-
     deposition_interrupted = pyqtSignal()
     deposition_finished = pyqtSignal()
 
@@ -264,7 +278,17 @@ class DepositionWorker(QObject):
         self.curr_step_idx = None
         self.steps = None
 
-    def start_deposition(self, steps: list):
+        self.init_connections()
+
+    def init_connections(self):
+        self.parent.stop_deposition.connect(self.halt_dep)
+
+    def start_deposition(self):
+        xml = self.parent.get_dep_xml()
+        deposition = xml.getroot()
+        steps = deposition.findall('./step')
+        steps.sort(key=lambda x: x.get('step_index'), reverse=False)
+
         self.steps = steps
         if self.curr_step_idx is not None:
             resume = QMessageBox.warning(self, 'Previous Deposition Aborted...',
@@ -334,6 +358,18 @@ class DepositionWorker(QObject):
                 self.abort_all()
                 break
 
+            # If there is a manual action item, pop up a box for the user
+            if step.find('./man_action').text != '':
+                manual_action = QMessageBox.warning(self, 'Manual action required...',
+                                                    'The previous step was flagged as needing manual action. '
+                                                    'Please {} before continuing.',
+                                                    QMessageBox.Ok | QMessageBox.Abort,
+                                                    QMessageBox.Ok)
+                if manual_action == QMessageBox.Ok:
+                    pass
+                elif manual_action == QMessageBox.Abort:
+                    self.stop = True
+
     def abort_all(self):
         self.brain.halt_sub()
         self.brain.halt_target()
@@ -342,8 +378,6 @@ class DepositionWorker(QObject):
 
     def halt_dep(self):
         self.stop = True
-
-
 
 
 app = QApplication(sys.argv)
