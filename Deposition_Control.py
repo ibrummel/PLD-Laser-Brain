@@ -378,9 +378,3 @@ class DepositionWorker(QObject):
 
     def halt_dep(self):
         self.stop = True
-
-
-app = QApplication(sys.argv)
-dep = DepControlBox()
-dep.show()
-sys.exit(app.exec_())

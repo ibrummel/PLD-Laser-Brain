@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         self.setObjectName('Main Window')
         self.setWindowTitle('PLD Laser Control')
-        self.setCentralWidget(DepControlBox(self.laser))
+        self.setCentralWidget(DepControlBox(self.laser, self.brain))
 
         self.lsc_docked.setWidget(LaserStatusControl(self.laser, self.brain))
         self.lsc_docked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
