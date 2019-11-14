@@ -27,11 +27,11 @@
 	</target_carousel>
 	<substrate>
 		<max_speed>2000</max_speed>
-		<acceleration>2000000</acceleration>
+		<max_acceleration>2000000</max_acceleration>
 	</substrate>
 	<target>
 		<max_speed>2000</max_speed>
-		<acceleration>2000000</acceleration>
+		<max_acceleration>2000000</max_acceleration>
 	</target>
 	<laser>
 		<max_reprate>30</max_reprate>

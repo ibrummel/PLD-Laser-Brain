@@ -5,13 +5,12 @@ from PyQt5.QtCore import QTimer, QObject, QRegExp, QThread, pyqtSignal
 from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator, QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QLabel, QLineEdit, QVBoxLayout,
                              QWidget, QMessageBox, QFormLayout, QFrame, QPushButton, QListView, QListWidgetItem,
-                             QListWidget, QComboBox, QApplication)
+                             QListWidget, QComboBox, QApplication, QMainWindow)
 import os
 import xml.etree.ElementTree as ET
 from RPi_Hardware import RPiHardware
 from VISA_Communications import VisaLaser
 from math import trunc
-
 
 # ToDo: Write validators for steps
 
@@ -22,7 +21,7 @@ class DepStepItem(QListWidgetItem):
 
         # Add placeholder step variables to the item
         if type(copy_idx) == int:
-            self.set_params(self.parent.item(copy_idx).get_params())
+            self.set_params(self.parentWidget().item(copy_idx).get_params())
         else:
             self.step_params = {
                 'step_index': None,
@@ -100,12 +99,9 @@ class DepStepItem(QListWidgetItem):
 class DepControlBox(QWidget):
     stop_deposition = pyqtSignal()
 
-    def __init__(self, laser: VisaLaser, brain: RPiHardware):
+    def __init__(self, laser: VisaLaser, brain: RPiHardware, parent:QMainWindow):
         super().__init__()
-        # ToDo: I will probably need this when I set up the actual running of the deposition. Maybe that should just be
-        #  worker class to allow for putting it on another thread... will also need access to the brain and maybe the
-        #  arduino directly. Yeah, that makes sense. Shouldn't need this here.
-        # self.laser = laser
+        self.setParent(parent)
 
         # Load ui file and discover controls
         uic.loadUi('./src/ui/pld_deposition_editor.ui', self)
@@ -132,7 +128,7 @@ class DepControlBox(QWidget):
         # Create a thread to use for running depositions and move the deposition worker to it.
         self.deposition_thread = QThread()
         self.dep_worker_obj = DepositionWorker(laser, brain)
-        self.dep_worker_obj.moveToThread()
+        self.dep_worker_obj.moveToThread(self.deposition_thread)
 
         self.init_connections()
 
@@ -204,7 +200,7 @@ class DepControlBox(QWidget):
 
     def update_targets(self):
         self.combos['select_target'].clear()
-        self.combos['select_target'].addItems(self.parent.settings.get_target_roster())
+        self.combos['select_target'].addItems(self.parentWidget().settings.get_target_roster())
         # Todo: get the non-blank targets from settings window?
 
     def add_deposition_step(self):
@@ -281,10 +277,10 @@ class DepositionWorker(QObject):
         self.init_connections()
 
     def init_connections(self):
-        self.parent.stop_deposition.connect(self.halt_dep)
+        pass
 
     def start_deposition(self):
-        xml = self.parent.get_dep_xml()
+        xml = self.parentWidget().get_dep_xml()
         deposition = xml.getroot()
         steps = deposition.findall('./step')
         steps.sort(key=lambda x: x.get('step_index'), reverse=False)

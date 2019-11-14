@@ -9,7 +9,6 @@ class LaserBrainArduino(QObject):
         super().__init__()
 
         self.arduino = serial.Serial(port, baudrate=115200, timeout=1.5)  # Standard port with 8N1 configuration
-        self.arduino.open()
         self.serial_read_delay = 0.01
         # FIXME: This is a guess at timing that probably needs adjusting but
         #  isn't relevant till we need more serial ports

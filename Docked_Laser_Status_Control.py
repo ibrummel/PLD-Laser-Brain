@@ -2,13 +2,13 @@ from PyQt5 import uic
 from PyQt5.QtCore import Qt, QTimer, QRegExp
 from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton,
-                             QWidget, QMessageBox)
+                             QWidget, QMessageBox, QDockWidget)
 from VISA_Communications import VisaLaser
 import time
 from RPi_Hardware import RPiHardware
 
 
-class LaserStatusControl(QWidget):
+class LaserStatusControl(QDockWidget):
 
     def __init__(self, laser: VisaLaser, brain: RPiHardware):
         super().__init__()
@@ -26,6 +26,15 @@ class LaserStatusControl(QWidget):
                        for widget in self.findChildren(QCheckBox, QRegExp('check_*'))}
         self.combos = {widget.objectName().split('combo_')[1]: widget
                        for widget in self.findChildren(QComboBox, QRegExp('combo_*'))}
+
+        # Set up permissible modes list
+        self.inModes = {'EGY NGR': 'Energy', 'HV': 'HV'}
+        self.outModes = {'Energy': 'EGY NGR', 'HV': 'HV'}
+        
+        # Pull in operating interfaces
+        self.laser = laser
+        self.brain = brain
+        
         # Add items to the laser mode combo
         self.combos['laser_mode'].addItems(self.inModes.values())
         # FIXME: Might want to force the laser into EGY NGR or HV mode if any
@@ -33,13 +42,6 @@ class LaserStatusControl(QWidget):
         index = self.combos['laser_mode'].findText(self.inModes[self.laser.rd_mode()])
         self.combos['laser_mode'].setCurrentIndex(index)
 
-        # Set up permissible modes list
-        self.inModes = {'EGY NGR': 'Energy', 'HV': 'HV'}
-        self.outModes = {'Energy': 'EGY NGR', 'HV': 'HV'}
-
-        # Pull in operating interfaces
-        self.laser = laser
-        self.brain = brain
 
         # Create internal variables and set values
         self.ext_reprate_current = self.laser.rd_reprate()

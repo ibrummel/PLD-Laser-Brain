@@ -39,36 +39,36 @@ class InstrumentPreferencesDialog(QTabWidget):
         # Class variables
         self.settings_file_path = 'settings.xml'
         self.pld_settings = ET.Element  # Empty element tree, needs to be read in on the next line
-        self.parse_xml_to_settings()
+        self.parse_xml_to_settings(self.settings_file_path)
 
         self.init_connections()
         self.init_fields()
 
     def init_connections(self):
-        for widget in self.btns_apply:
+        for key, widget in self.btns_apply.items():
             widget.clicked.connect(self.apply)
-        for widget in self.btns_ok:
+        for key, widget in self.btns_ok.items():
             widget.clicked.connect(self.ok)
-        for widget in self.btns_cancel:
+        for key, widget in self.btns_cancel.items():
             widget.clicked.connect(self.cancel)
 
     # noinspection PyTypeChecker
     # To avoid erroneous errors where it thinks XML cant handle xpaths as strings
     def init_fields(self):
-        for key, widget in self.lines_carousel_comp:
-            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Composition".format([key])).text)
+        for key, widget in self.lines_carousel_comp.items():
+            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Composition".format(key)).text)
 
-        for key, widget in self.lines_carousel_size:
-            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Size".format([key])).text)
+        for key, widget in self.lines_carousel_size.items():
+            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Size".format(key)).text)
 
-        for key, widget in self.lines_targ_motor:
-            widget.setText(self.pld_settings.find("./target/{}".format([key])).text)
+        for key, widget in self.lines_targ_motor.items():
+            widget.setText(self.pld_settings.find("./target/{}".format(key)).text)
 
-        for key, widget in self.lines_sub_motor:
-            widget.setText(self.pld_settings.find("./substrate/{}".format([key])).text)
+        for key, widget in self.lines_sub_motor.items():
+            widget.setText(self.pld_settings.find("./substrate/{}".format(key)).text)
 
-        for key, widget in self.lines_laser:
-            widget.setText(self.pld_settings.find("./laser/{}".format([key])).text)
+        for key, widget in self.lines_laser.items():
+            widget.setText(self.pld_settings.find("./laser/{}".format(key)).text)
 
     def open(self):
         self.parse_xml_to_settings(self.settings_file_path)
@@ -78,26 +78,26 @@ class InstrumentPreferencesDialog(QTabWidget):
     # noinspection PyTypeChecker
     # To avoid erroneous errors where it thinks XML cant handle xpaths as strings
     def apply(self):
-        for key, widget in self.lines_carousel_comp:
-            self.pld_settings.find("./target_carousel/target[@ID='{}']/Composition".format([key])).text = widget.text()
+        for key, widget in self.lines_carousel_comp.items():
+            self.pld_settings.find("./target_carousel/target[@ID='{}']/Composition".format(key)).text = widget.text()
 
-        for key, widget in self.lines_carousel_size:
-            self.pld_settings.find("./target_carousel/target[@ID='{}']/Size".format([key])).text = widget.text()
+        for key, widget in self.lines_carousel_size.items():
+            self.pld_settings.find("./target_carousel/target[@ID='{}']/Size".format(key)).text = widget.text()
 
-        for key, widget in self.lines_targ_motor:
-            self.pld_settings.find("./target/{}".format([key])).text = widget.text()
+        for key, widget in self.lines_targ_motor.items():
+            self.pld_settings.find("./target/{}".format(key)).text = widget.text()
 
-        for key, widget in self.lines_sub_motor:
-            self.pld_settings.find("./substrate/{}".format([key])).text = widget.text()
+        for key, widget in self.lines_sub_motor.items():
+            self.pld_settings.find("./substrate/{}".format(key)).text = widget.text()
 
-        for key, widget in self.lines_laser:
-            self.pld_settings.find("./laser/{}".format([key])).text = widget.text()
+        for key, widget in self.lines_laser.items():
+            self.pld_settings.find("./laser/{}".format(key)).text = widget.text()
 
         self.write_settings_to_xml()
 
     def get_target_roster(self):
         target_roster = []
-        for key, value in self.lines_carousel_comp:
+        for key, value in self.lines_carousel_comp.items():
             target_roster.append(str(key) + ' - ' + str(value))
 
         return target_roster
@@ -131,25 +131,11 @@ class InstrumentPreferencesDialog(QTabWidget):
                                                     "xml Files (*.xml)")
             self.settings_file_path = file_name[0]
             self.parse_xml_to_settings(self.settings_file_path)
+        self.pld_settings = pld
 
         # Actually do something with the parsed file
         # ToDo: Verify this, I just inverted the apply function
-        for key, widget in self.lines_carousel_comp:
-            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Composition".format([key])).text)
-
-        for key, widget in self.lines_carousel_size:
-            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Size".format([key])).text)
-
-        for key, widget in self.lines_targ_motor:
-            widget.setText(self.pld_settings.find("./target/{}".format([key])).text)
-
-        for key, widget in self.lines_sub_motor:
-            widget.setText(self.pld_settings.find("./substrate/{}".format([key])).text)
-
-        for key, widget in self.lines_laser:
-            widget.setText(self.pld_settings.find("./laser/{}".format([key])).text)
-
-        self.pld_settings = pld
+        self.init_fields()
 
     def write_settings_to_xml(self):
         etree = ET.ElementTree(self.pld_settings)

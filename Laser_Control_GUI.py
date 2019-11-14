@@ -15,7 +15,7 @@ from Deposition_Control import DepControlBox
 from Instrument_Preferences import InstrumentPreferencesDialog
 
 
-class MainWindow(QMainWindow):
+class PLDMainWindow(QMainWindow):
 
     def __init__(self, laser: VisaLaser, brain: RPiHardware):
         super().__init__()
@@ -26,18 +26,18 @@ class MainWindow(QMainWindow):
         self.settings = InstrumentPreferencesDialog()
 
         # Create a docked widget to hold the LSC module
-        self.lsc_docked = QDockWidget()
-        self.motor_control_docked = QDockWidget()
+        self.lsc_docked = LaserStatusControl(self.laser, self.brain)
+        self.motor_control_docked = MotorControlPanel(self.brain)
         self.init_ui()
 
     def init_ui(self):
         self.setObjectName('Main Window')
         self.setWindowTitle('PLD Laser Control')
-        self.setCentralWidget(DepControlBox(self.laser, self.brain))
+        self.setCentralWidget(DepControlBox(self.laser, self.brain, self))
 
-        self.lsc_docked.setWidget(LaserStatusControl(self.laser, self.brain))
+        # self.lsc_docked.setWidget(LaserStatusControl(self.laser, self.brain))
         self.lsc_docked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
-        self.motor_control_docked.setWidget(MotorControlPanel(self.brain))
+        # self.motor_control_docked.setWidget(MotorControlPanel(self.brain))
         self.motor_control_docked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
         self.setCorner(Qt.TopLeftCorner | Qt.TopRightCorner, Qt.TopDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner | Qt.BottomRightCorner, Qt.BottomDockWidgetArea)
@@ -59,11 +59,11 @@ def main():
     # Start LaserComm and connect to laser
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
-    laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
-    # laser = VisaLaser('ASRL/dev/ttyS1::INSTR', '@py')
+    # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
+    laser = VisaLaser('ASRL/dev/ttyAMA0::INSTR', '@py')
     brain = RPiHardware()
 
-    ex = MainWindow(laser, brain)
+    ex = PLDMainWindow(laser, brain)
     ex.show()
 
     sys.exit(app.exec_())

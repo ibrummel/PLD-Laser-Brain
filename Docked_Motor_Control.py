@@ -1,13 +1,13 @@
 from PyQt5.QtCore import Qt, QRegExp, QEvent
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (QCheckBox, QLabel, QLineEdit, QPushButton,
-                             QWidget, QSlider, QShortcut)
+                             QWidget, QSlider, QShortcut, QDockWidget)
 from RPi_Hardware import RPiHardware
 from PyQt5 import uic
 import Global_Values as Global
 
 
-class MotorControlPanel(QWidget):
+class MotorControlPanel(QDockWidget):
     def __init__(self, brain: RPiHardware):
         super(MotorControlPanel, self).__init__()
 

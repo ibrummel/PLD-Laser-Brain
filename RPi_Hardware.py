@@ -31,12 +31,12 @@ class RPiHardware(QWidget):
 
         # Define limits/constants for substrate motion
         self.sub_position = 24000
-        self.sub_rps = self.arduino.query_motor_parameters('sub', 'speed') / Global.SUB_STEPS_PER_REV
+        self.sub_rps = float(self.arduino.query_motor_parameters('sub', 'speed')) / Global.SUB_STEPS_PER_REV
         self.stored_sub_pos = 0
 
-        self.current_target = round(self.arduino.query_motor_parameters('target', 'position') / (Global.TARGET_STEPS_PER_REV / 6)) % 6
+        self.current_target = round(float(self.arduino.query_motor_parameters('target', 'position')) / (Global.TARGET_STEPS_PER_REV / 6)) % 6
         self.move_to_target(self.current_target)
-        self.target_rps = self.arduino.query_motor_parameters('target', 'speed') / Global.TARGET_STEPS_PER_REV
+        self.target_rps = float(self.arduino.query_motor_parameters('target', 'speed')) / Global.TARGET_STEPS_PER_REV
 
         # Define class variables for
         self.in_pins = {"sub_home": 23, "aux": 17, 'laser_running': 19, 'targets_running': 20, 'sub_running': 21}
@@ -234,6 +234,7 @@ class HomeTargetsDialog(QDialog):
 
         # Install event filter on all buttons to make sure that arrow
         # keys are processed as target carousel move commands
+        self.installEventFilter(self)
         self.right_btn.installEventFilter(self)
         self.right_btn.installEventFilter(self)
         self.apply_btn.installEventFilter(self)
@@ -302,8 +303,8 @@ class HomeTargetsDialog(QDialog):
 
     # Override the event filter and the key release event to handle arrow keys
     # as movement controls
-    def eventFilter(self, event, source):
-        if event.type() == QEvent.Keypress:
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.KeyPress:
             if event.key() == Qt.Key_Right and self.moving_right is False:
                 self.right()
             elif event.key() == Qt.Key_Left and self.moving_left is False:
