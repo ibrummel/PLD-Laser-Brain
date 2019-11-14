@@ -322,7 +322,7 @@ class DepositionWorker(QObject):
 
             # Check that the sub and target positions are achieved. block until it is done
             count = 0
-            while self.brain.motors_running() and not self.stop:
+            while (self.brain.targets_running() or self.brain.substrate_running()) and not self.stop:
                 count += 1
                 # Make sure that the stop signal gets read before the motors come to completion.
                 QApplication.processEvents()
