@@ -39,7 +39,7 @@ class RPiHardware(QWidget):
         self.target_rps = self.arduino.query_motor_parameters('target', 'speed') / Global.TARGET_STEPS_PER_REV
 
         # Define class variables for
-        self.in_pins = {"sub_home": 23, "aux": 17}
+        self.in_pins = {"sub_home": 23, "aux": 17, 'laser_running': 19, 'targets_running': 20, 'sub_running': 21}
         self.low_pins = {}
         self.hi_pins = {"sub_home_hi": 22, 'arduino_reset': 16}
 
@@ -166,20 +166,26 @@ class RPiHardware(QWidget):
     def halt_target(self):
         self.arduino.halt_motor('target')
 
-    def motors_running(self):
-        if self.arduino.query_motor_parameters('sub', 'r') or self.arduino.query_motor_parameters('target', 'r'):
+    def targets_running(self):
+        if GPIO.input(self.in_pins['targets_running']):
+            return True
+        else:
+            return False
+
+    def substrate_running(self):
+        if GPIO.input(self.in_pins['substrate_running']):
             return True
         else:
             return False
 
     def laser_running(self):
-        if self.arduino.query_laser_parameters('r'):
+        if GPIO.input(self.in_pins['laser_running']):
             return True
         else:
             return False
 
     def anything_running(self):
-        if self.motors_running() or self.laser_running():
+        if self.targets_running() or self.substrate_running() or self.laser_running():
             return True
         else:
             return False
