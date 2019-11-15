@@ -97,8 +97,8 @@ class InstrumentPreferencesDialog(QTabWidget):
 
     def get_target_roster(self):
         target_roster = []
-        for key, value in self.lines_carousel_comp.items():
-            target_roster.append(str(key) + ' - ' + str(value))
+        for key, widget in self.lines_carousel_comp.items():
+            target_roster.append(str(key) + ' - ' + str(widget.text()))
 
         return target_roster
 
