@@ -39,13 +39,15 @@ class LaserStatusControl(QDockWidget):
         self.combos['laser_mode'].addItems(self.inModes.values())
         # FIXME: Might want to force the laser into EGY NGR or HV mode if any
         #  other mode is detected (i.e. index=-1)
-        index = self.combos['laser_mode'].findText(self.inModes[self.laser.rd_mode()])
-        self.combos['laser_mode'].setCurrentIndex(index)
+        # Sets the mode again using the current mode in order to set the line edits as enabled/disabled on open
+        curr_mode = self.inModes[self.laser.rd_mode()]
+        self.change_mode(curr_mode)
 
 
         # Create internal variables and set values
-        self.ext_reprate_current = self.laser.rd_reprate()
-        self.int_reprate_current = self.laser.rd_reprate()
+        reprate = self.laser.rd_reprate()
+        self.ext_reprate_current = reprate
+        self.int_reprate_current = reprate
 
         # Create widgets and other GUI elements
         self.current_egy = self.laser.rd_energy()
@@ -79,6 +81,9 @@ class LaserStatusControl(QDockWidget):
         if self.laser.rd_trigger() == "EXT":
             self.checks['ext_trigger'].setChecked(True)
         self.checks['ext_trigger'].stateChanged.connect(self.change_trigger)
+
+        # Laser start/stop button for making pew pew
+        self.btns['start_stop'].clicked.connect(self.change_on_off)
 
         # Moved from main() into the function
         self.update_timer.timeout.connect(self.update_lsc)
@@ -141,33 +146,29 @@ class LaserStatusControl(QDockWidget):
         time.sleep(0.01)
 
         if self.laser.rd_opmode() in on_opmodes:
-            if self.laser.rd_trigger() == 'INT':
-                self.laser.off()
-            elif self.laser.rd_trigger() == 'EXT':
+            if self.laser.rd_trigger() == 'EXT':
                 self.brain.stop_pulsing()
-                self.laser.off()
 
-            self.btn['start_stop'].setText('Start Laser')
-
+            self.laser.off()
+            self.btns['start_stop'].setChecked(False)
+            self.btns['start_stop'].setText('Start Laser')
         elif self.laser.rd_opmode() == 'OFF:31':
             self.laser_timeout_handler()
-
         elif self.laser.rd_opmode() == 'OFF:21':
             # FIXME: Add a countdown timer?
             self.warmup_warn()
-
         else:
             if self.laser.rd_trigger() == 'EXT':
                 self.laser.on()
                 time.sleep(0.01)
                 print('Sent laser on. Laser Status: {}'.format(self.laser.rd_opmode()))
                 QTimer.singleShot(3000, lambda: self.brain.start_pulsing(self.ext_reprate_current))
-                self.btn['start_stop'].setText('Stop External Trigger')
             elif self.laser.rd_trigger() == 'INT':
                 self.laser.on()
-                self.btn['start_stop'].setText('Stop Internal Trigger')
+            self.btns['start_stop'].setChecked(True)
+            self.btns['start_stop'].setText('Stop Laser')
 
-        # Re-enables the updater for the LSC
+        # Re-enables the updater for the LSC after handling start/stop
         time.sleep(0.01)
         self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
 
@@ -182,7 +183,7 @@ class LaserStatusControl(QDockWidget):
             self.laser.set_timeout(False)
             time.sleep(0.01)
             self.laser.on()
-            self.btn['start_stop'].setText('Stop Laser')
+            self.btns['start_stop'].setText('Stop Laser')
         elif timeout_clear == QMessageBox.Cancel:
             pass
 
