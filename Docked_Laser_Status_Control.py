@@ -102,11 +102,11 @@ class LaserStatusControl(QDockWidget):
 
         if self.laser.rd_opmode() in on_opmodes:
             if self.laser.rd_trigger() == 'INT':
-                self.btnOnOff.setText('Stop Laser (INT Trigger)')
+                self.btns['start_stop'].setText('Stop Laser (INT Trigger)')
             elif self.laser.rd_trigger() == 'EXT':
-                self.btnOnOff.setText('Stop Laser (EXT Trigger)')
+                self.btns['start_stop'].setText('Stop Laser (EXT Trigger)')
         else:
-            self.btnOnOff.setText('Start Laser')
+            self.btns['start_stop'].setText('Start Laser')
 
     # Sends the command that was typed into the terminal.
     def terminal_send(self):
