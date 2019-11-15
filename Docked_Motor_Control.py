@@ -46,8 +46,8 @@ class MotorControlPanel(QDockWidget):
         self.btns['sub_up'].released.connect(self.sub_halt)
         self.btns['sub_down'].pressed.connect(self.sub_down)
         self.btns['sub_down'].released.connect(self.sub_halt)
-        self.btns['carousel_left'].clicked.connect(self.target_left)
-        self.btns['carousel_right'].clicked.connect(self.target_right)
+        self.btns['carousel_next'].clicked.connect(self.target_left)
+        self.btns['carousel_prev'].clicked.connect(self.target_right)
         self.sc_left.activated.connect(self.target_left)
         self.sc_right.activated.connect(self.target_right)
         # FIXME: Probably don't want this implementation of raster?
