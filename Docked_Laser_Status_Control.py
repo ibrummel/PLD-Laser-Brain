@@ -166,7 +166,7 @@ class LaserStatusControl(QDockWidget):
             self.btns['start_stop'].setText('Stop Laser')
 
         # Re-enables the updater for the LSC after handling start/stop
-        time.sleep(0.01)
+        time.sleep(0.05)
         self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
 
     def laser_timeout_handler(self):
