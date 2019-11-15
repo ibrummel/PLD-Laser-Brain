@@ -214,7 +214,6 @@ class DepControlBox(QWidget):
         self.update_step_indices()
 
     def delete_selected_steps(self):
-        print(self.list_view.selectedItems())
         for item in self.list_view.selectedItems():
             # Convoluted way to get the index from the selected item and then remove it, only way that seems to work
             self.list_view.takeItem(self.list_view.indexFromItem(item).row())
