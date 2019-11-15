@@ -154,7 +154,8 @@ class DepControlBox(QWidget):
         # Update indices for all items before loading the new item. This will make indices make sense
         self.update_step_indices()
         # Load the values from the new steps into the controls
-        self.load_step_params(current)
+        if current is not None:
+            self.load_step_params(current)
 
     def update_step_indices(self):
         for index in range(0, self.list_view.count()):
