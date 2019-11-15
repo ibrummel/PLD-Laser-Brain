@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1500</width>
-    <height>380</height>
+    <width>1288</width>
+    <height>319</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1500</width>
-    <height>380</height>
+    <width>1288</width>
+    <height>319</height>
    </size>
   </property>
   <property name="font">
@@ -40,6 +40,9 @@
       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>10</number>
+         </property>
          <item>
           <widget class="QPushButton" name="btn_carousel_prev">
            <property name="text">
@@ -123,6 +126,9 @@
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>10</number>
+         </property>
          <item>
           <widget class="QPushButton" name="btn_sub_up">
            <property name="text">
