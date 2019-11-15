@@ -123,3 +123,5 @@ class MotorControlPanel(QDockWidget):
                 self.sub_up()
             elif event.key() in [Qt.Key_Down, Qt.Key_Minus]:
                 self.sub_down()
+
+        return super().eventFilter(source, event)
