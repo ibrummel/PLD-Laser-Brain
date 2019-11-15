@@ -105,6 +105,8 @@ class LaserStatusControl(QDockWidget):
             elif self.laser.rd_trigger() == 'EXT':
                 self.lines['reprate'].setText(self.ext_reprate_current)
 
+        self.lines['tube_press'].setText(self.laser.rd_tube_press())
+
         if self.laser.rd_trigger() == 'INT':
             self.checks['ext_trigger'].setChecked(False)
         elif self.laser.rd_trigger() == 'EXT':
