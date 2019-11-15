@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
-    <height>267</height>
+    <width>900</width>
+    <height>182</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1280</width>
-    <height>0</height>
+    <width>567</width>
+    <height>182</height>
    </size>
   </property>
   <property name="font">
@@ -143,7 +143,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="3,1,2">
       <item>
        <layout class="QFormLayout" name="formLayout_3">
         <property name="formAlignment">
@@ -198,14 +198,14 @@
       <item>
        <widget class="QPushButton" name="btn_start_stop">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
           <horstretch>0</horstretch>
           <verstretch>5</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
          <size>
-          <width>600</width>
+          <width>200</width>
           <height>0</height>
          </size>
         </property>
