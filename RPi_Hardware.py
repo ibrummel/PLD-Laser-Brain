@@ -64,7 +64,7 @@ class RPiHardware(QWidget):
             GPIO.setup(self.hi_pins[key], GPIO.OUT, initial=GPIO.HIGH)
 
     def gpio_emit(self, channel):
-        if channel == self.in_pins['sub_bome']:
+        if channel == self.in_pins['sub_home']:
             self.sub_home.emit()
         # Add other GPIO signals here with an elif then an emit for
         # the new signal
