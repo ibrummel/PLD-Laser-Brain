@@ -60,7 +60,7 @@ def main():
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
     # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
-    laser = VisaLaser('ASRL/dev/ttyAMA0::INSTR', '@py')
+    laser = VisaLaser('ASRL/dev/ttyAMA1::INSTR', '@py')
     brain = RPiHardware()
 
     ex = PLDMainWindow(laser, brain)

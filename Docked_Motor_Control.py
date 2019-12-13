@@ -52,7 +52,7 @@ class MotorControlPanel(QDockWidget):
         self.sc_right.activated.connect(self.target_right)
         # FIXME: Probably don't want this implementation of raster?
         self.checks['raster'].stateChanged.connect(self.raster_current_target)
-        self.brain.target_changed.connect(lambda: self.raster_check.setChecked(False))
+        self.brain.target_changed.connect(lambda: self.check_raster.setChecked(False))
         self.sliders['sub_speed'].valueChanged.connect(self.update_speed_line)
         self.lines['sub_speed'].returnPressed.connect(self.update_speed_slide)
         self.btns['carousel_home'].clicked.connect(self.brain.home_carousel)

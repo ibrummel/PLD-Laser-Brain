@@ -162,7 +162,7 @@ class LaserStatusControl(QDockWidget):
                 self.laser.on()
                 time.sleep(0.01)
                 print('Sent laser on. Laser Status: {}'.format(self.laser.rd_opmode()))
-                QTimer.singleShot(3000, lambda: print('This is where the laser would start'))  # self.brain.start_pulsing(self.ext_reprate_current))
+                QTimer.singleShot(3000, lambda: self.brain.start_pulsing(self.ext_reprate_current))
             elif self.laser.rd_trigger() == 'INT':
                 self.laser.on()
             self.btns['start_stop'].setChecked(True)
