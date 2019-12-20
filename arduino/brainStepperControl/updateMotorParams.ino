@@ -1,5 +1,4 @@
 void updateMotorParams(AccelStepper50pctDuty & motor) {           // Passes motor by reference so that it can be used for sub and targets
-    float startSpeed = motor.speed();
 
     if (inCommandType == 'u') {
         switch (inCommandParam) {
@@ -17,17 +16,14 @@ void updateMotorParams(AccelStepper50pctDuty & motor) {           // Passes moto
                 break;
             case 'g':                       // Set new goal position and reset speed as moveTo calculates new speeds
                 motor.moveTo(inCommandValInt);
-                motor.setSpeed(startSpeed);
                 commandReady = false;
                 break;
-            case 'd':                       // Used for + or - manual stepping
-                if (inCommandValInt == 1) { // Move cw one step
-                    motor.move(1);
-                    motor.setSpeed(startSpeed);
+            case 'd':                       // Used for manual stepping
+                if (inCommandValInt == 1) { // Move cw without a goal
+                    motor.move(100);
                 }
-                else if (inCommandValInt == 0) {    // Move ccw one step
-                    motor.move(-1);
-                    motor.setSpeed(startSpeed);
+                else if (inCommandValInt == 0) {    // Move ccw without a goal
+                    motor.move(-100);
                 }
                 break;                      // NOTE: Not setting commandReady to false so this repeats until
                                             // told otherwise by serial
