@@ -17,7 +17,7 @@ void updateMotorParams(AccelStepper50pctDuty & motor) {           // Passes moto
                 break;
             case 'g':                       // Set new goal position and reset speed as moveTo calculates new speeds
                 motor.moveTo(inCommandValInt);
-                //motor.setSpeed(startSpeed);
+                motor.setSpeed(startSpeed);
                 commandReady = false;
                 break;
             case 'd':                       // Used for + or - manual stepping

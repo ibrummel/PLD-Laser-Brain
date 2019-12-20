@@ -3,7 +3,7 @@
 //NOTE: *.ino is included automatically by the Arduino compiler.
 
 // Define the available stepper motors
-// Note that pins are defined by the number after D or their Axx designations. i.e. A3 = A3 and D1 = 
+// Note that pins are defined by the number after D or their Axx designations. i.e. A3 = A3 and D1 = 1
 AccelStepper50pctDuty substrate(AccelStepper50pctDuty::DRIVER, 2, 3);
 AccelStepper50pctDuty target(AccelStepper50pctDuty::DRIVER, 4, 5);
 int rasterCenter = 0;   // Stores center position of target when raster is started

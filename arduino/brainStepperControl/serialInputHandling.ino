@@ -131,4 +131,5 @@ void easyShowParsedData() {
     Serial.println(inCommandValInt);
     Serial.print("Command Val Float: ");
     Serial.println(inCommandValFloat);
+    Serial.println("---------------");
 }
