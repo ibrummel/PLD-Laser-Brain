@@ -43,12 +43,10 @@ void setup() {
     
     // ** Set up motor limits and parameters ** //
     substrate.setMaxSpeed(4000);  // set the max substrate speed to 4rps
-    target.setMaxSpeed(1000); // set max target speed as 1 rps PROB TOO FAST
-    
-    substrate.setMinPulseWidth(50000);
+    target.setMaxSpeed(1000); // set max target speed as 1 rps FIXME: This might be too fast
 
-    substrate.setAcceleration(8000); // Probably going to stick with runSpeed for constant speeds since we have plenty of torque
-    target.setAcceleration(2000); // set acceleration limits (using 2x max speed to start)   
+    substrate.setAcceleration(20000); // Probably going to stick with runSpeed for constant speeds since we have plenty of torque
+    target.setAcceleration(5000); // set acceleration limits (using 2x max speed to start)   
 
     // May need to invert pins for the directions to match reality
     // substrate.setPinsInverted(directionInvert=true, stepInvert=false); 
@@ -70,7 +68,6 @@ void loop() {
         newData = false;                    // Clears the new data variable
         commandReady = true;                // Flags for setting pins or updating motor params
         easyShowParsedData();
-        //Serial.println("commandReady=true.\nEntering switch-case...");
     }
     if (commandReady == true) {
       
@@ -97,11 +94,11 @@ void loop() {
                 updateLaserParams(laser);
                 break;
             default:
-                commandReady = false; // Protect against errant commands sending the arduino into a loop
+                commandReady = false; // Protects against erroneous commands sending the arduino into a loop
                 break;
         }
     }
-    
+
     // Handle rastering
     if (rasterSide == 0 && centering == false) {
       target.moveTo(rasterCenter);
