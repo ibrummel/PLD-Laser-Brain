@@ -19,16 +19,22 @@ class App(QWidget):
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-        button = QPushButton('PyQt5 button', self)
-        button.setToolTip('This is an example button')
-        button.move(100, 70)
+        self.button = QPushButton('PyQt5 button', self)
+        self.button.setToolTip('This is an example button')
+        self.button.move(100, 70)
+        self.button.setCheckable(True)
+        #self.button.toggle()
         # button.installEventFilter(self)
-        button.clicked.connect(self.on_click)
+        self.button.clicked.connect(self.on_click)
         
         self.show()
 
     @pyqtSlot()
     def on_click(self):
+        if self.button.isChecked():
+            self.button.setText('Checked')
+        elif not self.button.isChecked():
+            self.button.setText('Unchecked')
         print('PyQt5 button click')
         
 
