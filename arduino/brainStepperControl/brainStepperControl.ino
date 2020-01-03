@@ -26,8 +26,8 @@ char inCommandType = 'z';
 char inCommandPinNum = 0;
 
 char inCommandSerForward[numChars];
-char inCommandParam = 'z';
-int inCommandValInt;
+char inCommandParam = 'z'; 
+long inCommandValLong;
 float inCommandValFloat;
 
 boolean newData = false;
@@ -67,7 +67,7 @@ void loop() {
         parseData();                        // if there is new data parse it
         newData = false;                    // Clears the new data variable
         commandReady = true;                // Flags for setting pins or updating motor params
-        easyShowParsedData();
+        //easyShowParsedData();
     }
     if (commandReady == true) {
       

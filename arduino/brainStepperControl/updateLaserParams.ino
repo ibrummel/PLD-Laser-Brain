@@ -4,12 +4,12 @@ void updateLaserParams(AccelStepper & laser) {           // Passes laser by refe
     if (inCommandType == 'u') {
         switch (inCommandParam) {
             case 'r':
-                laser.setSpeed(inCommandValInt);
+                laser.setSpeed(inCommandValLong);
                 commandReady = false;
                 break;
             case 'g':                       // Set the goal to be whatever number of pulses are sent over serial
                 laser.setCurrentPosition(0);  // Reset the number of laser pulses
-                laser.move(inCommandValInt);
+                laser.move(inCommandValLong);
                 laser.setSpeed(startSpeed);
                 commandReady = false;
                 break;

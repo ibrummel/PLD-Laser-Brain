@@ -70,7 +70,7 @@ void parseData() {      // split the data into its parts
     if (inCommandType == 'u') {               // if the command is a parameter update
         strtokIdx = strtok(NULL, ",");      // Get next token from strtok
         if (inCommandParam == 'd' || inCommandParam == 'g' || inCommandParam == 'r') {
-                inCommandValInt = atoi(strtokIdx);       // Convert direction or goal to int
+                inCommandValLong = atol(strtokIdx);       // Convert direction or goal to int
         }
         else if (inCommandParam == 'a' || inCommandParam == 'm' || inCommandParam == 'v') {
                 inCommandValFloat = atof(strtokIdx);       // Convert acceleration or max speed to float
@@ -84,7 +84,7 @@ void clearAxisModVars () {
     inCommandPinNum = -1;
     inCommandSerForward[numChars] = {0};
     inCommandParam = 'z';
-    inCommandValInt = 0;  // This probably needs to not be 0... but will have to look for a vlaue that makes life easy
+    inCommandValLong = 0;  // This probably needs to not be 0... but will have to look for a vlaue that makes life easy
     inCommandValFloat = 0.0;
 }
 
@@ -109,7 +109,7 @@ void showParsedData() {
         Serial.println(inCommandParam);
         Serial.print("Command value: ");
         if (inCommandParam == 'd' || inCommandParam == 'g') {
-                Serial.println(inCommandValInt);       // Print direction or goal as int
+                Serial.println(inCommandValLong);       // Print direction or goal as int
         }
         else if (inCommandParam == 'a' || inCommandParam == 'm' || inCommandParam == 'v') {
                 Serial.println(inCommandValFloat);       // Print acceleration or max speed as float
@@ -128,7 +128,7 @@ void easyShowParsedData() {
     Serial.print("Command Parameter: ");
     Serial.println(inCommandParam);
     Serial.print("Command Val Int: ");
-    Serial.println(inCommandValInt);
+    Serial.println(inCommandValLong);
     Serial.print("Command Val Float: ");
     Serial.println(inCommandValFloat);
     Serial.println("---------------");

@@ -15,14 +15,14 @@ void updateMotorParams(AccelStepper50pctDuty & motor) {           // Passes moto
                 commandReady = false;
                 break;
             case 'g':                       // Set new goal position and reset speed as moveTo calculates new speeds
-                motor.moveTo(inCommandValInt);
+                motor.moveTo(inCommandValLong);
                 commandReady = false;
                 break;
             case 'd':                       // Used for manual stepping
-                if (inCommandValInt == 1) { // Move cw without a goal
+                if (inCommandValLong == 1) { // Move cw without a goal
                     motor.move(100);
                 }
-                else if (inCommandValInt == 0) {    // Move ccw without a goal
+                else if (inCommandValLong == 0) {    // Move ccw without a goal
                     motor.move(-100);
                 }
                 break;                      // NOTE: Not setting commandReady to false so this repeats until
@@ -40,16 +40,16 @@ void updateMotorParams(AccelStepper50pctDuty & motor) {           // Passes moto
                 }
                 
                 // Set the raster steps based on input
-                if (inCommandValInt == 0){
+                if (inCommandValLong == 0){
                   rasterSteps = 0;
                   rasterSide = 0;   // Flag main loop to move back to target center
                   rasterOn = false;
                 }
-                else if (inCommandValInt == 1) {
+                else if (inCommandValLong == 1) {
                   rasterSteps = 31;
                   rasterOn = true;
                 }
-                else if (inCommandValInt == 2) {
+                else if (inCommandValLong == 2) {
                   rasterSteps = 63;
                   rasterOn = true;
                 }
