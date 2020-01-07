@@ -49,7 +49,7 @@ void setup() {
     target.setAcceleration(5000); // set acceleration limits (using 2x max speed to start)   
 
     // May need to invert pins for the directions to match reality
-    // substrate.setPinsInverted(directionInvert=true, stepInvert=false); 
+    substrate.setPinsInverted(true, false, true); 
     // target.setPinsInverted(directionInvert=true, stepInvert=false);
 
     // ** Set up laser limits and parameters ** //
