@@ -42,7 +42,7 @@ void setup() {
     //Serial1.begin(9600);         // Baud rate will need to be adjusted to match the device that is connected in future
     
     // ** Set up motor limits and parameters ** //
-    substrate.setMaxSpeed(4000);  // set the max substrate speed to 4rps
+    substrate.setMaxSpeed(1000);  // set the max substrate speed to 4rps
     target.setMaxSpeed(1000); // set max target speed as 1 rps FIXME: This might be too fast
 
     substrate.setAcceleration(20000); // Probably going to stick with runSpeed for constant speeds since we have plenty of torque
