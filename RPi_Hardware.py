@@ -1,6 +1,6 @@
 # Imports
 import RPi.GPIO as GPIO
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, pyqtSlot
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton,
                              QSpacerItem, QWidget)
@@ -11,7 +11,8 @@ import Global_Values as Global
 
 class RPiHardware(QWidget):
 
-    sub_home = pyqtSignal()
+    sub_bot = pyqtSignal()
+    sub_top = pyqtSignal()
     target_changed = pyqtSignal()
 
     def __init__(self):
@@ -39,23 +40,30 @@ class RPiHardware(QWidget):
         self.target_rps = float(self.arduino.query_motor_parameters('target', 'speed')) / Global.TARGET_STEPS_PER_REV
 
         # Define class variables for
-        self.in_pins = {"sub_home": 23, "aux": 17, 'laser_running': 19, 'targets_running': 20, 'sub_running': 21}
+        self.in_pins = {"sub_home": 22, "sub_bot": 22, "sub_top": 18, "aux": 17, 'laser_running': 19, 'targets_running': 20, 'sub_running': 21}
         self.low_pins = {}
-        self.hi_pins = {"sub_home_hi": 22, 'arduino_reset': 16}
-
+        self.hi_pins = {"sub_home_hi": 23, 'arduino_reset': 16}
+        
+        self.sub_top.connect(lambda: print('sub top emitted'))
+        self.sub_bot.connect(self.print_bot)
+        
         self.setup_pins()
-
+        
+    @pyqtSlot()
+    def print_bot(self):
+        print('sub bot emitted')
+        
     def setup_pins(self):
         GPIO.setwarnings(False)
         # Set up pins (output pins are split by initialization value)
         for key in self.in_pins:
             # FIXME: not sure I want pull down here
-            GPIO.setup(self.in_pins[key], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            GPIO.setup(self.in_pins[key], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         # Build the event detect for the sub home switch
-        GPIO.add_event_detect(self.in_pins['sub_home'], GPIO.RISING,
+        GPIO.add_event_detect(self.in_pins['sub_bot'], GPIO.RISING,
                               callback=self.gpio_emit,
-                              bouncetime=200)
+                              bouncetime=300)
 
         for key in self.low_pins:
             GPIO.setup(self.low_pins[key], GPIO.OUT, initial=GPIO.LOW)
@@ -64,8 +72,12 @@ class RPiHardware(QWidget):
             GPIO.setup(self.hi_pins[key], GPIO.OUT, initial=GPIO.HIGH)
 
     def gpio_emit(self, channel):
-        if channel == self.in_pins['sub_home']:
-            self.sub_home.emit()
+        if channel == self.in_pins['sub_bot']:
+            self.sub_bot.emit()
+            print('Sub bot switch pressed')
+        elif channel == self.in_pins['sub_top']:
+            self.sub_top.emit()
+            print('Sub top switch pressed')
         # Add other GPIO signals here with an elif then an emit for
         # the new signal
 
@@ -90,18 +102,21 @@ class RPiHardware(QWidget):
         # ToDo: Consider setting pulses to zero in the arduino
 
     def home_sub(self):
-        self.sub_home.connect(self.set_sub_home)
+        # self.sub_bot.connect(self.set_sub_home)
+        print('Would connect bot switch to set_sub_home here...')
 
         # Start moving the substrate upward, will be stopped and home position
         # set by the function connected to the event switch
-        self.arduino.update_motor_param('sub', 'start', 0)
+        # self.arduino.update_motor_param('sub', 'start', 0)
 
     def set_sub_home(self):
+        print('Set sub home triggered')
         self.arduino.halt_motor('sub')
         # May be useful if I want to return to the previous position after homing
         self.stored_sub_pos = self.arduino.query_motor_parameters('sub', 'position')
-        self.arduino.update_motor_param('sub', 'position', 0)
-        self.sub_home.disconnect(self.set_sub_home)
+        self.arduino.update_motor_param('sub', 'position', 0) # dunno if this works
+        print(self.arduino.query_motor_parameters('sub', 'position'))
+        self.sub_bot.disconnect(self.set_sub_home)
         # Use this to return after homing
         # self.arduino.update_motor_param('sub', 'goal', self.stored_sub_pos)
 
@@ -169,6 +184,7 @@ class RPiHardware(QWidget):
     def targets_running(self):
         if GPIO.input(self.in_pins['targets_running']):
             return True
+            
         else:
             return False
 

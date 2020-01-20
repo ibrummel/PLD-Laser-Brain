@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QDockWidget, QAction)
 import sys
 from VISA_Communications import VisaLaser
 from RPi_Hardware import RPiHardware
+import RPi.GPIO as GPIO
 from Docked_Motor_Control import MotorControlPanel
 from Docked_Laser_Status_Control import LaserStatusControl
 from Deposition_Control import DepControlBox
@@ -62,6 +63,9 @@ def main():
     # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
     laser = VisaLaser('ASRL/dev/ttyAMA1::INSTR', '@py')
     brain = RPiHardware()
+    GPIO.add_event_detect(brain.in_pins['sub_home'], GPIO.RISING,
+                          callback=brain.gpio_emit,
+                          bouncetime=200)
 
     ex = PLDMainWindow(laser, brain)
     ex.show()
