@@ -21,7 +21,12 @@ class RPiHardware(QWidget):
         self.in_pins = {22: 'sub_bot', 23: 'sub_top', 21: 'sub_run', 20: 'target_run', 19: 'laser_run'}
         self.high_pins = {16: 'ard_rst'}
 
-        self.gpio_handler = GPIOHandler(in_pins=self.in_pins, high_pins=self.high_pins, sig_print=True)
+        self.gpio_handler = GPIOHandler(in_pins=self.in_pins, high_pins=self.high_pins, sig_print=False)
+        self.gpio_handler.sig_gpio_int_input.connect(self.print_gpio)
+
+    @pyqtSlot
+    def print_gpio(self, channel: int):
+        print("GPIO Signal Emitted and acted on from channel {}".format(channel))
 
     # ToDo: write out motor positions and status on delete so that they can be restored
     #  on program boot
@@ -67,7 +72,7 @@ class GPIOHandler(QObject):
             self.in_pins = in_pins
             for pin_num in self.in_pins:
                 GPIO.setup(pin_num, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-                GPIO.add_event_detect(pin_num, GPIO.FALLING, callback=self.gpio_callback)
+                GPIO.add_event_detect(pin_num, GPIO.FALLING, callback=self.gpio_callback, bouncetime=500)
         else:
             raise TypeError("Invalid type supplied for low_pins")
 
