@@ -1,6 +1,6 @@
 # Imports
 import RPi.GPIO as GPIO
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, pyqtSlot, QObject
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton,
                              QSpacerItem, QWidget)
@@ -10,26 +10,98 @@ import Global_Values as Global
 
 
 class RPiHardware(QWidget):
-
     sub_bot = pyqtSignal()
     sub_top = pyqtSignal()
     target_changed = pyqtSignal()
 
     def __init__(self):
         super().__init__()
+
         # Define Pin Dictionaries
-        self.in_pins = {"sub_bot": 22, "sub_top": 23, 'sub_run': 21, 'target_run': 20, 'laser_run': 19}
-        self.high_pins = {'ard_rst': 16}
-        
-        self.setup_pins()
-        
-    def setup_pins(self):
-        
+        self.in_pins = {22: 'sub_bot', 23: 'sub_top', 21: 'sub_run', 20: 'target_run', 19: 'laser_run'}
+        self.high_pins = {16: 'ard_rst'}
+
+        self.gpio_handler = GPIOHandler(in_pins=self.in_pins, high_pins=self.high_pins, sig_print=True)
 
     # ToDo: write out motor positions and status on delete so that they can be restored
     #  on program boot
     def __del__(self):
         GPIO.cleanup()
+
+
+class GPIOHandler(QObject):
+    # Place signals for each pin here
+    sig_gpio_int_input = pyqtSignal(int)
+
+    def __init__(self, in_pins: dict, high_pins=None, low_pins=None, sig_print=False, parent=None):
+        super().__init__(parent=parent)
+
+        # Manage GPIO Initial Setup
+        GPIO.setmode(GPIO.BCM)
+
+        # Set a class variable to decide if signals will have print messages on emit
+        self.sig_print = sig_print
+
+        # If Low_pins is provided, check that it is a dictionary then initialize pins, else raise TypeError
+        if low_pins is None:
+            self.low_pins = {}
+        elif isinstance(low_pins, dict):
+            self.low_pins = low_pins
+            for pin_num in low_pins:
+                GPIO.setup(pin_num, GPIO.OUT, initial=GPIO.LOW)
+        else:
+            raise TypeError("Invalid type supplied for low_pins")
+
+        # If high_pins is provided, check that it is a dictionary then initialize pins, else raise TypeError
+        if high_pins is None:
+            self.high_pins = {}
+        elif isinstance(high_pins, dict):
+            self.high_pins = high_pins
+            for pin_num in high_pins:
+                GPIO.setup(pin_num, GPIO.OUT, initial=GPIO.HIGH)
+        else:
+            raise TypeError("Invalid type supplied for low_pins")
+
+        # Check that in_pins is a dictionary and initialize pins, else raise TypeError
+        if isinstance(in_pins, dict):
+            self.in_pins = in_pins
+            for pin_num in self.in_pins:
+                GPIO.setup(pin_num, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+                GPIO.add_event_detect(pin_num, GPIO.FALLING, callback=self.gpio_callback)
+        else:
+            raise TypeError("Invalid type supplied for low_pins")
+
+    def gpio_callback(self, channel):
+        if channel in self.in_pins:
+            if self.sig_print:
+                print("Channel {} ({}) activated".format(channel, self.in_pins[channel]))
+            self.sig_gpio_int_input.emit(channel)
+        else:
+            print("GPIO callback activated from channel {}, which is not in the list of input pins".format(channel))
+
+    def add_gpio(self, channel: int, name: str, function, pull_up_down=None, initial=None):
+        try:
+            if function == GPIO.IN:
+                if pull_up_down != GPIO.PUD_UP or pull_up_down != GPIO.PUD_DOWN:
+                    raise ValueError("Invalid value for PUD state for GPIO.IN pin: {}".format(pull_up_down))
+                GPIO.setup(channel, function, pull_up_down=pull_up_down)
+                self.in_pins.update({channel: name})
+
+            elif function == GPIO.OUT:
+                if initial == GPIO.HIGH:
+                    GPIO.setup(channel, function, initial=initial)
+                    self.high_pins.update({channel, name})
+                elif initial == GPIO.LOW:
+                    GPIO.setup(channel, function, initial=initial)
+                    self.low_pins.update({channel, name})
+                else:
+                    print("Invalid value for initial state of GPIO.OUT pin: {}".format(initial))
+        except ValueError as err:
+            print(err)
+        except AttributeError as err:
+            print(err)
+        except TypeError as err:
+            print(err)
 
 
 class HomeTargetsDialog(QDialog):
