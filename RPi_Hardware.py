@@ -1,6 +1,6 @@
 # Imports
 import RPi.GPIO as GPIO
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent, pyqtSlot, QObject
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, pyqtSlot, QObject, QThread
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton,
                              QSpacerItem, QWidget)
@@ -22,6 +22,7 @@ class RPiHardware(QWidget):
         self.high_pins = {16: 'ard_rst'}
 
         self.gpio_handler = GPIOHandler(in_pins=self.in_pins, high_pins=self.high_pins, sig_print=False)
+        self.gpio_handler.moveToThread(QThread())
         self.gpio_handler.sig_gpio_int_input.connect(self.print_gpio)
 
     @pyqtSlot(int)
