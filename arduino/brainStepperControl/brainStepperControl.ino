@@ -54,7 +54,8 @@ void setup() {
 
     // ** Set up laser limits and parameters ** //
     laser.setMaxSpeed(20);       // Don't want laser to run above 20 Hz
-    laser.setMinPulseWidth(50);  // Laser requires a >=15 micrsecond pulse
+    laser.setAcceleration(500000);
+    laser.setMinPulseWidth(20);  // Laser requires a >=15 micrsecond pulse
     laser.setSpeed(5);
 
     // Set up pins as in or output
@@ -117,19 +118,19 @@ void loop() {
     
     
     // Set cross-board GPIO pins as needed
-    if (target.isRunning()) {
+    if (not target.isRunning()) {
         digitalWrite(19, HIGH);
     }
     else {
         digitalWrite(19, LOW);
     }
-    if (substrate.isRunning()) {
+    if (not substrate.isRunning()) {
         digitalWrite(18, HIGH);
     }
     else {
         digitalWrite(18, LOW);
     }
-    if (laser.isRunning()) {
+    if (not laser.isRunning()) {
         digitalWrite(20, HIGH);
     }
     else {
@@ -139,5 +140,5 @@ void loop() {
     // Handle running the motors to their positions
     target.run();
     substrate.run();
-    laser.runSpeed();
+    laser.run();
 }
