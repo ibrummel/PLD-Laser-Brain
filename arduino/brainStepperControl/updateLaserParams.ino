@@ -4,7 +4,15 @@ void updateLaserParams(AccelStepper & laser) {           // Passes laser by refe
     if (inCommandType == 'u') {
         switch (inCommandParam) {
             case 'r':
-                laser.setMaxSpeed(inCommandValLong);
+                if (inCommandValLong > 20){
+                  laser.setMaxSpeed(20);
+                }
+                else if (inCommandValLong < 20 && inCommandValLong >= 0) {
+                  laser.setMaxSpeed(inCommandValLong);
+                }
+                else if (inCommandValLong < 0) {
+                  laser.setMaxSpeed(-1 * inCommandValLong);
+                }
                 commandReady = false;
                 break;
             case 'g':                       // Set the goal to be whatever number of pulses are sent over serial
@@ -14,7 +22,7 @@ void updateLaserParams(AccelStepper & laser) {           // Passes laser by refe
                 commandReady = false;
                 break;
             case 'd':                       // Used to run without a set number of pulses
-                laser.move(10);
+                laser.move(100);
                 //laser.setSpeed(startSpeed);
                 break;                      // NOTE: Not setting commandReady to false so this repeats until
                                             // told otherwise by serial
