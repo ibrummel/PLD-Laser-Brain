@@ -27,7 +27,7 @@ class RPiHardware(QWidget):
 
     @pyqtSlot(int)
     def print_gpio(self, channel):
-        print("GPIO Signal Emitted and acted on from channel {}".format(channel))
+        print("GPIO Signal Emitted and acted on from channel {}".format(self.in_pins[channel]))
 
     # ToDo: write out motor positions and status on delete so that they can be restored
     #  on program boot
