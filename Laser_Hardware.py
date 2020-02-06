@@ -8,16 +8,18 @@ Created on Tue Mar  5 12:17:18 2019
 
 import visa
 import csv
+from time import sleep
+
+from PyQt5.QtWidgets import QInputDialog
 
 
 class LaserOutOfRangeError(BaseException):
     pass
 
 
-class VisaLaser:
+class CompexLaser:
 
     def __init__(self, laser_id, visa_backend='@ni'):
-        # self.app = app  # Set the app that is controlling the laser
         # Create a visa resource manager (Will default to using NI Visa, but
         # you can pass other options like '@py' for the fully python VISA or
         # '@sim' for a simulated backend that connects to dummy instruments)
@@ -26,8 +28,11 @@ class VisaLaser:
         with open('Laser_Codes.txt', 'rt') as csv_file:
             for row in csv.reader(csv_file, delimiter='\t'):
                 self.laserCodes[row[0]] = row[1:]
-        # Debugging/set up
-        # print(self.resManager.list_resources())
+
+        # Setup Class variables
+        self.op_delay = 0.01  # Delay for back to back serial ops
+        self.trigger_src = self.rd_trigger()
+
 
         try:
             self.laser = self.resManager.open_resource(laser_id,
@@ -73,7 +78,12 @@ class VisaLaser:
         # a value measured with an external energy meter, and have a cancel
         # FIXME: Needs GUI Element work to allow for ext. energy reading input
         self.laser.write("OPMODE=ENERGY CAL")
-        # while self.laser.rd_opmode() != ""
+        rdmode = self.laser.rd_opmode()
+        while rdmode != "OFF:7" and rdmode != "ENERGY CAL CONT":
+            rdmode = self.laser.rd_opmode()
+            sleep(0.2)
+        if rdmode == "OFF:7":
+            QInputDialog.getInt(self)
 
     def flush_line(self, line_name):
         # Flushes(evacuates) the supplied line values can be
@@ -307,6 +317,8 @@ class VisaLaser:
         valid_trigger = ['INT', 'EXT']
         if trigger.upper() in valid_trigger:
             self.laser.write('TRIGGER=%s' % trigger.upper())
+            sleep(self.op_delay)
+            self.rd_trigger()
         else:
             try:
                 raise LaserOutOfRangeError()
@@ -464,7 +476,8 @@ class VisaLaser:
 
     def rd_trigger(self):
         # Reads the current laser triggering mode. Returns: INT or EXT.
-        return self.laser.query('TRIGGER?')
+        self.trigger_src = self.laser.query('TRIGGER?')
+        return self.trigger_src
 
     def rd_laser_model(self):
         # Reads the laser model.
