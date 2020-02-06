@@ -1,5 +1,5 @@
 # Imports
-import RPi.GPIO as GPIO
+from gpiozero import OutputDevice, Button
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent, pyqtSlot, QObject, QThread
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton,
@@ -7,7 +7,28 @@ from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDia
 from pathlib import Path
 from Arduino_Hardware import LaserBrainArduino
 import Global_Values as Global
+from time import sleep
+import threading
 
+# Subclass gpiozero devices to add a device name field for later references
+class NamedOutputDevice(OutputDevice):
+    def __init__(self, *args, **kwargs):
+        try:
+            self.dev_name = kwargs.pop('dev_name')
+        except KeyError as err:
+            print("No dev_name supplied, set to none")
+            self.dev_name=None
+        super().__init__(*args, **kwargs)
+
+class NamedButton(Button):
+    def __init__(self, *args, **kwargs):
+        try:
+            self.dev_name = kwargs.pop('dev_name')
+        except KeyError as err:
+            print("No dev_name supplied, set to none")
+            self.dev_name=None
+        super().__init__(*args, **kwargs)
+        
 
 class RPiHardware(QWidget):
     sub_bot = pyqtSignal()
@@ -16,98 +37,85 @@ class RPiHardware(QWidget):
 
     def __init__(self):
         super().__init__()
-
         # Define Pin Dictionaries
-        self.in_pins = {22: 'sub_bot', 23: 'sub_top', 21: 'sub_run', 20: 'target_run', 19: 'laser_run'}
-        self.high_pins = {16: 'ard_rst'}
+        hold_time = 0.01
+        self.buttons = {'sub_bot': NamedButton(22, pull_up=False, hold_time=hold_time, dev_name='sub_bot'),
+                        'sub_top': NamedButton(18, pull_up=False, hold_time=hold_time, dev_name='sub_top'),
+                        'sub_run': NamedButton(21, pull_up=True, hold_time=hold_time, dev_name='sub_run'),
+                        'target_run': NamedButton(20, pull_up=True, hold_time=hold_time, dev_name='target_run'),
+                        'laser_run': NamedButton(19, pull_up=True, hold_time=hold_time, dev_name='laser_run')}
+        
+        self.high_pins = {'ard_rst': NamedOutputDevice(16, initial_value=True, dev_name='ard_rst'),
+                          'top_hi': NamedOutputDevice(27, initial_value=True, dev_name='top_hi'),
+                          'bot_hi': NamedOutputDevice(23, initial_value=True, dev_name='bot_hi')}
 
-        self.gpio_handler = GPIOHandler(in_pins=self.in_pins, high_pins=self.high_pins, sig_print=False)
-        self.gpio_handler.moveToThread(QThread())
+        self.gpio_handler = GPIOHandler(buttons=self.buttons, high_pins=self.high_pins,
+                                        sig_print=False, parent=self)
+        
+        sleep(1)
         self.gpio_handler.sig_gpio_int_input.connect(self.print_gpio)
+        print("RPi thread: ", threading.get_ident())
+        print("Sleeping 5 after setup")
+        sleep(5)
+        self.gpio_handler.sig_gpio_int_input.emit(-9999)
 
     @pyqtSlot(int)
     def print_gpio(self, channel):
-        print("GPIO Signal Emitted and acted on from channel {}".format(self.in_pins[channel]))
+        print("GPIO Signal Emitted and acted on from channel {}".format(channel))
 
     # ToDo: write out motor positions and status on delete so that they can be restored
     #  on program boot
-    def __del__(self):
-        GPIO.cleanup()
 
 
 class GPIOHandler(QObject):
     # Place signals for each pin here
     sig_gpio_int_input = pyqtSignal(int)
 
-    def __init__(self, in_pins: dict, high_pins=None, low_pins=None, sig_print=False, parent=None):
-        super().__init__(parent=parent)
-
-        # Manage GPIO Initial Setup
-        GPIO.setmode(GPIO.BCM)
-
+    def __init__(self, buttons: dict, high_pins=None, comm_pins=None, low_pins=None, sig_print=False, parent=None):
+        super().__init__()
         # Set a class variable to decide if signals will have print messages on emit
         self.sig_print = sig_print
+        self.parent = parent
+        print("GPIO Handler thread: ", threading.get_ident())
 
-        # If Low_pins is provided, check that it is a dictionary then initialize pins, else raise TypeError
+        # If Low_pins is provided, check that it is a dictionary then set it to a class variable,
+        # else raise TypeError
         if low_pins is None:
             self.low_pins = {}
         elif isinstance(low_pins, dict):
             self.low_pins = low_pins
-            for pin_num in low_pins:
-                GPIO.setup(pin_num, GPIO.OUT, initial=GPIO.LOW)
         else:
-            raise TypeError("Invalid type supplied for low_pins")
+            raise TypeError("Invalid type supplied for low_pins, should be a dict")
 
-        # If high_pins is provided, check that it is a dictionary then initialize pins, else raise TypeError
+        # If high_pins is provided, check that it is a dictionary then set it to a class variable,
+        # else raise TypeError
         if high_pins is None:
             self.high_pins = {}
         elif isinstance(high_pins, dict):
             self.high_pins = high_pins
-            for pin_num in high_pins:
-                GPIO.setup(pin_num, GPIO.OUT, initial=GPIO.HIGH)
         else:
-            raise TypeError("Invalid type supplied for low_pins")
-
-        # Check that in_pins is a dictionary and initialize pins, else raise TypeError
-        if isinstance(in_pins, dict):
-            self.in_pins = in_pins
-            for pin_num in self.in_pins:
-                GPIO.setup(pin_num, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-                GPIO.add_event_detect(pin_num, GPIO.FALLING, callback=self.gpio_callback, bouncetime=500)
+            raise TypeError("Invalid type supplied for high_pins, should be a dict")
+        
+        # Check that in_pins is a dictionary then set it to a class variable, else raise TypeError
+        if isinstance(buttons, dict):
+            self.buttons = buttons
+            for key, button in self.buttons.items():
+                button.when_held = self.gpio_callback
         else:
-            raise TypeError("Invalid type supplied for low_pins")
+            raise TypeError("Invalid type supplied for buttons, should be a dict")
 
-    def gpio_callback(self, channel):
-        if channel in self.in_pins:
+    def gpio_callback(self, device):
+        print("Device {} thread: ".format(device.dev_name), threading.get_ident())
+        if device in self.buttons.values():
             if self.sig_print:
-                print("Channel {} ({}) activated".format(channel, self.in_pins[channel]))
-            self.sig_gpio_int_input.emit(channel)
+                print("Device on {} ({}) activated".format(device.pin, device.dev_name))
+            self.sig_gpio_int_input.emit(int(str(device.pin).strip("GPIO")))
         else:
-            print("GPIO callback activated from channel {}, which is not in the list of input pins".format(channel))
+            print("GPIO callback activated from channel {}, which is not in the list of input pins".format(device.pin))
 
     def add_gpio(self, channel: int, name: str, function, pull_up_down=None, initial=None):
-        try:
-            if function == GPIO.IN:
-                if pull_up_down != GPIO.PUD_UP or pull_up_down != GPIO.PUD_DOWN:
-                    raise ValueError("Invalid value for PUD state for GPIO.IN pin: {}".format(pull_up_down))
-                GPIO.setup(channel, function, pull_up_down=pull_up_down)
-                self.in_pins.update({channel: name})
-
-            elif function == GPIO.OUT:
-                if initial == GPIO.HIGH:
-                    GPIO.setup(channel, function, initial=initial)
-                    self.high_pins.update({channel, name})
-                elif initial == GPIO.LOW:
-                    GPIO.setup(channel, function, initial=initial)
-                    self.low_pins.update({channel, name})
-                else:
-                    print("Invalid value for initial state of GPIO.OUT pin: {}".format(initial))
-        except ValueError as err:
-            print(err)
-        except AttributeError as err:
-            print(err)
-        except TypeError as err:
-            print(err)
+        # Needs to be rewritten to use gpiozero
+        pass
 
 
 class HomeTargetsDialog(QDialog):
