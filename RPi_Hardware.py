@@ -80,7 +80,7 @@ class RPiHardware(QWidget):
         self.laser.set_reprate(reprate)
         self.arduino.update_laser_param('reprate', reprate)
 
-    def set_energy(self, ):
+    # def set_energy(self, ):
 
     def substrate_limit(self):
         # Halt the substrate if it is at the limit
