@@ -58,7 +58,7 @@ class RPiHardware(QWidget):
                 time = float(num_pulses / self.laser.reprate) + 3  # Add three seconds to account for the warmup time
                 warn("The number of pulses parameter can only be used accurately with an external trigger, internal "
                      "triggering of the laser will continue for {time} seconds then cease.".format(time=time))
-                QTimer.singleShot(msec=time * 1000, slot=self.laser_finished.emit)
+                QTimer.singleShot(time * 1000, self.laser_finished.emit)
             else:
                 raise TypeError("Num pulses was not an integer, partial pulses are not possible.")
         elif self.laser.trigger_src == 'EXT':
@@ -69,15 +69,15 @@ class RPiHardware(QWidget):
                 self.arduino.update_laser_param('start')
             elif isinstance(num_pulses, int):
                 # Start the laser after 3 seconds of warmup
-                QTimer.singleShot(msec=3000, slot=lambda: self.arduino.update_laser_param('goal', num_pulses))
+                QTimer.singleShot(3000, lambda: self.arduino.update_laser_param('goal', num_pulses))
                 # Start a timer that will kick off looking for the laser to go dormant
-                self.timer_check_laser_finished.start(msec=3000)
+                self.timer_check_laser_finished.start(3000)
             else:
                 raise TypeError("Num pulses was not an integer, partial pulses are not possible.")
 
     def check_laser_finished(self):
         if self.is_laser_running() and self.timer_check_laser_finished.interval() == 3000:
-            self.timer_check_laser_finished.setInterval(msec=50)
+            self.timer_check_laser_finished.setInterval(50)
         elif self.is_laser_running():
             pass
         elif not self.is_laser_running():
