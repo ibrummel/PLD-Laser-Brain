@@ -1,5 +1,5 @@
 # Imports
-from gpiozero import OutputDevice, Button
+from Named_gpiozero import NamedButton, NamedOutputDevice
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent, pyqtSlot, QObject, QTimer
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton,
@@ -12,26 +12,6 @@ from time import sleep
 import threading
 from warnings import warn
 
-
-# Subclass gpiozero devices to add a device name field for later references
-class NamedOutputDevice(OutputDevice):
-    def __init__(self, *args, **kwargs):
-        try:
-            self.dev_name = kwargs.pop('dev_name')
-        except KeyError as err:
-            print("No dev_name supplied, set to none")
-            self.dev_name = None
-        super().__init__(*args, **kwargs)
-
-
-class NamedButton(Button):
-    def __init__(self, *args, **kwargs):
-        try:
-            self.dev_name = kwargs.pop('dev_name')
-        except KeyError as err:
-            print("No dev_name supplied, set to none")
-            self.dev_name = None
-        super().__init__(*args, **kwargs)
 
 class RPiHardware(QWidget):
     sub_bot = pyqtSignal()
@@ -95,7 +75,7 @@ class RPiHardware(QWidget):
         self.laser.off()
         if self.laser.trigger_src == 'EXT':
             self.arduino.halt_laser()
-            
+
     def substrate_limit(self):
         # Halt the substrate if it is at the limit
         self.arduino.halt_motor('substrate')
