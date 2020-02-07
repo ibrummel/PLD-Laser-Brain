@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QDockWidget, QAction)
 import sys
 from Laser_Hardware import CompexLaser
 from RPi_Hardware import RPiHardware
+from Arduino_Hardware import LaserBrainArduino
 from Docked_Motor_Control import MotorControlPanel
 from Docked_Laser_Status_Control import LaserStatusControl
 from Deposition_Control import DepControlBox
@@ -61,7 +62,8 @@ def main():
     # the working directory
     # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
     laser = CompexLaser('ASRL/dev/ttyAMA1::INSTR', '@py')
-    brain = RPiHardware()
+    arduino = LaserBrainArduino('/dev/ttyACM0')
+    brain = RPiHardware(laser=laser, arduino=arduino)
     ex = PLDMainWindow(laser, brain)
     ex.show()
 

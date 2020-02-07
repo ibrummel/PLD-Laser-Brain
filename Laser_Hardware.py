@@ -29,12 +29,6 @@ class CompexLaser:
             for row in csv.reader(csv_file, delimiter='\t'):
                 self.laserCodes[row[0]] = row[1:]
 
-        # Setup Class variables
-        self.op_delay = 0.01  # Delay for back to back serial ops
-        self.trigger_src = self.rd_trigger()
-        self.reprate = self.rd_reprate()
-
-
         try:
             self.laser = self.resManager.open_resource(laser_id,
                                                        write_termination='\r',
@@ -44,6 +38,11 @@ class CompexLaser:
             print("Could not connect to laser, check for instrument name \
                   changes and make sure that the laser is plugged in. Note: \
                   the available resource names are printed above.")
+            
+        # Setup Class variables
+        self.op_delay = 0.01  # Delay for back to back serial ops
+        self.trigger_src = self.rd_trigger()
+        self.reprate = self.rd_reprate()
 
     # Disconnect from the laser gracefully
     def disconnect(self):

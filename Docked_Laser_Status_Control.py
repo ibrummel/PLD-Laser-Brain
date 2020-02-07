@@ -139,9 +139,8 @@ class LaserStatusControl(QDockWidget):
 
         if self.laser.rd_opmode() in on_opmodes:
             if self.laser.trigger_src == 'EXT':
-                self.brain.stop_pulsing()
+                self.brain.stop_laser()
 
-            self.laser.off()
             self.btns['start_stop'].setChecked(False)
             self.btns['start_stop'].setText('Start Laser')
         elif self.laser.rd_opmode() == 'OFF:31':
@@ -151,13 +150,7 @@ class LaserStatusControl(QDockWidget):
             self.warmup_warn()
         # If the laser is currently in an off state
         else:
-            if self.laser.trigger_src == 'EXT':
-                self.laser.on()
-                time.sleep(0.01)
-                print('Sent laser on. Laser Status: {}'.format(self.laser.rd_opmode()))
-                QTimer.singleShot(3000, lambda: self.brain.start_pulsing(self.ext_reprate_current))
-            elif self.laser.trigger_src == 'INT':
-                self.laser.on()
+            self.brain.start_laser()
             self.btns['start_stop'].setChecked(True)
             self.btns['start_stop'].setText('Stop Laser')
 

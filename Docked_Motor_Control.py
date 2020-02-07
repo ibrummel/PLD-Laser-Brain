@@ -55,7 +55,7 @@ class MotorControlPanel(QDockWidget):
         self.brain.target_changed.connect(lambda: self.check_raster.setChecked(False))
         self.sliders['sub_speed'].valueChanged.connect(self.update_speed_line)
         self.lines['sub_speed'].returnPressed.connect(self.update_speed_slide)
-        self.btns['carousel_home'].clicked.connect(self.brain.home_carousel)
+        self.btns['carousel_home'].clicked.connect(self.brain.home_target_carousel)
         self.btns['sub_home'].clicked.connect(self.brain.home_sub)
 
     def toggle_hotkeys(self):

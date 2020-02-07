@@ -33,7 +33,6 @@ class NamedButton(Button):
             self.dev_name = None
         super().__init__(*args, **kwargs)
 
-
 class RPiHardware(QWidget):
     sub_bot = pyqtSignal()
     sub_top = pyqtSignal()
@@ -96,11 +95,12 @@ class RPiHardware(QWidget):
         self.laser.off()
         if self.laser.trigger_src == 'EXT':
             self.arduino.halt_laser()
+            
     def substrate_limit(self):
         # Halt the substrate if it is at the limit
         self.arduino.halt_motor('substrate')
 
-    def home_substrate(self):
+    def home_sub(self):
         self.arduino.update_motor_param('substrate', 'start', 0)  # Start moving the substrate down without a goal
         self.homing_sub = True
 
