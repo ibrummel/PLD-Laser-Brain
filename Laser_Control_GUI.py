@@ -7,9 +7,8 @@ Created on Mon Mar 11 10:01:53 2019
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDockWidget, QAction)
 import sys
-from VISA_Communications import VisaLaser
+from Laser_Hardware import CompexLaser
 from RPi_Hardware import RPiHardware
-import RPi.GPIO as GPIO
 from Docked_Motor_Control import MotorControlPanel
 from Docked_Laser_Status_Control import LaserStatusControl
 from Deposition_Control import DepControlBox
@@ -18,7 +17,7 @@ from Instrument_Preferences import InstrumentPreferencesDialog
 
 class PLDMainWindow(QMainWindow):
 
-    def __init__(self, laser: VisaLaser, brain: RPiHardware):
+    def __init__(self, laser: CompexLaser, brain: RPiHardware):
         super().__init__()
         self.menus = {}
         self.menu_actions = {}
@@ -61,12 +60,8 @@ def main():
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
     # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
-    laser = VisaLaser('ASRL/dev/ttyAMA1::INSTR', '@py')
+    laser = CompexLaser('ASRL/dev/ttyAMA1::INSTR', '@py')
     brain = RPiHardware()
-    GPIO.add_event_detect(brain.in_pins['sub_home'], GPIO.RISING,
-                          callback=brain.gpio_emit,
-                          bouncetime=200)
-
     ex = PLDMainWindow(laser, brain)
     ex.show()
 

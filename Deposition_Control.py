@@ -9,11 +9,11 @@ from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QLabel, QLineEdit, QVBoxLay
 import os
 import xml.etree.ElementTree as ET
 from RPi_Hardware import RPiHardware
-from VISA_Communications import VisaLaser
+from Laser_Hardware import CompexLaser
 from math import trunc
 
-# ToDo: Write validators for steps
 
+# ToDo: Write validators for steps
 class DepStepItem(QListWidgetItem):
 
     def __init__(self, *__args, copy_idx=None):
@@ -99,7 +99,7 @@ class DepStepItem(QListWidgetItem):
 class DepControlBox(QWidget):
     stop_deposition = pyqtSignal()
 
-    def __init__(self, laser: VisaLaser, brain: RPiHardware, parent:QMainWindow):
+    def __init__(self, laser: CompexLaser, brain: RPiHardware, parent: QMainWindow):
         super().__init__()
         self.setParent(parent)
 
@@ -241,6 +241,7 @@ class DepControlBox(QWidget):
             self.list_view.addItem(temp)
 
     def run_deposition(self):
+        # FIXME: THIS IS BROKEN, NEED TO FIX check state logic.
         # If the button has not been activated, check it then start the deposition
         if not self.btns['run_dep'].isChecked():
             self.btns['run_dep'].setChecked(True)
@@ -262,7 +263,7 @@ class DepositionWorker(QObject):
     deposition_interrupted = pyqtSignal()
     deposition_finished = pyqtSignal()
 
-    def __init__(self, laser: VisaLaser, brain: RPiHardware):
+    def __init__(self, laser: CompexLaser, brain: RPiHardware):
         super().__init__()
 
         self.laser = laser
