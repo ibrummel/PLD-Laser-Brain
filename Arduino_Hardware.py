@@ -48,12 +48,13 @@ class LaserBrainArduino(QObject):
                                     'is running': 'r', 'r': 'r'}
 
         self.valid_motors = {'sub': 's', 'substrate': 's', 's': 's',
-                             'targ': 't', 'target': 't', 't': 't'}
+                             'targ': 't', 'target': 't', 't': 't', 'carousel': 't'}
 
         self.valid_gpio_status = {'HIGH': 'w', 'high': 'w','High': 'w', 1: 'w', 'w': 'w',
                                   'LOW': 'c', 'low': 'c', 'Low': 'c', 0: 'c', 'c': 'c'}
 
         # Pins not in use: 'A0': 14, 'A1': 15, 'A7': 21
+        # Fixme: This may not be accurate anymore. Check on the availability here against other docs
         self.valid_pin_numbers = {'D2': 2, 'GPIO_HV1': 2, 'D3': 3, 'GPIO_HV2': 3,
                                   'D4': 4, 'GPIO_HV3': 4, 'D5': 5, 'GPIO_HV4': 5,
                                   'D6': 6, 'GPIO_HV6': 6, 'D7': 7, 'GPIO_HV7': 7,
