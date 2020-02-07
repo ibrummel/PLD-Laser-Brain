@@ -17,6 +17,7 @@ class RPiHardware(QWidget):
     sub_bot = pyqtSignal()
     sub_top = pyqtSignal()
     target_changed = pyqtSignal()
+    laser_finished = pyqtSignal()
 
     def __init__(self, laser: CompexLaser, arduino: LaserBrainArduino):
         super().__init__()
@@ -26,6 +27,10 @@ class RPiHardware(QWidget):
 
         # Set up class variables
         self.homing_sub = False  # Status flag that indicates if the substrate is being homed.
+
+        # Setup timer to check when external trigger pulses finish.
+        self.timer_check_laser_finished = QTimer()
+        self.timer_check_laser_finished.timeout.connect(self.check_laser_finished)
 
         # Define Pin Dictionaries
         hold_time = 0.01
@@ -42,9 +47,7 @@ class RPiHardware(QWidget):
         self.gpio_handler = GPIOHandler(buttons=self.buttons, high_pins=self.high_pins,
                                         sig_print=False, parent=self)
 
-        sleep(1)
         self.gpio_handler.sig_gpio_input.connect(self.gpio_act)
-        print("RPi thread: ", threading.get_ident())
 
     def start_laser(self, num_pulses=None):
         self.laser.on()  # All cases need the laser in on mode.
@@ -55,7 +58,7 @@ class RPiHardware(QWidget):
                 time = float(num_pulses / self.laser.reprate) + 3  # Add three seconds to account for the warmup time
                 warn("The number of pulses parameter can only be used accurately with an external trigger, internal "
                      "triggering of the laser will continue for {time} seconds then cease.".format(time=time))
-                QTimer.singleShot(msec=time * 1000, slot=self.laser.off)
+                QTimer.singleShot(msec=time * 1000, slot=self.laser_finished.emit)
             else:
                 raise TypeError("Num pulses was not an integer, partial pulses are not possible.")
         elif self.laser.trigger_src == 'EXT':
@@ -67,8 +70,19 @@ class RPiHardware(QWidget):
             elif isinstance(num_pulses, int):
                 # Start the laser after 3 seconds of warmup
                 QTimer.singleShot(msec=3000, slot=lambda: self.arduino.update_laser_param('goal', num_pulses))
+                # Start a timer that will kick off looking for the laser to go dormant
+                self.timer_check_laser_finished.start(msec=3000)
             else:
                 raise TypeError("Num pulses was not an integer, partial pulses are not possible.")
+
+    def check_laser_finished(self):
+        if self.is_laser_running() and self.timer_check_laser_finished.interval() == 3000:
+            self.timer_check_laser_finished.setInterval(msec=50)
+        elif self.is_laser_running():
+            pass
+        elif not self.is_laser_running():
+            self.laser_finished.emit()
+            self.timer_check_laser_finished.stop()
 
     def stop_laser(self):
         # Stop the laser from generating or accepting trigger pulses.
@@ -178,7 +192,6 @@ class GPIOHandler(QObject):
         # Set a class variable to decide if signals will have print messages on emit
         self.sig_print = sig_print
         self.parent = parent
-        print("GPIO Handler thread: ", threading.get_ident())
 
         # If Low_pins is provided, check that it is a dictionary then set it to a class variable,
         # else raise TypeError

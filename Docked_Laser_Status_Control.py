@@ -74,6 +74,9 @@ class LaserStatusControl(QDockWidget):
         # the laser is set to external triggering
         self.lines['reprate'].returnPressed.connect(lambda: self.brain.set_reprate(int(self.lines['reprate'].text())))
 
+        # Number of pulses line, when enter is pressed should start the laser.
+        self.lines['num_pulses'].returnPressed.connect(self.change_on_off)
+
         # Set up check boxes. Default set external trigger check
         # based on current laser configuration
         if self.laser.trigger_src == "EXT":
@@ -89,6 +92,8 @@ class LaserStatusControl(QDockWidget):
 
         self.timer_check_warmup.setInterval(1000)
         self.timer_check_warmup.timeout.connect(self.check_warmup)
+
+        self.brain.laser_finished.connect(self.change_on_off)
 
     def update_lsc(self):
         # Updater for the laser status readouts. Only updates for fields that are
@@ -137,10 +142,15 @@ class LaserStatusControl(QDockWidget):
         self.update_timer.stop()
         time.sleep(self.op_delay)
 
-        if self.laser.rd_opmode() in on_opmodes:
-            if self.laser.trigger_src == 'EXT':
-                self.brain.stop_laser()
+        try:
+            num_pulses = int(self.lines['num_pulses'].text())
+        except ValueError as err:
+            num_pulses = None
 
+        if self.laser.rd_opmode() in on_opmodes:
+            self.brain.stop_laser()
+            if num_pulses is not None:
+                self.lines['num_pulses'].setText('')
             self.btns['start_stop'].setChecked(False)
             self.btns['start_stop'].setText('Start Laser')
         elif self.laser.rd_opmode() == 'OFF:31':
@@ -152,7 +162,7 @@ class LaserStatusControl(QDockWidget):
             self.warmup_warn()
         # If the laser is currently in an off state
         else:
-            self.brain.start_laser()
+            self.brain.start_laser(num_pulses=num_pulses)
             self.btns['start_stop'].setChecked(True)
             self.btns['start_stop'].setText('Stop Laser')
 
