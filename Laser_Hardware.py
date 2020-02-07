@@ -32,6 +32,7 @@ class CompexLaser:
         # Setup Class variables
         self.op_delay = 0.01  # Delay for back to back serial ops
         self.trigger_src = self.rd_trigger()
+        self.reprate = self.rd_reprate()
 
 
         try:
@@ -286,7 +287,9 @@ class CompexLaser:
 
     def set_reprate(self, hz):
         # Sets the reprate for the laser
-        self.laser.write('REPRATE=%s' % hz)
+        self.laser.write('REPRATE={}'.format(hz))
+        sleep(self.op_delay)
+        self.rd_reprate()
 
     def set_roomtemp_hilow(self, rt):
         # Only for use with an HCl source as the source reaction is very temp
@@ -451,7 +454,8 @@ class CompexLaser:
 
     def rd_reprate(self):
         # Reads the current reprate status.
-        return self.laser.query('REPRATE?')
+        self.reprate = self.laser.query('REPRATE?')
+        return self.reprate
 
     def rd_roomtemp_hilow(self):
         # Only with a halogen source: Room temp value (can be High or Low), if
