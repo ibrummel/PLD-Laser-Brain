@@ -44,6 +44,16 @@ class CompexLaser:
         self.trigger_src = self.rd_trigger()
         self.reprate = self.rd_reprate()
 
+        # # Set the laser to energy constant mode to pull internal energy setting
+        # curr_mode = self.rd_mode()
+        # sleep(self.op_delay)
+        # if curr_mode == 'HV':
+        #     self.set_mode('EGY NGR')
+        #     sleep(self.op_delay)
+        # self.energy_stpt = self.rd_energy()
+        # sleep(self.op_delay)
+        # self.set_mode(curr_mode)
+
     # Disconnect from the laser gracefully
     def disconnect(self):
         self.laser.close()

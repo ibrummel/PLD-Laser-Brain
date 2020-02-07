@@ -76,6 +76,12 @@ class RPiHardware(QWidget):
         if self.laser.trigger_src == 'EXT':
             self.arduino.halt_laser()
 
+    def set_reprate(self, reprate):
+        self.laser.set_reprate(reprate)
+        self.arduino.update_laser_param('reprate', reprate)
+
+    def set_energy(self, ):
+
     def substrate_limit(self):
         # Halt the substrate if it is at the limit
         self.arduino.halt_motor('substrate')

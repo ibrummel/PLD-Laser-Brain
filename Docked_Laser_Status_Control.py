@@ -29,12 +29,12 @@ class LaserStatusControl(QDockWidget):
 
         # Set up permissible modes list
         self.inModes = {'EGY NGR': 'Energy', 'HV': 'HV'}
-        self.outModes = {'Energy': 'EGY NGR', 'HV': 'HV'}
-        
+        self.out_modes = {'Energy': 'EGY NGR', 'HV': 'HV'}
+
         # Pull in operating interfaces
         self.laser = laser
         self.brain = brain
-        
+
         # Add items to the laser mode combo
         self.combos['laser_mode'].addItems(self.inModes.values())
         # Sets the mode again using the current mode in order to set the line edits as enabled/disabled on open
@@ -43,16 +43,16 @@ class LaserStatusControl(QDockWidget):
 
         # ToDo: Move all of these into the CompexLaser class so that there are less calls to update them and less
         #  places to lose track of their values.
-        # Create internal variables and set values
-        reprate = self.laser.rd_reprate()
-        self.ext_reprate_current = reprate
-        self.int_reprate_current = reprate
+
+        # Sleep time used to prevent overloading the serial bus.
+        self.op_delay = 0.05
         # Create widgets and other GUI elements
         self.current_egy = self.laser.rd_energy()
         # self.lines['energy'].setValidator(QIntValidator(50, 510))
         self.current_hv = self.laser.rd_hv()
         # self.lines['voltage'].setValidator(QDoubleValidator(18, 27, 1))
         self.update_timer = QTimer()
+        self.timer_check_warmup = QTimer()
 
         # Run function to adjust widget parameters/build the LSC
         self.init_connections()
@@ -72,7 +72,7 @@ class LaserStatusControl(QDockWidget):
 
         # Reprate setting box: Displays current reprate. Will display "EXT" if
         # the laser is set to external triggering
-        self.lines['reprate'].returnPressed.connect(self.set_reprate)
+        self.lines['reprate'].returnPressed.connect(lambda: self.brain.set_reprate(int(self.lines['reprate'].text())))
 
         # Set up check boxes. Default set external trigger check
         # based on current laser configuration
@@ -85,11 +85,14 @@ class LaserStatusControl(QDockWidget):
 
         # Moved from main() into the function
         self.update_timer.timeout.connect(self.update_lsc)
-        self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
+        self.update_timer.start(int(1000 / int(self.laser.reprate)))
 
-    # Updater for the laser status readouts. Only updates for fields that are
-    # not currently selected.
+        self.timer_check_warmup.setInterval(1000)
+        self.timer_check_warmup.timeout.connect(self.check_warmup)
+
     def update_lsc(self):
+        # Updater for the laser status readouts. Only updates for fields that are
+        # not currently selected.
         on_opmodes = ['ON', 'OFF,WAIT']
         if not self.lines['energy'].hasFocus():
             self.lines['energy'].setText(self.laser.rd_energy())
@@ -98,29 +101,26 @@ class LaserStatusControl(QDockWidget):
             self.lines['voltage'].setText(self.laser.rd_hv())
 
         if not self.lines['reprate'].hasFocus():
-            if self.laser.trigger_src == 'INT':
-                self.lines['reprate'].setText(self.laser.rd_reprate())
-            elif self.laser.trigger_src == 'EXT':
-                self.lines['reprate'].setText(self.ext_reprate_current)
+            self.lines['reprate'].setText(self.laser.reprate)
 
         self.lines['tube_press'].setText(self.laser.rd_tube_press())
 
-    # Sends the command that was typed into the terminal.
     def terminal_send(self):
+        # Sends the command that was typed into the terminal.
         try:
             self.terminal.setText(self.laser.query(self.terminal.text()))
             print("Terminal Command Sent")
         except:
             print("An error occurred on sending terminal command")
 
-    # Sends a command to the laser to change mode. Also sets which parameters
-    # are editable from the LSC.
     def change_mode(self, mode):
-        self.laser.set_mode(self.outModes[mode])
-        if self.outModes[mode] == 'HV':
+        # Sends a command to the laser to change mode. Also sets which parameters
+        # are editable from the LSC.
+        self.laser.set_mode(self.out_modes[mode])
+        if self.out_modes[mode] == 'HV':
             self.lines['energy'].setDisabled(True)
             self.lines['voltage'].setDisabled(False)
-        if self.outModes[mode] == 'EGY NGR':
+        if self.out_modes[mode] == 'EGY NGR':
             self.lines['energy'].setDisabled(False)
             self.lines['voltage'].setDisabled(True)
 
@@ -135,7 +135,7 @@ class LaserStatusControl(QDockWidget):
         # On button press stops the timer that updates the display so that
         # we don't see timeouts on pressing the button to stop/start
         self.update_timer.stop()
-        time.sleep(0.01)
+        time.sleep(self.op_delay)
 
         if self.laser.rd_opmode() in on_opmodes:
             if self.laser.trigger_src == 'EXT':
@@ -147,6 +147,8 @@ class LaserStatusControl(QDockWidget):
             self.laser_timeout_handler()
         elif self.laser.rd_opmode() == 'OFF:21':
             # FIXME: Add a countdown timer?
+            self.btns['start_stop'].setDisabled(True)
+            self.timer_check_warmup.start()  # Starts a timer that will check if the warmup is over every second
             self.warmup_warn()
         # If the laser is currently in an off state
         else:
@@ -155,8 +157,18 @@ class LaserStatusControl(QDockWidget):
             self.btns['start_stop'].setText('Stop Laser')
 
         # Re-enables the updater for the LSC after handling start/stop
-        time.sleep(0.05)
+        time.sleep(self.op_delay)
         self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
+
+    def check_warmup(self):
+        curr_opmode = self.laser.rd_opmode()
+        if curr_opmode == 'OFF:0':
+            self.timer_check_warmup.stop()
+            self.btns['start_stop'].setDisabled(False)
+        elif curr_opmode == 'OFF:21':
+            pass  # Nothing to do if the laser is still in warmup mode
+        elif curr_opmode == 'OFF:31':
+            self.laser_timeout_handler()
 
     def laser_timeout_handler(self):
         timeout_clear = QMessageBox.question(self, 'Laser Status: Timeout',
@@ -167,32 +179,16 @@ class LaserStatusControl(QDockWidget):
                                              QMessageBox.Cancel)
         if timeout_clear == QMessageBox.Ok:
             self.laser.set_timeout(False)
-            time.sleep(0.01)
-            self.laser.on()
+            time.sleep(self.op_delay)
+            self.laser.off()
             self.btns['start_stop'].setText('Stop Laser')
         elif timeout_clear == QMessageBox.Cancel:
             pass
 
     def warmup_warn(self):
         warmup_clear = QMessageBox.question(self, 'Laser Status: Warm-Up',
-                                            "Press retry to check again if the warmup is over, cancel to wait",
-                                            QMessageBox.Retry |
-                                            QMessageBox.Cancel,
-                                            QMessageBox.Retry)
-        if warmup_clear == QMessageBox.Ok and self.laser.rd_opmode() == 'OFF:21':
-            self.warmup_warn()
-        elif warmup_clear == QMessageBox.Ok and not self.laser.rd_opmode() == 'OFF:21':
-            notify = QMessageBox.question(self, 'Laser Warmup Complete', 'Laser is ready for use',
-                                          QMessageBox.Ok, QMessageBox.Ok)
-            if notify == QMessageBox.Ok:
-                pass
-
-    # def pause_LSC(self):
-    #     self.isLSCUpdating = not self.isLSCUpdating
-    #     if self.isLSCUpdating:
-    #         self.updateTimer.stop()
-    #     elif not self.isLSCUpdating:
-    #         self.updateTimer.start(1000 / int(self.laser.rd_reprate()))
+                                            "Start/stop button will be enabled when the warmup ends.",
+                                            QMessageBox.Ok, QMessageBox.Ok)
 
     def set_energy(self):
         if 50 <= int(self.lines['energy'].text()) <= 510:
@@ -220,27 +216,27 @@ class LaserStatusControl(QDockWidget):
                 self.lines['voltage'].setText(self.current_hv)
         self.lines['voltage'].clearFocus()
 
-    def set_reprate(self):
-        if self.laser.trigger_src == 'INT':
-            if 1 <= int(self.lines['reprate'].text()) <= 30:
-                self.int_reprate_current = self.lines['reprate'].text()
-                self.laser.set_reprate(self.int_reprate_current)
-            else:
-                value_error = QMessageBox.question(self, 'Value Error',
-                                                   'The repitition rate entered is not within acceptable limits. Repitition\
-                                                   rate will be reset to last good value.',
-                                                   QMessageBox.Ok, QMessageBox.Ok)
-                if value_error == QMessageBox.Ok:
-                    self.lines['reprate'].setText(self.int_reprate_current)
-        elif self.laser.trigger_src == 'EXT':
-            if 1 <= int(self.lines['reprate'].text()) <= 30:
-                self.ext_reprate_current = self.lines['reprate'].text()
-                self.brain.start_pulsing(self.ext_reprate_current)
-            else:
-                value_error = QMessageBox.question(self, 'Value Error',
-                                                   'The repitition rate entered is not within acceptable limits. Repitition\
-                                                   rate will be reset to last good value.',
-                                                   QMessageBox.Ok, QMessageBox.Ok)
-                if value_error == QMessageBox.Ok:
-                    self.lines['reprate'].setText(self.ext_reprate_current)
-        self.lines['reprate'].clearFocus()
+    # def set_reprate(self):
+    #     if self.laser.trigger_src == 'INT':
+    #         if 1 <= int(self.lines['reprate'].text()) <= 30:
+    #             self.int_reprate_current = self.lines['reprate'].text()
+    #             self.laser.set_reprate(self.int_reprate_current)
+    #         else:
+    #             value_error = QMessageBox.question(self, 'Value Error',
+    #                                                'The repitition rate entered is not within acceptable limits. Repitition\
+    #                                                rate will be reset to last good value.',
+    #                                                QMessageBox.Ok, QMessageBox.Ok)
+    #             if value_error == QMessageBox.Ok:
+    #                 self.lines['reprate'].setText(self.int_reprate_current)
+    #     elif self.laser.trigger_src == 'EXT':
+    #         if 1 <= int(self.lines['reprate'].text()) <= 30:
+    #             self.ext_reprate_current = self.lines['reprate'].text()
+    #             self.brain.start_pulsing(self.ext_reprate_current)
+    #         else:
+    #             value_error = QMessageBox.question(self, 'Value Error',
+    #                                                'The repitition rate entered is not within acceptable limits. Repitition\
+    #                                                rate will be reset to last good value.',
+    #                                                QMessageBox.Ok, QMessageBox.Ok)
+    #             if value_error == QMessageBox.Ok:
+    #                 self.lines['reprate'].setText(self.ext_reprate_current)
+    #     self.lines['reprate'].clearFocus()
