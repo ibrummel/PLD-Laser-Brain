@@ -463,7 +463,7 @@ class CompexLaser:
 
     def rd_reprate(self):
         # Reads the current reprate status.
-        self.reprate = self.laser.query('REPRATE?')
+        self.reprate = int(self.laser.query('REPRATE?'))
         return self.reprate
 
     def rd_roomtemp_hilow(self):

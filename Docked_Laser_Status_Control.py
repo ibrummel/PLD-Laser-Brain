@@ -106,7 +106,7 @@ class LaserStatusControl(QDockWidget):
             self.lines['voltage'].setText(self.laser.rd_hv())
 
         if not self.lines['reprate'].hasFocus():
-            self.lines['reprate'].setText(self.laser.reprate)
+            self.lines['reprate'].setText(str(self.laser.reprate))
 
         self.lines['tube_press'].setText(self.laser.rd_tube_press())
 

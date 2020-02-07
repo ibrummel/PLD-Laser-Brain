@@ -27,19 +27,24 @@ class RPiHardware(QWidget):
 
         # Set up class variables
         self.homing_sub = False  # Status flag that indicates if the substrate is being homed.
-
+        self.laser_start_delay_msec = 4500
         # Setup timer to check when external trigger pulses finish.
         self.timer_check_laser_finished = QTimer()
         self.timer_check_laser_finished.timeout.connect(self.check_laser_finished)
+        
 
         # Define Pin Dictionaries
         hold_time = 0.01
         self.buttons = {'sub_bot': NamedButton(22, pull_up=False, hold_time=hold_time, dev_name='sub_bot'),
                         'sub_top': NamedButton(18, pull_up=False, hold_time=hold_time, dev_name='sub_top'),
-                        'sub_run': NamedButton(21, pull_up=True, hold_time=hold_time, dev_name='sub_run'),
-                        'target_run': NamedButton(20, pull_up=True, hold_time=hold_time, dev_name='target_run'),
-                        'laser_run': NamedButton(19, pull_up=True, hold_time=hold_time, dev_name='laser_run')}
+                        'sub_run': NamedButton(21, pull_up=False, hold_time=hold_time, dev_name='sub_run'),
+                        'target_run': NamedButton(20, pull_up=False, hold_time=hold_time, dev_name='target_run'),
+                        'laser_run': NamedButton(19, pull_up=False, hold_time=hold_time, dev_name='laser_run')}
 
+#         self.timer_watch_laser = QTimer()
+#         self.timer_watch_laser.timeout.connect(lambda: print("Laser run active: {}".format(self.buttons['laser_run'].is_active), end='\r'))
+#         self.timer_watch_laser.start(50)
+        
         self.high_pins = {'ard_rst': NamedOutputDevice(16, initial_value=True, dev_name='ard_rst'),
                           'top_hi': NamedOutputDevice(27, initial_value=True, dev_name='top_hi'),
                           'bot_hi': NamedOutputDevice(23, initial_value=True, dev_name='bot_hi')}
@@ -55,10 +60,10 @@ class RPiHardware(QWidget):
             if num_pulses is None:
                 pass
             elif isinstance(num_pulses, int):
-                time = float(num_pulses / self.laser.reprate) + 3  # Add three seconds to account for the warmup time
+                time = float(num_pulses / self.laser.reprate)
                 warn("The number of pulses parameter can only be used accurately with an external trigger, internal "
                      "triggering of the laser will continue for {time} seconds then cease.".format(time=time))
-                QTimer.singleShot(time * 1000, self.laser_finished.emit)
+                QTimer.singleShot(self.laser_start_delay_msec - 500 + time * 1000, self.laser_finished.emit)
             else:
                 raise TypeError("Num pulses was not an integer, partial pulses are not possible.")
         elif self.laser.trigger_src == 'EXT':
@@ -69,18 +74,22 @@ class RPiHardware(QWidget):
                 self.arduino.update_laser_param('start')
             elif isinstance(num_pulses, int):
                 # Start the laser after 3 seconds of warmup
-                QTimer.singleShot(3000, lambda: self.arduino.update_laser_param('goal', num_pulses))
+                QTimer.singleShot(self.laser_start_delay_msec,
+                                  lambda: self.arduino.update_laser_param('goal', num_pulses))
+                QTimer.singleShot(self.laser_start_delay_msec,
+                                  lambda: print("laser pulsing started"))
                 # Start a timer that will kick off looking for the laser to go dormant
-                self.timer_check_laser_finished.start(3000)
+                self.timer_check_laser_finished.start(self.laser_start_delay_msec + 500)
             else:
                 raise TypeError("Num pulses was not an integer, partial pulses are not possible.")
-
+        
     def check_laser_finished(self):
-        if self.is_laser_running() and self.timer_check_laser_finished.interval() == 3000:
-            self.timer_check_laser_finished.setInterval(50)
-        elif self.is_laser_running():
+        if self.buttons['laser_run'].is_active and self.timer_check_laser_finished.interval() > 1000:
+            self.timer_check_laser_finished.setInterval(200)
+        elif self.buttons['laser_run'].is_active:
             pass
-        elif not self.is_laser_running():
+        elif not self.buttons['laser_run'].is_active:
+            print("Laser activity finished, emitting signal")
             self.laser_finished.emit()
             self.timer_check_laser_finished.stop()
 
