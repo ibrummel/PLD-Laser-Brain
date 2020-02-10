@@ -81,12 +81,12 @@ class MotorControlPanel(QDockWidget):
         self.brain.arduino.halt_motor('sub')
 
     def target_right(self):
-        print("Moving to target {}".format((self.brain.current_target + 1) % 6))
-        self.brain.move_to_target((self.brain.current_target + 1) % 6)
+        print("Moving to target {}".format((self.brain.current_target() + 1) % 6))
+        self.brain.move_to_target((self.brain.current_target() + 1) % 6)
 
     def target_left(self):
-        print("Moving to target {}".format((self.brain.current_target - 1) % 6))
-        self.brain.move_to_target((self.brain.current_target - 1) % 6)
+        print("Moving to target {}".format((self.brain.current_target() - 1) % 6))
+        self.brain.move_to_target((self.brain.current_target() - 1) % 6)
 
     def update_speed_line(self):
         self.mm_speed_val = float(self.sliders['sub_speed'].value() / 10)
@@ -104,7 +104,7 @@ class MotorControlPanel(QDockWidget):
 
     def raster_current_target(self):
         if self.checks['raster'].isChecked():
-            find_string = "./target_carousel/target[@ID='{}']/Size".format(self.brain.current_target)
+            find_string = "./target_carousel/target[@ID='{}']/Size".format(self.brain.current_target())
             target_size = self.parent.preferences_dialog.pld_settings.find(find_string).text
             self.brain.arduino.update_motor_param('target', 'raster', target_size)
         else:
