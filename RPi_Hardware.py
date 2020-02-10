@@ -9,6 +9,7 @@ from Laser_Hardware import CompexLaser
 from Arduino_Hardware import LaserBrainArduino
 import Global_Values as Global
 from time import sleep
+import numpy as np
 import threading
 from warnings import warn
 
@@ -150,6 +151,14 @@ class RPiHardware(QWidget):
         # ToDo: move these hardcoded values somewhere else so they are easier to change
         position = (1000 / 6) * target_num  # (steps per rev / number of targets) * target_num
         self.arduino.update_motor_param('target', 'goal', position)
+
+    def current_target(self):
+        # This calculates the current position as a fraction of the total rotation, then multiplies by the number of
+        #  of steps and rounds to get to an integer target positon, finally takes the modulus by the number of positions
+        #  to account for the circle (position 6 = position 0)
+        current_pos = int(self.arduino.query_motor_parameters('carousel', 'position'))
+        return int((np.around((current_pos % 1000) / 1000) * 6) % 6)
+
 
     def raster_target(self):
         # ToDo: implement this and test the arduino code attached to it.
