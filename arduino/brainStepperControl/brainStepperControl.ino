@@ -34,6 +34,11 @@ boolean newData = false;
 
 // Define other variables
 bool commandReady = false;
+bool laserRunIndef = false;
+bool subRunIndef = false;
+bool targetRunIndef = false;
+int subDirIndef = 0;
+int targetDirIndef = 0;
 
 
 /********************************************** Main run loops **********************************************/
@@ -86,10 +91,10 @@ void loop() {
                 readSerial1();
                 break;
             case 's':
-                updateMotorParams(substrate);
+                updateMotorParams(substrate, 's');
                 break;
             case 't':
-                updateMotorParams(target);
+                updateMotorParams(target, 't');
                 break;
             case 'l':
                 updateLaserParams(laser);
@@ -115,22 +120,26 @@ void loop() {
         rasterSide *= -1;   // Switch which direction to move
         target.moveTo(rasterCenter + (rasterSteps * rasterSide)); // Set the new goal position
     }
-    
+
+    // Handle running without a target position
+    if (subRunIndef == true) substrate.move(100 * subDirIndef);
+    if (targetRunIndef == true) target.move(100 * targetDirIndef);
+    if (laserRunIndef == true) laser.move(100);
     
     // Set cross-board GPIO pins as needed
-    if (not target.isRunning()) {
+    if (target.isRunning()) {
         digitalWrite(19, HIGH);
     }
     else {
         digitalWrite(19, LOW);
     }
-    if (not substrate.isRunning()) {
+    if (substrate.isRunning()) {
         digitalWrite(18, HIGH);
     }
     else {
         digitalWrite(18, LOW);
     }
-    if (not laser.isRunning()) {
+    if (laser.isRunning()) {
         digitalWrite(20, HIGH);
     }
     else {

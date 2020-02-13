@@ -16,13 +16,13 @@ void updateLaserParams(AccelStepper & laser) {           // Passes laser by refe
                 commandReady = false;
                 break;
             case 'g':                       // Set the goal to be whatever number of pulses are sent over serial
+                laserRunIndef = false;
                 laser.setCurrentPosition(0);  // Reset the number of laser pulses
                 laser.move(inCommandValLong);
-                //laser.setSpeed(startSpeed);
                 commandReady = false;
                 break;
             case 'd':                       // Used to run without a set number of pulses
-                laser.move(100);
+                laserRunIndef = true;
                 //laser.setSpeed(startSpeed);
                 break;                      // NOTE: Not setting commandReady to false so this repeats until
                                             // told otherwise by serial
@@ -54,6 +54,7 @@ void updateLaserParams(AccelStepper & laser) {           // Passes laser by refe
     else if (inCommandType == 'h') {
         // May need to consider cranking acceleration here to stop faster
         laser.stop();                   // May need to switch to disableOutputs to up reaction speed
+        laserRunIndef = false;
         commandReady = false;              // Finishes this command and prevents re updating
     }
     if (commandReady == false) {                  // If we set command ready to false, clear command variable values
