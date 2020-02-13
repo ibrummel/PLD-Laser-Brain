@@ -12,6 +12,7 @@ from time import sleep
 import numpy as np
 import threading
 from warnings import warn
+import Global_Values as Global
 
 
 class RPiHardware(QWidget):
@@ -111,7 +112,7 @@ class RPiHardware(QWidget):
         self.arduino.halt_motor('substrate')
 
     def home_sub(self):
-        self.arduino.update_motor_param('substrate', 'start', 0)  # Start moving the substrate down without a goal
+        self.arduino.update_motor_param('substrate', 'start', Global.SUB_DOWN)  # Start moving the substrate down without a goal
         self.homing_sub = True
 
     def set_sub_home(self):
@@ -148,8 +149,7 @@ class RPiHardware(QWidget):
         Moves to the target indicated by target_num. Target numbers are zero indexed and can be kept track of
         of in the upper level GUI
         """
-        # ToDo: move these hardcoded values somewhere else so they are easier to change
-        position = (1000 / 6) * target_num  # (steps per rev / number of targets) * target_num
+        position = (Global.TARGET_STEPS_PER_REV / 6) * target_num  # (steps per rev / number of targets) * target_num
         self.arduino.update_motor_param('target', 'goal', position)
 
     def current_target(self):
@@ -157,7 +157,7 @@ class RPiHardware(QWidget):
         #  of steps and rounds to get to an integer target positon, finally takes the modulus by the number of positions
         #  to account for the circle (position 6 = position 0)
         current_pos = int(self.arduino.query_motor_parameters('carousel', 'position'))
-        return int((np.around((current_pos % 1000) / 1000) * 6) % 6)
+        return int((np.around((current_pos % Global.TARGET_STEPS_PER_REV) / Global.TARGET_STEPS_PER_REV) * 6) % 6)
 
 
     def raster_target(self):
@@ -166,7 +166,7 @@ class RPiHardware(QWidget):
 
     def set_target_carousel_speed(self, dps: float):
         # ToDo: move these hardcoded values somewhere else so they are easier to change
-        speed = (1000) * (dps / 360)  # (steps per rev) * (degrees per second / degrees per rev)
+        speed = (Global.TARGET_STEPS_PER_REV) * (dps / 360)  # (steps per rev) * (degrees per second / degrees per rev)
         # Naming convention in arduino stepper library uses max speed as target speed and "speed" as instantaneous speed
         self.arduino.update_motor_param('carousel', 'max speed', speed)
 
