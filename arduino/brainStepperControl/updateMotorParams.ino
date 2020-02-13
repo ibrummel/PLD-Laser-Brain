@@ -1,4 +1,4 @@
-void updateMotorParams(AccelStepper50pctDuty & motor) {           // Passes motor by reference so that it can be used for sub and targets
+void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // Passes motor by reference so that it can be used for sub and targets
 
     if (inCommandType == 'u') {
         switch (inCommandParam) {
@@ -15,18 +15,43 @@ void updateMotorParams(AccelStepper50pctDuty & motor) {           // Passes moto
                 commandReady = false;
                 break;
             case 'g':                       // Set new goal position and reset speed as moveTo calculates new speeds
+                if (axis == 's'){           // Stop running indefinitely if we now have a goal to get to. 
+                  subRunIndef = false;
+                  subDirIndef = 0;
+                }
+                else if (axis == 't'){
+                  targetRunIndef = false;
+                  targetDirIndef = 0;
+                }
                 motor.moveTo(inCommandValLong);
+                commandReady = false;
+                break;
+            case 'p':
+                motor.setCurrentPosition(inCommandValLong);
                 commandReady = false;
                 break;
             case 'd':                       // Used for manual stepping
                 if (inCommandValLong == 1) { // Move cw without a goal
-                    motor.move(100);
+                    if (axis == 's'){
+                      subRunIndef = true;
+                      subDirIndef = 1;
+                    }
+                    else if (axis == 't'){
+                      targetRunIndef = true;
+                      targetDirIndef = 1;
+                    }
                 }
-                else if (inCommandValLong == 0) {    // Move ccw without a goal
-                    motor.move(-100);
+                else if (inCommandValLong == -1) {    // Move ccw without a goal
+                    if (axis == 's'){
+                      subRunIndef = true;
+                      subDirIndef = -1;
+                    }
+                    else if (axis == 't'){
+                      targetRunIndef = true;
+                      targetDirIndef = -1;
+                    }
                 }
-                break;                      // NOTE: Not setting commandReady to false so this repeats until
-                                            // told otherwise by serial
+                break;
             case 'r':
                 if (inCommandAxis != 't') {
                   commandReady = false;     // Only raster if the target is the selected command axis
@@ -83,6 +108,14 @@ void updateMotorParams(AccelStepper50pctDuty & motor) {           // Passes moto
     else if (inCommandType == 'h') {
         // May need to consider cranking acceleration here to stop faster
         motor.stop();                   // May need to switch to disableOutputs to up reaction speed
+        if (axis == 's'){
+          subRunIndef = false;
+          subDirIndef = 0;
+        }
+        else if (axis == 't'){
+          targetRunIndef = false;
+          targetDirIndef = 0;
+        }
         commandReady = false;              // Finishes this command and prevents re updating
     }
     if (commandReady == false) {                  // If we set command ready to false, clear command variable values
