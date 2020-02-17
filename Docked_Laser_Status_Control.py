@@ -98,17 +98,21 @@ class LaserStatusControl(QDockWidget):
     def update_lsc(self):
         # Updater for the laser status readouts. Only updates for fields that are
         # not currently selected.
-        on_opmodes = ['ON', 'OFF,WAIT']
+        
         if not self.lines['energy'].hasFocus():
             self.lines['energy'].setText(self.laser.rd_energy())
-
+        sleep(self.op_delay)
+        
         if not self.lines['voltage'].hasFocus():
             self.lines['voltage'].setText(self.laser.rd_hv())
-
+        sleep(self.op_delay)
+        
         if not self.lines['reprate'].hasFocus():
             self.lines['reprate'].setText(str(self.laser.reprate))
+        sleep(self.op_delay)
 
         self.lines['tube_press'].setText(self.laser.rd_tube_press())
+        sleep(self.op_delay)
 
     def terminal_send(self):
         # Sends the command that was typed into the terminal.
