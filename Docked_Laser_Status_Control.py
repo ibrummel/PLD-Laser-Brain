@@ -4,7 +4,8 @@ from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton,
                              QWidget, QMessageBox, QDockWidget)
 from Laser_Hardware import CompexLaser
-import time
+from time import sleep
+import Global_Values as Global
 from RPi_Hardware import RPiHardware
 
 
@@ -44,8 +45,6 @@ class LaserStatusControl(QDockWidget):
         # ToDo: Move all of these into the CompexLaser class so that there are less calls to update them and less
         #  places to lose track of their values.
 
-        # Sleep time used to prevent overloading the serial bus.
-        self.op_delay = 0.05
         # Create widgets and other GUI elements
         self.current_egy = self.laser.rd_energy()
         # self.lines['energy'].setValidator(QIntValidator(50, 510))
@@ -101,18 +100,18 @@ class LaserStatusControl(QDockWidget):
         
         if not self.lines['energy'].hasFocus():
             self.lines['energy'].setText(self.laser.rd_energy())
-        sleep(self.op_delay)
+        sleep(Global.OP_DELAY)
         
         if not self.lines['voltage'].hasFocus():
             self.lines['voltage'].setText(self.laser.rd_hv())
-        sleep(self.op_delay)
+        sleep(Global.OP_DELAY)
         
         if not self.lines['reprate'].hasFocus():
             self.lines['reprate'].setText(str(self.laser.reprate))
-        sleep(self.op_delay)
+        sleep(Global.OP_DELAY)
 
         self.lines['tube_press'].setText(self.laser.rd_tube_press())
-        sleep(self.op_delay)
+        sleep(Global.OP_DELAY)
 
     def terminal_send(self):
         # Sends the command that was typed into the terminal.
@@ -144,7 +143,7 @@ class LaserStatusControl(QDockWidget):
         # On button press stops the timer that updates the display so that
         # we don't see timeouts on pressing the button to stop/start
         self.update_timer.stop()
-        time.sleep(self.op_delay)
+        sleep(Global.OP_DELAY)
 
         try:
             num_pulses = int(self.lines['num_pulses'].text())
@@ -171,7 +170,7 @@ class LaserStatusControl(QDockWidget):
             self.btns['start_stop'].setText('Stop Laser')
 
         # Re-enables the updater for the LSC after handling start/stop
-        time.sleep(self.op_delay)
+        sleep(Global.OP_DELAY)
         self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
 
     def check_warmup(self):
@@ -193,7 +192,7 @@ class LaserStatusControl(QDockWidget):
                                              QMessageBox.Cancel)
         if timeout_clear == QMessageBox.Ok:
             self.laser.set_timeout(False)
-            time.sleep(self.op_delay)
+            sleep(Global.OP_DELAY)
             self.laser.off()
             self.btns['start_stop'].setText('Stop Laser')
         elif timeout_clear == QMessageBox.Cancel:

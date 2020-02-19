@@ -33,7 +33,6 @@ class RPiHardware(QWidget):
         # Setup timer to check when external trigger pulses finish.
         self.timer_check_laser_finished = QTimer()
         self.timer_check_laser_finished.timeout.connect(self.check_laser_finished)
-        
 
         # Define Pin Dictionaries
         hold_time = 0.01
@@ -43,10 +42,10 @@ class RPiHardware(QWidget):
                         'target_run': NamedButton(20, pull_up=False, hold_time=hold_time, dev_name='target_run'),
                         'laser_run': NamedButton(19, pull_up=False, hold_time=hold_time, dev_name='laser_run')}
 
-#         self.timer_watch_laser = QTimer()
-#         self.timer_watch_laser.timeout.connect(lambda: print("Laser run active: {}".format(self.buttons['laser_run'].is_active), end='\r'))
-#         self.timer_watch_laser.start(50)
-        
+        #         self.timer_watch_laser = QTimer()
+        #         self.timer_watch_laser.timeout.connect(lambda: print("Laser run active: {}".format(self.buttons['laser_run'].is_active), end='\r'))
+        #         self.timer_watch_laser.start(50)
+
         self.high_pins = {'ard_rst': NamedOutputDevice(16, initial_value=True, dev_name='ard_rst'),
                           'top_hi': NamedOutputDevice(27, initial_value=True, dev_name='top_hi'),
                           'bot_hi': NamedOutputDevice(23, initial_value=True, dev_name='bot_hi')}
@@ -84,7 +83,7 @@ class RPiHardware(QWidget):
                 self.timer_check_laser_finished.start(self.laser_start_delay_msec + 500)
             else:
                 raise TypeError("Num pulses was not an integer, partial pulses are not possible.")
-        
+
     def check_laser_finished(self):
         if self.buttons['laser_run'].is_active and self.timer_check_laser_finished.interval() > 1000:
             self.timer_check_laser_finished.setInterval(200)
@@ -107,12 +106,13 @@ class RPiHardware(QWidget):
 
     # def set_energy(self, ):
 
-    def substrate_limit(self):
+    def substrate_limit(self, channel=None):
         # Halt the substrate if it is at the limit
         self.arduino.halt_motor('substrate')
 
     def home_sub(self):
-        self.arduino.update_motor_param('substrate', 'start', Global.SUB_DOWN)  # Start moving the substrate down without a goal
+        self.arduino.update_motor_param('substrate', 'start',
+                                        Global.SUB_DOWN)  # Start moving the substrate down without a goal
         self.homing_sub = True
 
     def set_sub_home(self):
@@ -121,7 +121,8 @@ class RPiHardware(QWidget):
         self.substrate_limit()
         if self.homing_sub:
             self.arduino.update_motor_param('substrate', 'position', 0)
-            self.homing_sub = False
+            sleep(Global.OP_DELAY)
+            self.arduino.update_motor_param('substrate', 'goal', 40350)
         # else warn that the substrate has bottomed out
         else:
             # ToDo: Find a way to constrain substrate to only positive values in arduino code?
@@ -158,7 +159,6 @@ class RPiHardware(QWidget):
         #  to account for the circle (position 6 = position 0)
         current_pos = int(self.arduino.query_motor_parameters('carousel', 'position'))
         return int((np.around((current_pos % Global.TARGET_STEPS_PER_REV) / Global.TARGET_STEPS_PER_REV) * 6) % 6)
-
 
     def raster_target(self):
         # ToDo: implement this and test the arduino code attached to it.
