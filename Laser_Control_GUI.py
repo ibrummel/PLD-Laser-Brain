@@ -43,7 +43,7 @@ class PLDMainWindow(QMainWindow):
         self.setCorner(Qt.TopLeftCorner | Qt.TopRightCorner, Qt.TopDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner | Qt.BottomRightCorner, Qt.BottomDockWidgetArea)
         self.addDockWidget(Qt.TopDockWidgetArea, self.lsc_docked)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.motor_control_docked)
+        self.addDockWidget(Qt.TopDockWidgetArea, self.motor_control_docked)
 
         menubar = self.menuBar()
         self.menu_actions['preferences'] = QAction('Instrument Preferences...', self)
