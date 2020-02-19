@@ -184,20 +184,25 @@ class DepControlBox(QWidget):
         self.lines['man_action'].setText(ret_params['man_action'])
 
     def commit_changes(self, item):
-        step_params = {
-            'step_index': self.list_view.row(item),
-            'step_name': self.lines['step_name'].text(),
-            'target': self.combos['select_target'].currentText(),
-            'raster': self.checks['raster'].checkState(),
-            'tts_distance': self.lines['tts_distance'].text(),
-            'num_pulses': self.lines['num_pulses'].text(),
-            'reprate': self.lines['reprate'].text(),
-            'time_on_step': str(int(self.lines['num_pulses'].text()) / int(self.lines['reprate'].text())),
-            'delay': self.lines['delay'].text(),
-            'man_action': self.lines['man_action'].text()
-        }
+        try:
+            step_params = {
+                'step_index': self.list_view.row(item),
+                'step_name': self.lines['step_name'].text(),
+                'target': self.combos['select_target'].currentText(),
+                'raster': self.checks['raster'].checkState(),
+                'tts_distance': self.lines['tts_distance'].text(),
+                'num_pulses': self.lines['num_pulses'].text(),
+                'reprate': self.lines['reprate'].text(),
+                'time_on_step': str(int(self.lines['num_pulses'].text()) / int(self.lines['reprate'].text())),
+                'delay': self.lines['delay'].text(),
+                'man_action': self.lines['man_action'].text()
+            }
 
-        item.set_params(step_params)
+            item.set_params(step_params)
+        except ValueError as err:
+            print(err)
+            print('Failed to set step parameters for {}, '
+                  'please check that all values are valid and try again'.format(item.step_name))
 
     def update_targets(self):
         self.combos['select_target'].clear()
