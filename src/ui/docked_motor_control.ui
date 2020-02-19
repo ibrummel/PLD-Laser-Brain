@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>900</width>
-    <height>0</height>
+    <height>172</height>
    </size>
   </property>
   <property name="font">
@@ -28,7 +28,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>PLD Motor Controls</string>
+   <string>Motor Controls</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -125,46 +125,6 @@
        <string>Substrate:</string>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="spacing">
-          <number>10</number>
-         </property>
-         <item>
-          <widget class="QPushButton" name="btn_sub_up">
-           <property name="text">
-            <string>Move Up</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../img/up.svg</normaloff>../img/up.svg</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btn_sub_home">
-           <property name="text">
-            <string>Home </string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../img/home.svg</normaloff>../img/home.svg</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btn_sub_down">
-           <property name="text">
-            <string>Move Down</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>../img/down.svg</normaloff>../img/down.svg</iconset>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
