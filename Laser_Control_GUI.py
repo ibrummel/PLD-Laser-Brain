@@ -45,6 +45,7 @@ class PLDMainWindow(QMainWindow):
         self.addDockWidget(Qt.TopDockWidgetArea, self.lsc_docked)
         self.addDockWidget(Qt.TopDockWidgetArea, self.motor_control_docked)
         self.tabifyDockWidget(self.lsc_docked, self.motor_control_docked)
+        self.lsc_docked.raise_()
 
         menubar = self.menuBar()
         self.menu_actions['preferences'] = QAction('Instrument Preferences...', self)
