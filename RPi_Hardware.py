@@ -140,9 +140,9 @@ class RPiHardware(QWidget):
 
     def home_target_carousel(self):
         home_carousel = HomeTargetCarouselDialog(self)
-        if home_carousel == QDialog.accepted():
+        if home_carousel == QDialog.accepted:
             self.arduino.update_motor_param('carousel', 'position', 0)
-        elif home_carousel == QDialog.rejected():
+        elif home_carousel == QDialog.rejected:
             warn("User canceled target carousel homing process, previous home value is preserved.")
 
     def move_to_target(self, target_num: int):
