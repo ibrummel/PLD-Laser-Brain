@@ -178,6 +178,7 @@ class LaserStatusControl(QDockWidget):
         if curr_opmode == 'OFF:0':
             self.timer_check_warmup.stop()
             self.btns['start_stop'].setDisabled(False)
+            self.btns['start_stop'].setChecked(False)
         elif curr_opmode == 'OFF:21':
             pass  # Nothing to do if the laser is still in warmup mode
         elif curr_opmode == 'OFF:31':
