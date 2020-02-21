@@ -4,6 +4,7 @@ from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton,
                              QWidget, QMessageBox, QDockWidget)
 from Laser_Hardware import CompexLaser
+from pyvisa.errors import VisaIOError
 from time import sleep
 import Global_Values as Global
 from RPi_Hardware import RPiHardware
@@ -97,21 +98,32 @@ class LaserStatusControl(QDockWidget):
     def update_lsc(self):
         # Updater for the laser status readouts. Only updates for fields that are
         # not currently selected.
-        
-        if not self.lines['energy'].hasFocus():
-            self.lines['energy'].setText(self.laser.rd_energy())
-        sleep(Global.OP_DELAY)
-        
-        if not self.lines['voltage'].hasFocus():
-            self.lines['voltage'].setText(self.laser.rd_hv())
-        sleep(Global.OP_DELAY)
-        
-        if not self.lines['reprate'].hasFocus():
-            self.lines['reprate'].setText(str(self.laser.reprate))
-        sleep(Global.OP_DELAY)
+        try:
+            if not self.lines['energy'].hasFocus():
+                self.lines['energy'].setText(self.laser.rd_energy())
+            sleep(Global.OP_DELAY)
+        except VisaIOError as err:
+            print("Error reading laser energy for LSC update.")
 
-        self.lines['tube_press'].setText(self.laser.rd_tube_press())
-        sleep(Global.OP_DELAY)
+        try:
+            if not self.lines['voltage'].hasFocus():
+                self.lines['voltage'].setText(self.laser.rd_hv())
+            sleep(Global.OP_DELAY)
+        except VisaIOError as err:
+            print("Error reading laser HV for LSC update.")
+
+        try:
+            if not self.lines['reprate'].hasFocus():
+                self.lines['reprate'].setText(str(self.laser.reprate))
+            sleep(Global.OP_DELAY)
+        except VisaIOError as err:
+            print("Error reading laser reprate for LSC update.")
+
+        try:
+            self.lines['tube_press'].setText(self.laser.rd_tube_press())
+            sleep(Global.OP_DELAY)
+        except VisaIOError as err:
+            print("Error reading laser tube pressure for LSC update.")
 
     def terminal_send(self):
         # Sends the command that was typed into the terminal.
