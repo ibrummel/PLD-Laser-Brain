@@ -47,11 +47,25 @@ class PLDMainWindow(QMainWindow):
         self.tabifyDockWidget(self.lsc_docked, self.motor_control_docked)
         self.lsc_docked.raise_()
 
+        self.init_menubar()
+
+    def init_menubar(self):
+        # Retrieve the menubar widget
         menubar = self.menuBar()
-        self.menu_actions['preferences'] = QAction('Instrument Preferences...', self)
-        self.menu_actions['preferences'].setShortcut('Ctrl+Shift+P')
-        self.menu_actions['preferences'].triggered.connect(self.open_preferences)
-        self.menus['file'] = menubar.addMenu('&File')
+
+        file = menubar.addMenu('&File')
+        edit = menubar.addMenu('&Edit')
+
+        edit_preferences = self.build_menu_action('Preferences...', self.open_preferences, 'Ctrl+Alt+P')
+        edit.addAction(edit_preferences)
+
+    def build_menu_action(self, actstr, connection, shortcutstr=None):
+        action = QAction(actstr, self)
+        action.triggered.connect(connection)
+        if shortcutstr is not None:
+            action.setShortcut(shortcutstr)
+
+        return action
 
     def open_preferences(self):
         self.settings.open()
