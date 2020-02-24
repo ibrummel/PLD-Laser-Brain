@@ -103,6 +103,7 @@ class PLDMainWindow(QMainWindow):
                 self.loaded_deposition_path = None
                 self.load_deposition()
 
+        load_file = self.return_file_dialogue_path(load_file)
         deposition = ET.parse(load_file)
         self.dep_control.load_xml_dep(deposition)
         self.loaded_deposition_path = Path(load_file)
@@ -121,7 +122,18 @@ class PLDMainWindow(QMainWindow):
                                                     'Deposition Files (*.depo);;XML Files (*.xml)')
 
         deposition_tree = ET.ElementTree(deposition)
-        deposition_tree.write(save_file)
+        deposition_tree.write(self.return_file_dialogue_path(save_file))
+
+    def return_file_dialogue_path(self, file_dialogue_return: tuple):
+        path_obj = Path(file_dialogue_return[0])
+        extension_str = file_dialogue_return[1].split('(')[1].split(')')[0].strip('*')
+
+        if path_obj.suffix == extension_str:
+            return
+        else:
+            path_obj = path_obj.with_suffix(extension_str)
+
+        return str(path_obj)
 
 
 def main():
