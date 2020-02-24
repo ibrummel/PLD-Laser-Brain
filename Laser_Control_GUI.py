@@ -16,7 +16,7 @@ from Deposition_Control import DepControlBox
 from Instrument_Preferences import InstrumentPreferencesDialog
 from pathlib import Path
 import os
-from xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET
 
 
 class PLDMainWindow(QMainWindow):
