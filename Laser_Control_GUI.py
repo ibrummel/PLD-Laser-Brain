@@ -130,7 +130,7 @@ class PLDMainWindow(QMainWindow):
         extension_str = file_dialogue_return[1].split('(')[1].split(')')[0].strip('*')
 
         if path_obj.suffix == extension_str:
-            return
+            return str(path_obj)
         else:
             path_obj = path_obj.with_suffix(extension_str)
 
