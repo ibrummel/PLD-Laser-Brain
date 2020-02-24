@@ -103,11 +103,9 @@ class PLDMainWindow(QMainWindow):
                 self.loaded_deposition_path = None
                 self.load_deposition()
 
-        load_file = self.return_file_dialogue_path(load_file)
-        print(load_file)
-        deposition = ET.parse(load_file)
+        deposition = ET.parse(load_file[0])
         self.dep_control.load_xml_dep(deposition)
-        self.loaded_deposition_path = Path(load_file)
+        self.loaded_deposition_path = Path(load_file[0])
 
     def save_deposition(self, saveas=True):
         deposition = self.dep_control.get_dep_xml()
