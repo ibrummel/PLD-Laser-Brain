@@ -95,7 +95,7 @@ class PLDMainWindow(QMainWindow):
         else:
             try:
                 load_file = QFileDialog.getOpenFileName(self, 'Select a deposition file to load...',
-                                                        self.loaded_deposition_path,
+                                                        str(self.loaded_deposition_path),
                                                         'Deposition Files (*.depo);;XML Files (*.xml)')
             # if that doesn't work,
             except TypeError as err:
@@ -105,7 +105,7 @@ class PLDMainWindow(QMainWindow):
 
         deposition = ET.parse(load_file)
         self.dep_control.load_xml_dep(deposition)
-        self.loaded_deposition_path = load_file
+        self.loaded_deposition_path = Path(load_file)
 
     def save_deposition(self, saveas=True):
         deposition = self.dep_control.get_dep_xml()
@@ -113,13 +113,15 @@ class PLDMainWindow(QMainWindow):
         if not saveas and self.loaded_deposition_path is not None:
             save_file = self.loaded_deposition_path
         elif saveas and self.loaded_deposition_path is not None:
-            save_file = QFileDialog.getSaveFileName(self, 'Select a Save Location...', self.loaded_deposition_path,
+            save_file = QFileDialog.getSaveFileName(self, 'Select a Save Location...', str(self.loaded_deposition_path),
                                                     'Deposition Files (*.depo);;XML Files (*.xml)')
         else:
-            save_file = QFileDialog.getSaveFileName(self, 'Select a Save Location...', str(Path(os.path.expanduser('~'))),
+            save_file = QFileDialog.getSaveFileName(self, 'Select a Save Location...',
+                                                    str(Path(os.path.expanduser('~'))),
                                                     'Deposition Files (*.depo);;XML Files (*.xml)')
 
-        deposition.write(save_file)
+        deposition_tree = ET.ElementTree(deposition)
+        deposition_tree.write(save_file)
 
 
 def main():
