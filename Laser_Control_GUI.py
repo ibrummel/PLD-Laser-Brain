@@ -104,6 +104,7 @@ class PLDMainWindow(QMainWindow):
                 self.load_deposition()
 
         load_file = self.return_file_dialogue_path(load_file)
+        print(load_file)
         deposition = ET.parse(load_file)
         self.dep_control.load_xml_dep(deposition)
         self.loaded_deposition_path = Path(load_file)
