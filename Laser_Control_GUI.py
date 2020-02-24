@@ -89,7 +89,7 @@ class PLDMainWindow(QMainWindow):
         # If the user has not loaded a file this session open home
         if self.loaded_deposition_path is None:
             load_file = QFileDialog.getOpenFileName(self, 'Select a deposition file to load...',
-                                                    Path(os.path.expanduser('~')),
+                                                    str(Path(os.path.expanduser('~'))),
                                                     'Deposition Files (*.depo);;XML Files (*.xml)')
         # If the user has loaded a file, attempt to open its directory
         else:
@@ -105,7 +105,7 @@ class PLDMainWindow(QMainWindow):
 
         deposition = ET.parse(load_file)
         self.dep_control.load_xml_dep(deposition)
-        self.loaded_deposition_path = Path(load_file)
+        self.loaded_deposition_path = load_file
 
     def save_deposition(self, saveas=True):
         deposition = self.dep_control.get_dep_xml()
@@ -116,7 +116,7 @@ class PLDMainWindow(QMainWindow):
             save_file = QFileDialog.getSaveFileName(self, 'Select a Save Location...', self.loaded_deposition_path,
                                                     'Deposition Files (*.depo);;XML Files (*.xml)')
         else:
-            save_file = QFileDialog.getSaveFileName(self, 'Select a Save Location...', Path(os.path.expanduser('~')),
+            save_file = QFileDialog.getSaveFileName(self, 'Select a Save Location...', str(Path(os.path.expanduser('~'))),
                                                     'Deposition Files (*.depo);;XML Files (*.xml)')
 
         deposition.write(save_file)
