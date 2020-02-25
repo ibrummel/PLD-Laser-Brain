@@ -158,7 +158,7 @@ class RPiHardware(QWidget):
         #  of steps and rounds to get to an integer target positon, finally takes the modulus by the number of positions
         #  to account for the circle (position 6 = position 0)
         current_pos = int(self.arduino.query_motor_parameters('carousel', 'position'))
-        return int((np.around((current_pos % Global.TARGET_STEPS_PER_REV) / Global.TARGET_STEPS_PER_REV) * 6) % 6)
+        return int(np.around(((current_pos % Global.TARGET_STEPS_PER_REV) / Global.TARGET_STEPS_PER_REV) * 6) % 6)
 
     def raster_target(self):
         # ToDo: implement this and test the arduino code attached to it.
