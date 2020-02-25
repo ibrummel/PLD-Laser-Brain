@@ -48,6 +48,7 @@ class MotorControlPanel(QDockWidget):
         self.btns['sub_down'].released.connect(self.sub_halt)
         self.btns['carousel_next'].clicked.connect(self.target_left)
         self.btns['carousel_prev'].clicked.connect(self.target_right)
+        self.lines['current_target'].finishedEditing.connect()
         self.sc_left.activated.connect(self.target_left)
         self.sc_right.activated.connect(self.target_right)
         # FIXME: Probably don't want this implementation of raster?
@@ -81,12 +82,21 @@ class MotorControlPanel(QDockWidget):
         self.brain.arduino.halt_motor('sub')
 
     def target_right(self):
-        print("Moving to target {}".format((self.brain.current_target() + 1) % 6))
-        self.brain.move_to_target((self.brain.current_target() + 1) % 6)
+        goal = (self.brain.current_target() + 1) % 6
+        print("Moving to target {}".format(goal))
+        self.brain.move_to_target(goal)
+        self.lines['current_target'].setText(str(goal))
 
     def target_left(self):
-        print("Moving to target {}".format((self.brain.current_target() - 1) % 6))
-        self.brain.move_to_target((self.brain.current_target() - 1) % 6)
+        goal = (self.brain.current_target() - 1) % 6
+        print("Moving to target {}".format(goal))
+        self.brain.move_to_target(goal)
+        self.lines['current_target'].setText(str(goal))
+
+    def move_to_target(self):
+        goal = int(self.lines['current_target'].text)
+        print('Moving to target {}'.format(goal))
+        self.brain.moveToThread(goal)
 
     def update_speed_line(self):
         self.mm_speed_val = float(self.sliders['sub_speed'].value() / 10)
