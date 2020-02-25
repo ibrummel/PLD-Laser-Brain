@@ -82,18 +82,21 @@ class MotorControlPanel(QDockWidget):
         self.brain.arduino.halt_motor('sub')
 
     def target_right(self):
+        print(self.brain.current_target())
         goal = (self.brain.current_target() + 1) % 6
         print("Moving to target {}".format(goal))
         self.brain.move_to_target(goal)
         self.lines['current_target'].setText(str(goal))
 
     def target_left(self):
+        print(self.brain.current_target())
         goal = (self.brain.current_target() - 1) % 6
         print("Moving to target {}".format(goal))
         self.brain.move_to_target(goal)
         self.lines['current_target'].setText(str(goal))
 
     def move_to_target(self):
+        print(self.brain.current_target())
         goal = int(self.lines['current_target'].text)
         print('Moving to target {}'.format(goal))
         self.brain.moveToThread(goal)
