@@ -98,6 +98,7 @@ class DepStepItem(QListWidgetItem):
 
 class DepControlBox(QWidget):
     stop_deposition = pyqtSignal()
+    deposition_changed = pyqtSignal()
 
     def __init__(self, laser: CompexLaser, brain: RPiHardware, parent: QMainWindow):
         super().__init__()
@@ -148,14 +149,20 @@ class DepControlBox(QWidget):
         self.deposition_thread.started.connect(self.dep_worker_obj.start_deposition)
 
     def on_item_change(self, current, previous):
+        updated = False
         # Commit the changes by the user to the previously selected step
         if previous is not None:
             self.commit_changes(previous)
+            updated = True
         # Update indices for all items before loading the new item. This will make indices make sense
         self.update_step_indices()
         # Load the values from the new steps into the controls
         if current is not None:
             self.load_step_params(current)
+            updated = True
+
+        if updated:
+            self.deposition_changed.emit()
 
     def update_step_indices(self):
         for index in range(0, self.list_view.count()):

@@ -29,12 +29,14 @@ class PLDMainWindow(QMainWindow):
         self.brain = brain
         self.settings = InstrumentPreferencesDialog()
         self.loaded_deposition_path = None
+        self.unsaved_changes = False
 
         # Create a docked widget to hold the LSC module
         self.lsc_docked = LaserStatusControl(self.laser, self.brain)
         self.motor_control_docked = MotorControlPanel(self.brain)
         self.dep_control = DepControlBox(self.laser, self.brain, self)
         self.init_ui()
+        self.init_connections()
 
     def init_ui(self):
         self.setObjectName('Main Window')
@@ -75,6 +77,12 @@ class PLDMainWindow(QMainWindow):
         edit_preferences = self.build_menu_action('Preferences...', self.open_preferences, 'Ctrl+Alt+P')
         edit.addAction(edit_preferences)
 
+    def init_connections(self):
+        self.dep_control.deposition_changed.connect(self.set_unsaved_changes)
+
+    def set_unsaved_changes(self):
+        self.unsaved_changes = True
+
     def build_menu_action(self, actstr, connection, shortcutstr=None):
         action = QAction(actstr, self)
         action.triggered.connect(connection)
@@ -87,6 +95,7 @@ class PLDMainWindow(QMainWindow):
         self.settings.open()
 
     def load_deposition(self):
+        self.query_overwrite('Loading')
         # If the user has not loaded a file this session open home
         if self.loaded_deposition_path is None:
             load_file = QFileDialog.getOpenFileName(self, 'Select a deposition file to load...',
@@ -123,25 +132,28 @@ class PLDMainWindow(QMainWindow):
 
         deposition_tree = ET.ElementTree(deposition)
         deposition_tree.write(self.return_file_dialogue_path(save_file))
+        self.unsaved_changes = False
 
     def new_deposition(self):
-        if self.loaded_deposition_path is not None:
-            clear_current_dep = QMessageBox.question(self, 'New Deposition',
-                                                     'Staring a new deposition will clear previous work, would you\n'
-                                                     ' like to save the current deposition before continuing?',
+        self.query_overwrite('Starting')
+
+        self.dep_control.clear_deposition()
+        self.loaded_deposition_path = None
+        self.unsaved_changes = False
+
+    def query_overwrite(self, load_or_new: str):
+        if self.unsaved_changes:
+            clear_current_dep = QMessageBox.question(self, 'Discard Current Deposition?',
+                                                     '{} a new deposition will clear previous work, would you\n'
+                                                     ' like to save the current deposition before continuing?'.format(
+                                                         load_or_new),
                                                      QMessageBox.Discard | QMessageBox.Save | QMessageBox.Cancel,
                                                      QMessageBox.Save)
             if clear_current_dep == QMessageBox.Save:
                 self.save_deposition(saveas=True)
-                self.loaded_deposition_path = None
-                self.new_deposition()
-            elif clear_current_dep == QMessageBox.Discard:
-                self.loaded_deposition_path = None
-                self.new_deposition()
-            elif clear_current_dep == QMessageBox.Cancel:
-                return
 
-        self.dep_control.clear_deposition()
+        self.unsaved_changes = False
+
 
     def return_file_dialogue_path(self, file_dialogue_return: tuple):
         path_obj = Path(file_dialogue_return[0])
