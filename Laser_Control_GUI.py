@@ -5,7 +5,7 @@ Created on Mon Mar 11 10:01:53 2019
 @author: Ian
 """
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QDockWidget, QAction, QFileDialog)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QDockWidget, QAction, QFileDialog, QMessageBox)
 import sys
 from Laser_Hardware import CompexLaser
 from RPi_Hardware import RPiHardware
@@ -65,6 +65,7 @@ class PLDMainWindow(QMainWindow):
         file_save = self.build_menu_action('Save Deposition', lambda: self.save_deposition(saveas=False), 'Ctrl+S')
         file_save_as = self.build_menu_action('Save Deposition As...', lambda: self.save_deposition(saveas=False),
                                               'Ctrl+Shift+S')
+        file_new = self.build_menu_action('New Deposition', self.new_deposition, 'Ctrl+N')
         file_exit = self.build_menu_action('Exit', sys.exit, 'Ctrl+Q')
         file.addActions([file_load, file_save, file_save_as, file_exit])
 
@@ -122,6 +123,25 @@ class PLDMainWindow(QMainWindow):
 
         deposition_tree = ET.ElementTree(deposition)
         deposition_tree.write(self.return_file_dialogue_path(save_file))
+
+    def new_deposition(self):
+        if self.loaded_deposition_path is not None:
+            clear_current_dep = QMessageBox.question(self, 'New Deposition',
+                                                     'Staring a new deposition will clear previous work, would you\n'
+                                                     ' like to save the current deposition before continuing?',
+                                                     QMessageBox.Discard | QMessageBox.Save | QMessageBox.Cancel,
+                                                     QMessageBox.Save)
+            if clear_current_dep == QMessageBox.Save:
+                self.save_deposition(saveas=True)
+                self.loaded_deposition_path = None
+                self.new_deposition()
+            elif clear_current_dep == QMessageBox.Discard:
+                self.loaded_deposition_path = None
+                self.new_deposition()
+            elif clear_current_dep == QMessageBox.Cancel:
+                return
+
+        self.dep_control.clear_deposition()
 
     def return_file_dialogue_path(self, file_dialogue_return: tuple):
         path_obj = Path(file_dialogue_return[0])

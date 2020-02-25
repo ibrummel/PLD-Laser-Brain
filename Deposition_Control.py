@@ -224,6 +224,10 @@ class DepControlBox(QWidget):
             self.list_view.takeItem(self.list_view.indexFromItem(item).row())
         self.update_step_indices()
 
+    def clear_deposition(self):
+        self.list_view.clear()
+        self.update_step_indices()
+
     def update_time_on_step(self):
         self.commit_changes(self.list_view.currentItem())
         self.list_view.currentItem().calc_time_on_step()
