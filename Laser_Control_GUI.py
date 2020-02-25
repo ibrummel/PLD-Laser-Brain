@@ -69,7 +69,7 @@ class PLDMainWindow(QMainWindow):
                                               'Ctrl+Shift+S')
         file_new = self.build_menu_action('New Deposition', self.new_deposition, 'Ctrl+N')
         file_exit = self.build_menu_action('Exit', sys.exit, 'Ctrl+Q')
-        file.addActions([file_load, file_save, file_save_as, file_exit])
+        file.addActions([file_new, file_load, file_save, file_save_as, file_exit])
 
         # Create the edit menu
         edit = menubar.addMenu('&Edit')
