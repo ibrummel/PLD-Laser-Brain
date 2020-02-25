@@ -1,19 +1,24 @@
 #include <AccelStepper_50pctDuty.h>
 #include <AccelStepper.h>
-//NOTE: *.ino is included automatically by the Arduino compiler.
+
+enum USER_PINS {
+  SUB_RUN = 18,
+  SUB_STEP = 2,
+  SUB_DIR = 3,
+  TARGET_RUN = 19,
+  TARGET_STEP = 4,
+  TARGET_DIR = 5,
+  LASER_RUN = 20,
+  LASER_STEP = 12,
+  LASER_DIR = A0 // A0 is used as it is currently not connected to anything and we don't need a direction pin here.
+};
 
 // Define the available stepper motors
-// Note that pins are defined by the number after D or their Axx designations. i.e. A3 = A3 and D1 = 1
-AccelStepper50pctDuty substrate(AccelStepper50pctDuty::DRIVER, 2, 3);
-AccelStepper50pctDuty target(AccelStepper50pctDuty::DRIVER, 4, 5);
-int rasterCenter = 0;   // Stores center position of target when raster is started
-int rasterSteps = 0;    // Stores the number of steps across the target, set based on target size.
-bool rasterOn = false;  // Sets the raster on off state
-bool centering = false; // Set based on whether the target is returning to center
-int rasterSide = 1;     // Which side of the target should be moved to
+AccelStepper50pctDuty substrate(AccelStepper50pctDuty::DRIVER, SUB_STEP, SUB_DIR);
+AccelStepper50pctDuty target(AccelStepper50pctDuty::DRIVER, TARGET_STEP, TARGET_DIR);
 
 // Define the laser pulsing, using a stepper motor that just runs at constant speed
-AccelStepper laser(AccelStepper::DRIVER, 12, A0);   // A0 is used as it is currently not connected to anything and we don't need a direction pin here.
+AccelStepper laser(AccelStepper::DRIVER, LASER_STEP, LASER_DIR);
 
 //Define variables for serial input handling
 const byte numChars = 32;
@@ -33,12 +38,17 @@ float inCommandValFloat;
 boolean newData = false;
 
 // Define other variables
-bool commandReady = false;
-bool laserRunIndef = false;
-bool subRunIndef = false;
-bool targetRunIndef = false;
-int subDirIndef = 0;
-int targetDirIndef = 0;
+bool commandReady = false;    // Flag to signal command from serial is ready for procesesing
+bool laserRunIndef = false;   // Flag for running laser indefinitely
+bool subRunIndef = false;     // Flag for running motors indefinitely: substrate
+bool targetRunIndef = false;  // Flag for running motors indefinitely: target
+int subDirIndef = 0;          // Flag for indefinite movement direction: substrate
+int targetDirIndef = 0;       // Flag for indefinite movement direction: target
+int rasterCenter = 0;         // Stores center position of target when raster is started
+int rasterSteps = 0;          // Stores the number of steps across the target, set based on target size.
+bool rasterOn = false;        // Sets the raster on off state
+bool centering = false;       // Set based on whether the target is returning to center
+int rasterSide = 1;           // Which side of the target should be moved to
 
 
 /********************************************** Main run loops **********************************************/
@@ -53,7 +63,7 @@ void setup() {
     substrate.setAcceleration(20000); // Probably going to stick with runSpeed for constant speeds since we have plenty of torque
     target.setAcceleration(5000); // set acceleration limits (using 2x max speed to start)   
 
-    // May need to invert pins for the directions to match reality
+    // Invert pins for the directions to match reality
     substrate.setPinsInverted(true, false, true); 
     // target.setPinsInverted(directionInvert=true, stepInvert=false);
 
@@ -127,24 +137,17 @@ void loop() {
     if (laserRunIndef == true) laser.move(100);
     
     // Set cross-board GPIO pins as needed
-    if (target.isRunning()) {
-        digitalWrite(19, HIGH);
-    }
-    else {
-        digitalWrite(19, LOW);
-    }
-    if (substrate.isRunning()) {
-        digitalWrite(18, HIGH);
-    }
-    else {
-        digitalWrite(18, LOW);
-    }
-    if (laser.isRunning()) {
-        digitalWrite(20, HIGH);
-    }
-    else {
-        digitalWrite(20, LOW);
-    }
+    
+    if (target.isRunning()) digitalWrite(TARGET_RUN, HIGH);
+    // If the target motor is done running, set it's position to be position % 6000
+    else if (!target.isRunning() && target.currentPosition() > 6000) target.setCurrentPosition(target.currentPosition() % 6000);
+    else digitalWrite(TARGET_RUN, HIGH);
+    
+    if (substrate.isRunning()) digitalWrite(SUB_RUN, HIGH);
+    else digitalWrite(SUB_RUN, LOW);
+
+    if (laser.isRunning()) digitalWrite(LASER_RUN, HIGH);
+    else digitalWrite(LASER_RUN, LOW);
     
     // Handle running the motors to their positions
     target.run();
