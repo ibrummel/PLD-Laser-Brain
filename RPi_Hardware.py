@@ -150,8 +150,7 @@ class RPiHardware(QWidget):
         Moves to the target indicated by target_num. Target numbers are zero indexed and can be kept track of
         of in the upper level GUI
         """
-        position = (Global.TARGET_STEPS_PER_REV / 6) * target_num  # (steps per rev / number of targets) * target_num
-        self.arduino.update_motor_param('target', 'goal', position)
+        self.arduino.update_motor_param('target', 'goal', target_num % 6)
 
     def current_target(self):
         # This calculates the current position as a fraction of the total rotation, then multiplies by the number of
