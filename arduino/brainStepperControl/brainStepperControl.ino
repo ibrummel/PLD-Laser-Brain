@@ -13,6 +13,11 @@ enum USER_PINS {
   LASER_DIR = A0 // A0 is used as it is currently not connected to anything and we don't need a direction pin here.
 };
 
+enum USER_CONST {
+  SUB_STEPS_PER_REV = 1000,
+  TARGET_STEPS_PER_REV = 6000
+};
+
 // Define the available stepper motors
 AccelStepper50pctDuty substrate(AccelStepper50pctDuty::DRIVER, SUB_STEP, SUB_DIR);
 AccelStepper50pctDuty target(AccelStepper50pctDuty::DRIVER, TARGET_STEP, TARGET_DIR);
@@ -31,7 +36,7 @@ char inCommandType = 'z';
 char inCommandPinNum = 0;
 
 char inCommandSerForward[numChars];
-char inCommandParam = 'z'; 
+char inCommandParam = 'z';
 long inCommandValLong;
 float inCommandValFloat;
 
@@ -50,107 +55,110 @@ bool rasterOn = false;        // Sets the raster on off state
 bool centering = false;       // Set based on whether the target is returning to center
 int rasterSide = 1;           // Which side of the target should be moved to
 
-
 /********************************************** Main run loops **********************************************/
 void setup() {
-    Serial.begin(115200);
-    //Serial1.begin(9600);         // Baud rate will need to be adjusted to match the device that is connected in future
-    
-    // ** Set up motor limits and parameters ** //
-    substrate.setMaxSpeed(1000);  // set the max substrate speed to 4rps
-    target.setMaxSpeed(1000); // set max target speed as 1 rps FIXME: This might be too fast
+  Serial.begin(115200);
+  //Serial1.begin(9600);         // Baud rate will need to be adjusted to match the device that is connected in future
 
-    substrate.setAcceleration(20000); // Probably going to stick with runSpeed for constant speeds since we have plenty of torque
-    target.setAcceleration(5000); // set acceleration limits (using 2x max speed to start)   
+  // ** Set up motor limits and parameters ** //
+  substrate.setMaxSpeed(1000);  // set the max substrate speed to 4rps
+  target.setMaxSpeed(1000); // set max target speed as 1 rps FIXME: This might be too fast
 
-    // Invert pins for the directions to match reality
-    substrate.setPinsInverted(true, false, true); 
-    // target.setPinsInverted(directionInvert=true, stepInvert=false);
+  substrate.setAcceleration(20000); // Probably going to stick with runSpeed for constant speeds since we have plenty of torque
+  target.setAcceleration(5000); // set acceleration limits (using 2x max speed to start)
 
-    // ** Set up laser limits and parameters ** //
-    laser.setMaxSpeed(20);       // Don't want laser to run above 20 Hz
-    laser.setAcceleration(500000);
-    laser.setMinPulseWidth(20);  // Laser requires a >=15 micrsecond pulse
-    laser.setSpeed(5);
+  // Invert pins for the directions to match reality
+  substrate.setPinsInverted(true, false, true);
+  // target.setPinsInverted(directionInvert=true, stepInvert=false);
 
-    // Set up pins as in or output
-    setupPins();
+  // ** Set up laser limits and parameters ** //
+  laser.setMaxSpeed(20);       // Don't want laser to run above 20 Hz
+  laser.setAcceleration(500000);
+  laser.setMinPulseWidth(20);  // Laser requires a >=15 micrsecond pulse
+  laser.setSpeed(5);
+
+  // Set up pins as in or output
+  setupPins();
 }
 
 void loop() {
-    recCommand();                           // Check if there is a command to receive from the serial input
-    if (newData == true) {
-        parseData();                        // if there is new data parse it
-        newData = false;                    // Clears the new data variable
-        commandReady = true;                // Flags for setting pins or updating motor params
-        //easyShowParsedData();
-    }
-    if (commandReady == true) {
-      
-        switch (inCommandAxis) {
-            case 'o':
-                digitalPinWrite();
-                break;
-            case 'i':
-                Serial.println(digitalPinRead());
-                break;
-            case 'f':
-                forwardSerial1();
-                break;
-            case 'r':
-                readSerial1();
-                break;
-            case 's':
-                updateMotorParams(substrate, 's');
-                break;
-            case 't':
-                updateMotorParams(target, 't');
-                break;
-            case 'l':
-                updateLaserParams(laser);
-                break;
-            default:
-                commandReady = false; // Protects against erroneous commands sending the arduino into a loop
-                break;
-        }
-    }
+  recCommand();                           // Check if there is a command to receive from the serial input
+  if (newData == true) {
+    parseData();                        // if there is new data parse it
+    newData = false;                    // Clears the new data variable
+    commandReady = true;                // Flags for setting pins or updating motor params
+    //easyShowParsedData();
+  }
+  if (commandReady == true) {
 
-    // Handle rastering
-    if (rasterSide == 0 && centering == false) {
-      target.moveTo(rasterCenter);
-      centering = true;
+    switch (inCommandAxis) {
+      case 'o':
+        digitalPinWrite();
+        break;
+      case 'i':
+        Serial.println(digitalPinRead());
+        break;
+      case 'f':
+        forwardSerial1();
+        break;
+      case 'r':
+        readSerial1();
+        break;
+      case 's':
+        updateMotorParams(substrate, 's');
+        break;
+      case 't':
+        updateMotorParams(target, 't');
+        break;
+      case 'l':
+        updateLaserParams(laser);
+        break;
+      default:
+        commandReady = false; // Protects against erroneous commands sending the arduino into a loop
+        break;
     }
-    else if (rasterSide == 0 && centering == true){
-      if (target.distanceToGo() == 0) {
-        centering = false;
-        rasterSide = 1;
-      }
-    }
-    else if (rasterOn == true && target.distanceToGo() == 0) {
-        rasterSide *= -1;   // Switch which direction to move
-        target.moveTo(rasterCenter + (rasterSteps * rasterSide)); // Set the new goal position
-    }
+  }
 
-    // Handle running without a target position
-    if (subRunIndef == true) substrate.move(100 * subDirIndef);
-    if (targetRunIndef == true) target.move(100 * targetDirIndef);
-    if (laserRunIndef == true) laser.move(100);
-    
-    // Set cross-board GPIO pins as needed
-    
-    if (target.isRunning()) digitalWrite(TARGET_RUN, HIGH);
-    // If the target motor is done running, set it's position to be position % 6000
-    else if (!target.isRunning() && target.currentPosition() > 6000) target.setCurrentPosition(target.currentPosition() % 6000);
-    else digitalWrite(TARGET_RUN, HIGH);
-    
-    if (substrate.isRunning()) digitalWrite(SUB_RUN, HIGH);
-    else digitalWrite(SUB_RUN, LOW);
+  // Handle rastering
+  if (rasterSide == 0 && centering == false) {
+    target.moveTo(rasterCenter);
+    centering = true;
+  }
+  else if (rasterSide == 0 && centering == true) {
+    if (target.distanceToGo() == 0) {
+      centering = false;
+      rasterSide = 1;
+    }
+  }
+  else if (rasterOn == true && target.distanceToGo() == 0) {
+    rasterSide *= -1;   // Switch which direction to move
+    target.moveTo(rasterCenter + (rasterSteps * rasterSide)); // Set the new goal position
+  }
 
-    if (laser.isRunning()) digitalWrite(LASER_RUN, HIGH);
-    else digitalWrite(LASER_RUN, LOW);
-    
-    // Handle running the motors to their positions
-    target.run();
-    substrate.run();
-    laser.run();
+  // Handle running without a target position
+  if (subRunIndef == true) substrate.move(100 * subDirIndef);
+  if (targetRunIndef == true) target.move(100 * targetDirIndef);
+  if (laserRunIndef == true) laser.move(100);
+
+  // Set cross-board GPIO pins as needed
+
+  if (target.isRunning()) digitalWrite(TARGET_RUN, HIGH);
+  else if (!target.isRunning() && (target.currentPosition() >= 6000 || target.currentPosition() < 0)) {
+    // Keep the target position a positive number by adding multiples of the rotation
+    while (target.currentPosition() < 0) target.setCurrentPosition(target.currentPosition() + TARGET_STEPS_PER_REV);
+    // Keep the target position between 0 and 6000
+    target.setCurrentPosition(target.currentPosition() % TARGET_STEPS_PER_REV);
+  }
+  else digitalWrite(TARGET_RUN, HIGH);
+
+  if (substrate.isRunning()) digitalWrite(SUB_RUN, HIGH);
+  else digitalWrite(SUB_RUN, LOW);
+
+  if (laser.isRunning()) digitalWrite(LASER_RUN, HIGH);
+  else digitalWrite(LASER_RUN, LOW);
+
+  // Handle running the motors to their positions
+  target.run();
+  substrate.run();
+  laser.run();
 }
