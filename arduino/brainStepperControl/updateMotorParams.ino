@@ -149,7 +149,7 @@ int shortestMoveToTarget(int finalPos) {
     // Set the path length to the magnitude of the path difference
     path = deltaMod;
     // Set the sign of the path based on the relationship between target and origin. Condition has
-    //  switched from above because we haven't flipped the k 
+    //  switched from above because we haven't flipped the path length
     if (origin > finalPos) path *= -1;
   }
 
