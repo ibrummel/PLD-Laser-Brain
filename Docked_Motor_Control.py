@@ -40,6 +40,7 @@ class MotorControlPanel(QDockWidget):
         self.mm_speed_val = 0.5
 
         self.init_connections()
+        self.init_fields()
 
     def init_connections(self):
         self.btns['sub_up'].pressed.connect(self.sub_up)
@@ -58,6 +59,12 @@ class MotorControlPanel(QDockWidget):
         self.lines['sub_speed'].returnPressed.connect(self.update_speed_slide)
         self.btns['carousel_home'].clicked.connect(self.brain.home_target_carousel)
         self.btns['sub_home'].clicked.connect(self.brain.home_sub)
+
+    def init_fields(self):
+        self.lines['current_target'].setText(str(self.brain.current_target()))
+        # ToDo: change this to report real units from target to substrate.
+        self.lines['sub_position'].setText(str(self.brain.arduino.query_motor_parameters('substrate', 'position')))
+        self.lines['sub_speed'].setText(str(self.brain.arduino.query_motor_parameters('substrate', 'max speed')))
 
     def toggle_hotkeys(self):
         # Toggle the hotkey disable boolean
