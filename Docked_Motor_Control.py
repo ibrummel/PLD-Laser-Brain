@@ -47,6 +47,8 @@ class MotorControlPanel(QDockWidget):
         self.btns['sub_up'].released.connect(self.sub_halt)
         self.btns['sub_down'].pressed.connect(self.sub_down)
         self.btns['sub_down'].released.connect(self.sub_halt)
+        self.lines['sub_position'].returnPressed.connect(self.move_sub_from_line)
+        self.lines['sub_speed'].returnPressed.connect(self.set_sub_speed_from_line)
         self.btns['carousel_next'].clicked.connect(self.target_left)
         self.btns['carousel_prev'].clicked.connect(self.target_right)
         self.lines['current_target'].returnPressed.connect(self.move_to_target)
@@ -55,8 +57,6 @@ class MotorControlPanel(QDockWidget):
         # FIXME: Probably don't want this implementation of raster?
         self.checks['raster'].stateChanged.connect(self.raster_current_target)
         self.brain.target_changed.connect(lambda: self.check_raster.setChecked(False))
-        self.sliders['sub_speed'].valueChanged.connect(self.update_speed_line)
-        self.lines['sub_speed'].returnPressed.connect(self.update_speed_slide)
         self.btns['carousel_home'].clicked.connect(self.brain.home_target_carousel)
         self.btns['sub_home'].clicked.connect(self.brain.home_sub)
 
@@ -85,6 +85,9 @@ class MotorControlPanel(QDockWidget):
     def sub_down(self):
         self.brain.arduino.update_motor_param('sub', 'start', Global.SUB_DOWN)
 
+    def move_sub_from_line(self):
+        self.brain.move_sub_to(float(self.lines['sub_position'].text()))
+
     def sub_halt(self):
         self.brain.arduino.halt_motor('sub')
 
@@ -95,7 +98,6 @@ class MotorControlPanel(QDockWidget):
         self.lines['current_target'].setText(str(goal))
 
     def target_left(self):
-
         goal = (self.brain.current_target() - 1) % 6
         print("Moving to target {}".format(goal))
         self.brain.move_to_target(goal)
@@ -106,19 +108,8 @@ class MotorControlPanel(QDockWidget):
         print('Moving to target {}'.format(goal))
         self.brain.move_to_target(goal)
 
-    def update_speed_line(self):
-        self.mm_speed_val = float(self.sliders['sub_speed'].value() / 10)
-        self.lines['sub_speed'].setText(str(self.mm_speed_val))
-        self.set_sub_speed()
-
-    def update_speed_slide(self):
-        self.mm_speed_val = float(self.lines['sub_speed'].text())
-        self.sliders['sub_speed'].setValue(int(self.mm_speed_val * 10))
-        self.set_sub_speed()
-
-    def set_sub_speed(self):
-        # ToDo: convert this to be a mm/s value rather than an rps value
-        self.brain.arduino.update_laser_param('sub', 'speed', self.mm_speed_val)
+    def set_sub_speed_from_line(self):
+        self.brain.set_sub_speed(float(self.lines['sub_speed'].text()))
 
     def raster_current_target(self):
         if self.checks['raster'].isChecked():
