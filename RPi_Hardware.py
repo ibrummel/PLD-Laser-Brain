@@ -42,10 +42,6 @@ class RPiHardware(QWidget):
                         'target_run': NamedButton(20, pull_up=False, hold_time=hold_time, dev_name='target_run'),
                         'laser_run': NamedButton(19, pull_up=False, hold_time=hold_time, dev_name='laser_run')}
 
-        #         self.timer_watch_laser = QTimer()
-        #         self.timer_watch_laser.timeout.connect(lambda: print("Laser run active: {}".format(self.buttons['laser_run'].is_active), end='\r'))
-        #         self.timer_watch_laser.start(50)
-
         self.high_pins = {'ard_rst': NamedOutputDevice(16, initial_value=True, dev_name='ard_rst'),
                           'top_hi': NamedOutputDevice(27, initial_value=True, dev_name='top_hi'),
                           'bot_hi': NamedOutputDevice(23, initial_value=True, dev_name='bot_hi')}
@@ -128,14 +124,12 @@ class RPiHardware(QWidget):
             # ToDo: Find a way to constrain substrate to only positive values in arduino code?
             warn("Substrate has reached its lower limit and will not move further.")
 
-    def move_sub_to(self, tts: float):
-        goal_position = tts  # (millimeters per step) * (tts - d0) where d0 is physical minimum distance
-        # ToDo: for now this sets a position in steps
+    def move_sub_to(self, mm_tts: float):
+        goal_position = (mm_tts - Global.SUB_D0) * Global.SUB_STEPS_PER_MM
         self.arduino.update_motor_param('substrate', 'goal', goal_position)
 
-    def set_sub_speed(self, spd: float):
-        sub_spd = spd  # (millimeters per second) / (millimeters per step)
-        # ToDo: Will eventually work in units of mm/s but is in steps per second for now.
+    def set_sub_speed(self, mm_spd: float):
+        sub_spd = mm_spd * Global.SUB_STEPS_PER_MM
         self.arduino.update_motor_param('substrate', sub_spd)
 
     def home_target_carousel(self):

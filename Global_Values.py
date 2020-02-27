@@ -6,6 +6,10 @@ SUB_MANUAL_SPEED = 250
 SUB_STEPS_PER_REV = 1000
 SUB_BOTTOM = 0
 SUB_TOP = 40350
+SUB_MM_PER_REV = 2.54
+SUB_STEPS_PER_MM = SUB_STEPS_PER_REV / SUB_MM_PER_REV
+#ToDo: measure the minimum target to substrate distance. May want to set a minimum settable height to prevent shooting the substrate holder.
+SUB_D0 = 10
 
 TARGET_CW = 1
 TARGET_CCW = -1
