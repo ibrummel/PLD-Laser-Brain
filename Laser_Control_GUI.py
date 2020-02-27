@@ -22,9 +22,9 @@ import xml.etree.ElementTree as ET
 # Adds a settings attribute to the application for use elsewhere.
 class PLDControlApp(QApplication):
 
-    def __init__(self, settings: InstrumentPreferencesDialog, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.instrument_settings = settings
+        self.instrument_settings = InstrumentPreferencesDialog()
 
 
 class PLDMainWindow(QMainWindow):
@@ -175,7 +175,7 @@ class PLDMainWindow(QMainWindow):
 
 
 def main():
-    app = PLDControlApp(sys.argv, settings=InstrumentPreferencesDialog())
+    app = PLDControlApp(sys.argv)
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
     # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')

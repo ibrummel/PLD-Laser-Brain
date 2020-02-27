@@ -213,7 +213,7 @@ class DepControlBox(QWidget):
 
     def update_targets(self):
         self.combos['select_target'].clear()
-        self.combos['select_target'].addItems(self.parentWidget().settings.get_target_roster())
+        self.combos['select_target'].addItems(QApplication.instance().instrument_settings.get_target_roster())
         # Todo: get the non-blank targets from settings window?
 
     def add_deposition_step(self):
