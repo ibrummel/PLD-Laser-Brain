@@ -10,11 +10,15 @@ SUB_MM_PER_REV = 2.54
 SUB_STEPS_PER_MM = SUB_STEPS_PER_REV / SUB_MM_PER_REV
 #ToDo: measure the minimum target to substrate distance. May want to set a minimum settable height to prevent shooting the substrate holder.
 SUB_D0 = 11.6 # mm
+SUB_DMAX = 114.088 # mm
 
-TARGET_CW = 1
-TARGET_CCW = -1
-TARGET_MANUAL_SPEED = 1000
-TARGET_STEPS_PER_REV = 6000
+CAROUSEL_CW = 1
+CAROUSEL_CCW = -1
+CAROUSEL_MANUAL_SPEED = 1000
+CAROUSEL_STEPS_PER_REV = 6000
+CAROUSEL_DIA_INCH = 3.75 # inch
 
 AUTO_REPEAT_DELAY = 150
 OP_DELAY = 0.01
+
+TARGET_UTILIZATION_FRACTION = 0.9

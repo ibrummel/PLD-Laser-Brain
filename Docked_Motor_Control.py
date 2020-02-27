@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QCheckBox, QLabel, QLineEdit, QPushButton,
 from RPi_Hardware import RPiHardware
 from PyQt5 import uic
 import Global_Values as Global
+import Static_Functions as Static
 
 
 class MotorControlPanel(QDockWidget):
@@ -88,7 +89,15 @@ class MotorControlPanel(QDockWidget):
         self.brain.arduino.update_motor_param('sub', 'start', Global.SUB_DOWN)
 
     def move_sub_from_line(self):
-        self.brain.move_sub_to(float(self.lines['sub_position'].text()))
+        goal_pos = float(self.lines['sub_position'].text())
+        # Prevents the user from sending a value that will be outside the physical limits of the PLD
+        if goal_pos > Global.SUB_DMAX:
+            goal_pos = Global.SUB_DMAX
+        elif goal_pos < Global.SUB_D0:
+            goal_pos = Global.SUB_D0
+        self.lines['sub_position'].setText(str(goal_pos))
+
+        self.brain.move_sub_to(goal_pos)
 
     def sub_halt(self):
         self.brain.arduino.halt_motor('sub')
@@ -116,8 +125,9 @@ class MotorControlPanel(QDockWidget):
     def raster_current_target(self):
         if self.checks['raster'].isChecked():
             find_string = "./target_carousel/target[@ID='{}']/Size".format(self.brain.current_target())
-            target_size = QApplication.instance().instrument_settings.pld_settings.find(find_string).text
-            self.brain.arduino.update_motor_param('target', 'raster', target_size)
+            target_size = float(QApplication.instance().instrument_settings.pld_settings.find(find_string).text)
+            raster_steps = Static.calc_raster_steps(target_size)
+            self.brain.arduino.update_motor_param('target', 'raster', raster_steps)
         else:
             self.brain.arduino.update_motor_param('target', 'raster', 0)
             print('Raster Off')
