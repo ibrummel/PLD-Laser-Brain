@@ -39,6 +39,7 @@ class InstrumentPreferencesDialog(QTabWidget):
         # Class variables
         self.settings_file_path = 'settings.xml'
         self.pld_settings = ET.Element  # Empty element tree, needs to be read in on the next line
+        # Errors on reading a settings file are handled within this function.
         self.parse_xml_to_settings(self.settings_file_path)
 
         self.init_connections()
@@ -118,7 +119,7 @@ class InstrumentPreferencesDialog(QTabWidget):
             file_name = QFileDialog.getOpenFileName(self,
                                                     'Select valid settings file...',
                                                     os.getcwd(),
-                                                    "xml Files (*.xml)")
+                                                    "XML Files (*.xml)")
             self.settings_file_path = file_name[0]
             self.parse_xml_to_settings(self.settings_file_path)
 

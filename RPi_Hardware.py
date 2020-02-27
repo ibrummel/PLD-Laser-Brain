@@ -126,7 +126,7 @@ class RPiHardware(QWidget):
 
     def move_sub_to(self, mm_tts: float):
         goal_position = (mm_tts - Global.SUB_D0) * Global.SUB_STEPS_PER_MM
-        self.arduino.update_motor_param('substrate', 'goal', goal_position)
+        self.arduino.update_motor_param('substrate', 'goal', int(goal_position))
 
     def set_sub_speed(self, mm_spd: float):
         sub_spd = mm_spd * Global.SUB_STEPS_PER_MM
