@@ -26,7 +26,10 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
           motor.move(shortestMoveToTarget(inCommandValLong * 1000));
           // Move to wherever, final position limiting is handled in main loop
         }
-
+        commandReady = false;
+        break;
+      case 't':
+        motor.move(inCommandValLong);
         commandReady = false;
         break;
       case 'p':
