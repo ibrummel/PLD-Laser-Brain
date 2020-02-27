@@ -126,7 +126,7 @@ class MotorControlPanel(QDockWidget):
             target_size = QApplication.instance().instrument_settings.pld_settings.find(find_string).text
             self.brain.arduino.update_motor_param('target', 'raster', target_size)
         else:
-            # self.brain.raster_target(False, self.get_current_target())
+            self.brain.arduino.update_motor_param('target', 'raster', 0)
             print('Raster Off')
         pass
 
