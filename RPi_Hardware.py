@@ -151,7 +151,7 @@ class RPiHardware(QWidget):
         #  of steps and rounds to get to an integer target positon, finally takes the modulus by the number of positions
         #  to account for the circle (position 6 = position 0)
         current_pos = int(self.arduino.query_motor_parameters('carousel', 'position'))
-        return int(np.around(((current_pos % Global.TARGET_STEPS_PER_REV) / Global.TARGET_STEPS_PER_REV) * 6) % 6)
+        return int(np.around(((current_pos % Global.CAROUSEL_STEPS_PER_REV) / Global.CAROUSEL_STEPS_PER_REV) * 6) % 6)
 
     def raster_target(self):
         # ToDo: implement this and test the arduino code attached to it.
@@ -159,7 +159,7 @@ class RPiHardware(QWidget):
 
     def set_target_carousel_speed(self, dps: float):
         # ToDo: move these hardcoded values somewhere else so they are easier to change
-        speed = (Global.TARGET_STEPS_PER_REV) * (dps / 360)  # (steps per rev) * (degrees per second / degrees per rev)
+        speed = (Global.CAROUSEL_STEPS_PER_REV) * (dps / 360)  # (steps per rev) * (degrees per second / degrees per rev)
         # Naming convention in arduino stepper library uses max speed as target speed and "speed" as instantaneous speed
         self.arduino.update_motor_param('carousel', 'max speed', speed)
 
@@ -256,16 +256,16 @@ class HomeTargetCarouselDialog(QDialog):
         # Store the old speed and then set speed to a lower value so the
         # position is easier to control by hand.
         self.stored_speed = brain.arduino.query_motor_parameters('target', 'speed')
-        self.brain.arduino.update_motor_param('target', 'speed', Global.TARGET_MANUAL_SPEED)
+        self.brain.arduino.update_motor_param('target', 'speed', Global.CAROUSEL_MANUAL_SPEED)
 
         self.right_btn = QPushButton()
         self.right_btn.setAutoRepeat(True)
-        self.right_btn.setAutoRepeatInterval(Global.TARGET_STEPS_PER_REV / Global.TARGET_MANUAL_SPEED)
+        self.right_btn.setAutoRepeatInterval(Global.CAROUSEL_STEPS_PER_REV / Global.CAROUSEL_MANUAL_SPEED)
         self.right_btn.setAutoRepeatDelay(Global.AUTO_REPEAT_DELAY)
 
         self.left_btn = QPushButton()
         self.left_btn.setAutoRepeat(True)
-        self.left_btn.setAutoRepeatInterval(Global.TARGET_STEPS_PER_REV / Global.TARGET_MANUAL_SPEED)
+        self.left_btn.setAutoRepeatInterval(Global.CAROUSEL_STEPS_PER_REV / Global.CAROUSEL_MANUAL_SPEED)
         self.left_btn.setAutoRepeatDelay(Global.AUTO_REPEAT_DELAY)
 
         self.left_icon = QIcon()
@@ -326,12 +326,12 @@ class HomeTargetCarouselDialog(QDialog):
 
     def right(self):
         # ToDo: Check the if 0 or 1 goes left or right.
-        self.brain.arduino.update_motor_param('target', 'start', Global.TARGET_CW)
+        self.brain.arduino.update_motor_param('target', 'start', Global.CAROUSEL_CW)
         self.moving_right = True
         self.moving_left = False
 
     def left(self):
-        self.brain.arduino.update_motor_param('target', 'start', Global.TARGET_CCW)
+        self.brain.arduino.update_motor_param('target', 'start', Global.CAROUSEL_CCW)
         self.moving_left = True
         self.moving_right = False
 

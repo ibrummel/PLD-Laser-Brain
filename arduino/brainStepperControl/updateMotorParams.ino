@@ -21,10 +21,18 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
           motor.moveTo(inCommandValLong);
         }
         else if (axis == 't') {
+          // Clear rastering flags if we are moving to a new target
+          rasterOn = false;
+          rasterSide = 0;
+          rasterSteps = 0;
+
+          // Clear indefinite running flags
           targetRunIndef = false;
           targetDirIndef = 0;
+
+          // Make the shortest move to the requested target, position will be
+          // kept between 0 and SUB_STEPS_PER_REV in main loop
           motor.move(shortestMoveToTarget(inCommandValLong * 1000));
-          // Move to wherever, final position limiting is handled in main loop
         }
 
         commandReady = false;
@@ -61,26 +69,26 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
           break;                    // Break early
         }
 
-        // If we are currently centering the target, maintain the center value,
-        // otherwise set raster center to the current position
+        // If we are currently centering the target, retain the previous center
+        //  value, otherwise set raster center to the current position
         if (centering == false) {
           rasterCenter = motor.targetPosition();
         }
 
-        // Set the raster steps based on input
-        if (inCommandValLong == 0) {
-          rasterSteps = 0;
-          rasterSide = 0;   // Flag main loop to move back to target center
-          rasterOn = false;
+        // Set the raster steps based on input, set initial direction to raster
+        rasterSteps = inCommandValLong;
+        // If the number of raster steps is 0 then we are not rastering
+        if (rasterSteps == 0) {
+        rasterSide = 0;
+        rasterOn = false;
         }
-        else if (inCommandValLong == 1) {
-          rasterSteps = 31;
-          rasterOn = true;
+        // Otherwise we need to raster a target.
+        else {
+        rasterSide = 1;
+        rasterOn = true;
         }
-        else if (inCommandValLong == 2) {
-          rasterSteps = 63;
-          rasterOn = true;
-        }
+
+
         commandReady = false;
         break;
     }

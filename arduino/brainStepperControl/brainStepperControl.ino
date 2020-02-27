@@ -120,16 +120,21 @@ void loop() {
   }
 
   // Handle rastering
-  if (rasterSide == 0 && centering == false) {
+  // If rastering is complete/stopped (rasterSteps == 0) and we are
+  // not already in the process of recentering, move back to center
+  if (rasterSteps == 0 && centering == false) {
     target.moveTo(rasterCenter);
     centering = true;
   }
+  // If rastering is complete/stopped (rasterSteps == 0) and the centering
+  // flag is set, check if the move is complete.
   else if (rasterSide == 0 && centering == true) {
+    // if the move is complete, set the centering flag as false
     if (target.distanceToGo() == 0) {
       centering = false;
-      rasterSide = 1;
     }
   }
+  // If raster is activated and the last move is complete, move the other way
   else if (rasterOn == true && target.distanceToGo() == 0) {
     rasterSide *= -1;   // Switch which direction to move
     target.moveTo(rasterCenter + (rasterSteps * rasterSide)); // Set the new goal position
