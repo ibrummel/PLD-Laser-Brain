@@ -130,7 +130,7 @@ class RPiHardware(QWidget):
 
     def set_sub_speed(self, mm_spd: float):
         sub_spd = mm_spd * Global.SUB_STEPS_PER_MM
-        self.arduino.update_motor_param('substrate', sub_spd)
+        self.arduino.update_motor_param('substrate', 'max speed', sub_spd)
 
     def home_target_carousel(self):
         home_carousel = HomeTargetCarouselDialog(self)

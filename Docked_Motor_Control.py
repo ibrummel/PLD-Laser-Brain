@@ -63,8 +63,10 @@ class MotorControlPanel(QDockWidget):
     def init_fields(self):
         self.lines['current_target'].setText(str(self.brain.current_target()))
         # ToDo: change this to report real units from target to substrate.
-        self.lines['sub_position'].setText(str(self.brain.arduino.query_motor_parameters('substrate', 'position')))
-        self.lines['sub_speed'].setText(str(self.brain.arduino.query_motor_parameters('substrate', 'max speed')))
+        sub_position = int(self.brain.arduino.query_motor_parameters('substrate', 'position')) / Global.SUB_STEPS_PER_MM + Global.SUB_D0
+        self.lines['sub_position'].setText(str(sub_position))
+        sub_speed = float(self.brain.arduino.query_motor_parameters('substrate', 'max speed')) / Global.SUB_STEPS_PER_MM
+        self.lines['sub_speed'].setText(str(sub_speed))
 
     def toggle_hotkeys(self):
         # Toggle the hotkey disable boolean
