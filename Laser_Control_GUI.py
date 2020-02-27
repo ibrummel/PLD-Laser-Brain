@@ -5,7 +5,7 @@ Created on Mon Mar 11 10:01:53 2019
 @author: Ian
 """
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QDockWidget, QAction, QFileDialog, QMessageBox)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction, QFileDialog, QMessageBox)
 import sys
 from Laser_Hardware import CompexLaser
 from RPi_Hardware import RPiHardware
@@ -19,6 +19,14 @@ import os
 import xml.etree.ElementTree as ET
 
 
+# Adds a settings attribute to the application for use elsewhere.
+class PLDControlApp(QApplication):
+
+    def __init__(self, settings: InstrumentPreferencesDialog, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.instrument_settings = settings
+
+
 class PLDMainWindow(QMainWindow):
 
     def __init__(self, laser: CompexLaser, brain: RPiHardware):
@@ -27,7 +35,6 @@ class PLDMainWindow(QMainWindow):
         self.menu_actions = {}
         self.laser = laser
         self.brain = brain
-        self.settings = InstrumentPreferencesDialog()
         self.loaded_deposition_path = None
         self.unsaved_changes = False
 
@@ -92,7 +99,8 @@ class PLDMainWindow(QMainWindow):
         return action
 
     def open_preferences(self):
-        self.settings.open()
+        # Opens the app's settings dialog
+        QApplication.instance().instrument_settings.open()
 
     def load_deposition(self):
         self.query_overwrite('Loading')
@@ -154,7 +162,6 @@ class PLDMainWindow(QMainWindow):
 
         self.unsaved_changes = False
 
-
     def return_file_dialogue_path(self, file_dialogue_return: tuple):
         path_obj = Path(file_dialogue_return[0])
         extension_str = file_dialogue_return[1].split('(')[1].split(')')[0].strip('*')
@@ -168,8 +175,7 @@ class PLDMainWindow(QMainWindow):
 
 
 def main():
-    app = QApplication(sys.argv)
-    # Start LaserComm and connect to laser
+    app = PLDControlApp(sys.argv, settings=InstrumentPreferencesDialog())
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
     # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')

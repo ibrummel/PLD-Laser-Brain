@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt, QRegExp, QEvent
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (QCheckBox, QLabel, QLineEdit, QPushButton,
-                             QWidget, QSlider, QShortcut, QDockWidget)
+                             QWidget, QSlider, QShortcut, QDockWidget, QApplication)
 from RPi_Hardware import RPiHardware
 from PyQt5 import uic
 import Global_Values as Global
@@ -123,7 +123,7 @@ class MotorControlPanel(QDockWidget):
     def raster_current_target(self):
         if self.checks['raster'].isChecked():
             find_string = "./target_carousel/target[@ID='{}']/Size".format(self.brain.current_target())
-            target_size = self.parent.preferences_dialog.pld_settings.find(find_string).text
+            target_size = QApplication.instance().instrument_settings.pld_settings.find(find_string).text
             self.brain.arduino.update_motor_param('target', 'raster', target_size)
         else:
             # self.brain.raster_target(False, self.get_current_target())
