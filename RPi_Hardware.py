@@ -2,12 +2,11 @@
 from Named_gpiozero import NamedButton, NamedOutputDevice
 from PyQt5.QtCore import Qt, pyqtSignal, QEvent, pyqtSlot, QObject, QTimer
 from PyQt5.QtGui import QIcon, QKeyEvent
-from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QMessageBox, QDialog, QPushButton,
+from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QDialog, QPushButton,
                              QSpacerItem, QWidget)
 from pathlib import Path
 from Laser_Hardware import CompexLaser
 from Arduino_Hardware import LaserBrainArduino
-import Global_Values as Global
 from time import sleep
 import numpy as np
 import threading
