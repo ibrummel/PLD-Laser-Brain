@@ -119,6 +119,7 @@ class RPiHardware(QWidget):
             self.arduino.update_motor_param('substrate', 'position', 0)
             sleep(Global.OP_DELAY)
             self.arduino.update_motor_param('substrate', 'goal', 40350)
+            self.homing_sub = False
         # else warn that the substrate has bottomed out
         else:
             # ToDo: Find a way to constrain substrate to only positive values in arduino code?

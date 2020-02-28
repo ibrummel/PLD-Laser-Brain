@@ -131,7 +131,6 @@ class MotorControlPanel(QDockWidget):
         else:
             self.brain.arduino.update_motor_param('target', 'raster', 0)
             print('Raster Off')
-        pass
 
     # Build custom behavior for keys that control substrate movement
     def keyReleaseEvent(self, eventQKeyEvent):
