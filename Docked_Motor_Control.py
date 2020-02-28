@@ -137,7 +137,7 @@ class MotorControlPanel(QDockWidget):
         key = eventQKeyEvent.key()
         if not eventQKeyEvent.isAutoRepeat():
             if key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Plus, Qt.Key_Minus]:
-                print('Key {} released'.format(key))
+                self.sub_halt()
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.KeyPress:
@@ -145,5 +145,9 @@ class MotorControlPanel(QDockWidget):
                 self.sub_up()
             elif event.key() in [Qt.Key_Down, Qt.Key_Minus]:
                 self.sub_down()
+            # elif event.key() == Qt.Key_Left:
+            #     self.target_left()
+            # elif event.key() == Qt.Key_Right:
+            #     self.target_right()
 
         return super().eventFilter(source, event)
