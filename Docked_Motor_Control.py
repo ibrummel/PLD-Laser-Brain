@@ -1,7 +1,7 @@
-from PyQt5.QtCore import Qt, QRegExp, QEvent
+from PyQt5.QtCore import Qt, QRegExp, QEvent, QTimer
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (QCheckBox, QLabel, QLineEdit, QPushButton,
-                             QWidget, QSlider, QShortcut, QDockWidget, QApplication)
+                             QSlider, QShortcut, QDockWidget, QApplication)
 from RPi_Hardware import RPiHardware
 from PyQt5 import uic
 import Global_Values as Global
@@ -34,16 +34,17 @@ class MotorControlPanel(QDockWidget):
         self.installEventFilter(self)
         self.hotkey_disable = False
 
-        # Retrieve settings from XML
-        self.target_pos_val = 200
-        self.sub_pos_val = self.brain.arduino.query_motor_parameters('sub', 'position')
-        # ToDo: Determine how rps translates to mm in z per sec
-        self.mm_speed_val = 0.5
+        self.motor_update_timer = QTimer()
 
         self.init_connections()
-        self.init_fields()
+        self.update_fields()
 
     def init_connections(self):
+        # Set up updating fields on a timer
+        self.motor_update_timer.timeout.connect(self.update_fields)
+        self.motor_update_timer.start(100)
+
+        # Initiate control connections
         self.btns['sub_up'].pressed.connect(self.sub_up)
         self.btns['sub_up'].released.connect(self.sub_halt)
         self.btns['sub_down'].pressed.connect(self.sub_down)
@@ -61,13 +62,19 @@ class MotorControlPanel(QDockWidget):
         self.btns['carousel_home'].clicked.connect(self.brain.home_target_carousel)
         self.btns['sub_home'].clicked.connect(self.brain.home_sub)
 
-    def init_fields(self):
-        self.lines['current_target'].setText(str(self.brain.current_target()))
-        # ToDo: change this to report real units from target to substrate.
-        sub_position = int(self.brain.arduino.query_motor_parameters('substrate', 'position')) / Global.SUB_STEPS_PER_MM + Global.SUB_D0
-        self.lines['sub_position'].setText(str(sub_position))
-        sub_speed = float(self.brain.arduino.query_motor_parameters('substrate', 'max speed')) / Global.SUB_STEPS_PER_MM
-        self.lines['sub_speed'].setText(str(sub_speed))
+    def update_fields(self):
+        if not self.lines['current_target'].hasFocus():
+            self.lines['current_target'].setText(str(self.brain.current_target()))
+
+        if not self.lines['sub_position'].hasFocus():
+            sub_step_position = int(self.brain.arduino.query_motor_parameters('substrate', 'position'))
+            sub_position = sub_step_position / Global.SUB_STEPS_PER_MM + Global.SUB_D0
+            self.lines['sub_position'].setText(str(sub_position))
+
+        if not self.lines['sub_speed'].hasFocus():
+            sub_step_speed = float(self.brain.arduino.query_motor_parameters('substrate', 'max speed'))
+            sub_speed =  sub_step_position / Global.SUB_STEPS_PER_MM
+            self.lines['sub_speed'].setText(str(sub_speed))
 
     def toggle_hotkeys(self):
         # Toggle the hotkey disable boolean
