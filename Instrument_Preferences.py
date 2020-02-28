@@ -1,12 +1,13 @@
 import os
 
-from PyQt5.QtCore import QRegExp
+from PyQt5.QtCore import QRegExp, pyqtSignal
 from PyQt5.QtWidgets import QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog
 from PyQt5 import uic
 import xml.etree.ElementTree as ET
 
 # ToDo: Set up validators to limit settings?
 class InstrumentPreferencesDialog(QTabWidget):
+    settings_applied = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -95,6 +96,7 @@ class InstrumentPreferencesDialog(QTabWidget):
             self.pld_settings.find("./laser/{}".format(key)).text = widget.text()
 
         self.write_settings_to_xml()
+        self.settings_applied.emit()
 
     def get_target_roster(self):
         target_roster = []
