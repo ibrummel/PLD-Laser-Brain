@@ -65,7 +65,7 @@ void setup() {
   target.setMaxSpeed(1000); // set max target speed as 1 rps FIXME: This might be too fast
 
   substrate.setAcceleration(20000); // Probably going to stick with runSpeed for constant speeds since we have plenty of torque
-  target.setAcceleration(5000); // set acceleration limits (using 2x max speed to start)
+  target.setAcceleration(1000); // set acceleration limits
 
   // Invert pins for the directions to match reality
   substrate.setPinsInverted(true, false, true);

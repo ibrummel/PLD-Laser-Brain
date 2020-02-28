@@ -34,7 +34,10 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
           // kept between 0 and SUB_STEPS_PER_REV in main loop
           motor.move(shortestMoveToTarget(inCommandValLong * 1000));
         }
-
+        commandReady = false;
+        break;
+      case 't':
+        motor.move(inCommandValLong);
         commandReady = false;
         break;
       case 'p':

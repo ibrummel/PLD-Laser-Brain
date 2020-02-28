@@ -69,7 +69,7 @@ void parseData() {      // split the data into its parts
 
     if (inCommandType == 'u') {               // if the command is a parameter update
         strtokIdx = strtok(NULL, ",");      // Get next token from strtok
-        if (inCommandParam == 'd' || inCommandParam == 'g' || inCommandParam == 'r' || inCommandParam == 'p') {
+        if (inCommandParam == 'd' || inCommandParam == 'g' || inCommandParam == 'r' || inCommandParam == 'p' || inCommandParam == 't') {
                 inCommandValLong = atol(strtokIdx);       // Convert direction or goal to int
         }
         else if (inCommandParam == 'a' || inCommandParam == 'm' || inCommandParam == 'v') {
