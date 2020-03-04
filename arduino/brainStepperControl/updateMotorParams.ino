@@ -4,15 +4,12 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
     switch (inCommandParam) {
       case 'a':                       // Set acceleration if parameter to update is 'a'
         motor.setAcceleration(inCommandValFloat);
-        commandReady = false;
         break;
       case 'm':                       // Set max speed if parameter to update is 'm'
         motor.setMaxSpeed(inCommandValFloat);
-        commandReady = false;
         break;
       case 'v':                       // Set motor speed if parameter to update is 'v'elocity
         motor.setSpeed(inCommandValFloat);
-        commandReady = false;
         break;
       case 'g':                       // Set new goal position (targets are set by target number 0 indexed)
         if (axis == 's') {          // Stop running indefinitely if we now have a goal to get to.
@@ -32,17 +29,14 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
 
           // Make the shortest move to the requested target, position will be
           // kept between 0 and SUB_STEPS_PER_REV in main loop
-          motor.move(shortestMoveToTarget(inCommandValLong * 1000));
+          motor.move(shortestMoveToTarget(inCommandValLong * (CAROUSEL_STEPS_PER_REV/6)));
         }
-        commandReady = false;
         break;
       case 't':
         motor.move(inCommandValLong);
-        commandReady = false;
         break;
       case 'p':
         motor.setCurrentPosition(inCommandValLong);
-        commandReady = false;
         break;
       case 'd':                       // Used for manual stepping
         if (inCommandValLong == 1) { // Move cw without a goal
@@ -68,33 +62,23 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
         break;
       case 'r':
         if (inCommandAxis != 't') {
-          commandReady = false;     // Only raster if the target is the selected command axis
-          break;                    // Break early
+          // Only raster if the target is the selected command axis, break early
+          break;
         }
-
-        // If we are currently centering the target, retain the previous center
-        //  value, otherwise set raster center to the current position
-        if (centering == false) {
-          rasterCenter = motor.targetPosition();
-        }
-
         // Set the raster steps based on input, set initial direction to raster
         rasterSteps = inCommandValLong;
         // If the number of raster steps is 0 then we are not rastering
         if (rasterSteps == 0) {
         rasterSide = 0;
-        rasterOn = false;
         }
         // Otherwise we need to raster a target.
         else {
         rasterSide = 1;
         rasterOn = true;
         }
-
-
-        commandReady = false;
         break;
     }
+    commandReady = false;
   }
   else if (inCommandType == 'q') {
     switch (inCommandParam) {
@@ -144,13 +128,13 @@ int shortestMoveToTarget(int finalPos) {
   // Declare variable to hold path to return
   int path = 0;
   // The magnitude of the path difference, modulo the rotation (accounts for being way off)
-  int deltaMod = fmod(abs(origin - finalPos), TARGET_STEPS_PER_REV);
+  int deltaMod = fmod(abs(origin - finalPos), CAROUSEL_STEPS_PER_REV);
 
   //There is a shorter path in opposite direction if the travel is more than half the rotation
-  if (deltaMod > (TARGET_STEPS_PER_REV / 2) ) {
+  if (deltaMod > (CAROUSEL_STEPS_PER_REV / 2) ) {
     // Path is set to a total revolution - the magnitude of the path difference (because the magnitude of
     //  the path difference is larger than half of a rotation)
-    path = (TARGET_STEPS_PER_REV - deltaMod);
+    path = (CAROUSEL_STEPS_PER_REV - deltaMod);
     // Set the sign for path based on the relationship between the target and the origin. Counterclockwise
     //  if the finalPos > origin because we are going to go backward
     if (finalPos > origin) path *= -1;

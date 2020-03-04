@@ -15,7 +15,7 @@ enum USER_PINS {
 
 enum USER_CONST {
   SUB_STEPS_PER_REV = 1000,
-  TARGET_STEPS_PER_REV = 6000
+  CAROUSEL_STEPS_PER_REV = 6000
 };
 
 // Define the available stepper motors
@@ -49,7 +49,7 @@ bool subRunIndef = false;     // Flag for running motors indefinitely: substrate
 bool targetRunIndef = false;  // Flag for running motors indefinitely: target
 int subDirIndef = 0;          // Flag for indefinite movement direction: substrate
 int targetDirIndef = 0;       // Flag for indefinite movement direction: target
-int rasterCenter = 0;         // Stores center position of target when raster is started
+int currentTarget = 0;        // Stores the target ID for the closest target position to the current position
 int rasterSteps = 0;          // Stores the number of steps across the target, set based on target size.
 bool rasterOn = false;        // Sets the raster on off state
 bool centering = false;       // Set based on whether the target is returning to center
@@ -122,22 +122,23 @@ void loop() {
   // Handle rastering
   // If rastering is complete/stopped (rasterSteps == 0) and we are
   // not already in the process of recentering, move back to center
-  if (rasterSteps == 0 && centering == false) {
-    target.moveTo(rasterCenter);
+  if (rasterSteps == 0 && centering == false && rasterOn == true) {
+    target.moveTo(currentTarget * (CAROUSEL_STEPS_PER_REV / 6));
     centering = true;
   }
   // If rastering is complete/stopped (rasterSteps == 0) and the centering
   // flag is set, check if the move is complete.
-  else if (rasterSide == 0 && centering == true) {
+  else if (rasterSide == 0 && centering == true && rasterOn == true) {
     // if the move is complete, set the centering flag as false
     if (target.distanceToGo() == 0) {
       centering = false;
+      rasterOn = false;
     }
   }
   // If raster is activated and the last move is complete, move the other way
   else if (rasterOn == true && target.distanceToGo() == 0) {
     rasterSide *= -1;   // Switch which direction to move
-    target.moveTo(rasterCenter + (rasterSteps * rasterSide)); // Set the new goal position
+    target.moveTo((currentTarget * (CAROUSEL_STEPS_PER_REV / 6)) + (rasterSteps * rasterSide)); // Set the new goal position
   }
 
   // Handle running without a target position
@@ -150,9 +151,9 @@ void loop() {
   if (target.isRunning()) digitalWrite(TARGET_RUN, HIGH);
   else if (!target.isRunning() && (target.currentPosition() >= 6000 || target.currentPosition() < 0)) {
     // Keep the target position a positive number by adding multiples of the rotation
-    while (target.currentPosition() < 0) target.setCurrentPosition(target.currentPosition() + TARGET_STEPS_PER_REV);
+    while (target.currentPosition() < 0) target.setCurrentPosition(target.currentPosition() + CAROUSEL_STEPS_PER_REV);
     // Keep the target position between 0 and 6000
-    target.setCurrentPosition(target.currentPosition() % TARGET_STEPS_PER_REV);
+    target.setCurrentPosition(target.currentPosition() % CAROUSEL_STEPS_PER_REV);
   }
   else digitalWrite(TARGET_RUN, HIGH);
 
@@ -166,4 +167,7 @@ void loop() {
   target.run();
   substrate.run();
   laser.run();
+
+  // Set the current target position
+  currentTarget = round((fmod(target.currentPosition(), CAROUSEL_STEPS_PER_REV) / CAROUSEL_STEPS_PER_REV) * 6);
 }
