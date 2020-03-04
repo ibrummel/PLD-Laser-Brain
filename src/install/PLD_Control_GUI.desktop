@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PLD Control GUI
+Comment=Loads the PyQt5 control GUI for the Ihlefeld Lab PLD
+Icon=/home/pi/PLD-Contol-GUI/src/install/laser_control_icon.png
+Exec=/home/pi/PLD-Contol-GUI/src/install/Start_Laser_Control.sh
+Terminal=True
+Categories=Instrumentation;
