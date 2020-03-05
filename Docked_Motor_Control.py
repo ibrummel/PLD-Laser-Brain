@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt, QRegExp, QEvent, QTimer
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (QCheckBox, QLabel, QLineEdit, QPushButton,
-                             QSlider, QShortcut, QDockWidget, QApplication)
+                             QShortcut, QDockWidget, QApplication, QComboBox)
 from RPi_Hardware import RPiHardware
 from PyQt5 import uic
 import Global_Values as Global
@@ -26,8 +26,8 @@ class MotorControlPanel(QDockWidget):
                        for widget in self.findChildren(QLabel, QRegExp('lbl_*'))}
         self.checks = {widget.objectName().split('check_')[1]: widget
                        for widget in self.findChildren(QCheckBox, QRegExp('check_*'))}
-        self.sliders = {widget.objectName().split('slide_')[1]: widget
-                        for widget in self.findChildren(QSlider, QRegExp('slide_*'))}
+        self.combos = {widget.objectName().split('combo_')[1]: widget
+                       for widget in self.findChildren(QComboBox, QRegExp('combo_*'))}
 
         self.sc_left = QShortcut(QKeySequence(Qt.Key_Left), self)
         self.sc_right = QShortcut(QKeySequence(Qt.Key_Right), self)
@@ -38,11 +38,13 @@ class MotorControlPanel(QDockWidget):
 
         self.init_connections()
         self.update_fields()
+        self.update_target_roster()
 
     def init_connections(self):
         # Set up updating fields on a timer
         self.motor_update_timer.timeout.connect(self.update_fields)
         self.motor_update_timer.start(100)
+        QApplication.instance().instrument_settings.settings_applied.connect(self.update_target_roster)
 
         # Initiate control connections
         self.btns['sub_up'].pressed.connect(self.sub_up)
@@ -53,7 +55,7 @@ class MotorControlPanel(QDockWidget):
         self.lines['sub_speed'].returnPressed.connect(self.set_sub_speed_from_line)
         self.btns['carousel_next'].clicked.connect(self.target_left)
         self.btns['carousel_prev'].clicked.connect(self.target_right)
-        self.lines['current_target'].returnPressed.connect(self.move_to_target)
+        self.combos['current_target'].currentIndexChanged.connect(self.move_to_target)
         self.sc_left.activated.connect(self.target_left)
         self.sc_right.activated.connect(self.target_right)
         # FIXME: Probably don't want this implementation of raster?
@@ -62,9 +64,13 @@ class MotorControlPanel(QDockWidget):
         self.btns['carousel_home'].clicked.connect(self.brain.home_target_carousel)
         self.btns['sub_home'].clicked.connect(self.brain.home_sub)
 
+    def update_target_roster(self):
+        self.combos['current_target'].clear()
+        self.combos['current_target'].addItems(QApplication.instance().instrument_settings.get_target_roster())
+
     def update_fields(self):
-        if not self.lines['current_target'].hasFocus():
-            self.lines['current_target'].setText(str(self.brain.current_target()))
+        if not self.combos['current_target'].hasFocus():
+            self.combos['current_target'].setCurrentIndex(self.brain.current_target())
 
         if not self.lines['sub_position'].hasFocus():
             sub_step_position = int(self.brain.arduino.query_motor_parameters('substrate', 'position'))
@@ -73,7 +79,7 @@ class MotorControlPanel(QDockWidget):
 
         if not self.lines['sub_speed'].hasFocus():
             sub_step_speed = float(self.brain.arduino.query_motor_parameters('substrate', 'max speed'))
-            sub_speed =  sub_step_position / Global.SUB_STEPS_PER_MM
+            sub_speed = sub_step_position / Global.SUB_STEPS_PER_MM
             self.lines['sub_speed'].setText(str(sub_speed))
 
     def toggle_hotkeys(self):
@@ -113,16 +119,14 @@ class MotorControlPanel(QDockWidget):
         goal = (self.brain.current_target() + 1) % 6
         print("Moving to target {}".format(goal))
         self.brain.move_to_target(goal)
-        self.lines['current_target'].setText(str(goal))
 
     def target_left(self):
         goal = (self.brain.current_target() - 1) % 6
         print("Moving to target {}".format(goal))
         self.brain.move_to_target(goal)
-        self.lines['current_target'].setText(str(goal))
 
     def move_to_target(self):
-        goal = int(self.lines['current_target'].text())
+        goal = int(self.combos['current_target'].currentIndex())
         print('Moving to target {}'.format(goal))
         self.brain.move_to_target(goal)
 

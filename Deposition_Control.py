@@ -120,7 +120,7 @@ class DepControlBox(QWidget):
                        for widget in self.findChildren(QComboBox, QRegExp('combo_*'))}
         # Set the available list of targets in the combo box
         # Todo: get targets and their locations
-        self.update_targets()
+        self.update_target_roster()
 
         self.list_view = self.findChildren(QListWidget, QRegExp('list_dep_steps'))[0]
         self.list_view.setSelectionMode(QListView.ExtendedSelection)
@@ -140,7 +140,7 @@ class DepControlBox(QWidget):
         self.btns['copy_step'].clicked.connect(self.copy_deposition_step)
         self.lines['step_name'].editingFinished.connect(self.update_item_name)
         self.list_view.currentItemChanged.connect(self.on_item_change)
-        QApplication.instance().instrument_settings.settings_applied.connect(self.update_targets)
+        QApplication.instance().instrument_settings.settings_applied.connect(self.update_target_roster)
 
         # Cross thread communications
         self.btns['run_dep'].clicked.connect(self.run_deposition)
@@ -212,7 +212,7 @@ class DepControlBox(QWidget):
             print('Failed to set step parameters for {}, '
                   'please check that all values are valid and try again'.format(item.step_name))
 
-    def update_targets(self):
+    def update_target_roster(self):
         self.combos['select_target'].clear()
         self.combos['select_target'].addItems(QApplication.instance().instrument_settings.get_target_roster())
 
