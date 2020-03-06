@@ -65,11 +65,11 @@ class MotorControlPanel(QDockWidget):
         self.btns['sub_home'].clicked.connect(self.brain.home_sub)
 
     def update_target_roster(self):
-        self.combos['current_target'].blockSignales(True)
+        self.combos['current_target'].blockSignals(True)
         self.combos['current_target'].clear()
         self.combos['current_target'].addItems(QApplication.instance().instrument_settings.get_target_roster(
             formatlist=['number', 'composition', 'diameter']))
-        self.combos['current_target'].blockSignales(False)
+        self.combos['current_target'].blockSignals(False)
 
     def update_fields(self):
         if not self.combos['current_target'].hasFocus():
