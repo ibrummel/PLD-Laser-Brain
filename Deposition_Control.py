@@ -214,7 +214,8 @@ class DepControlBox(QWidget):
 
     def update_target_roster(self):
         self.combos['select_target'].clear()
-        self.combos['select_target'].addItems(QApplication.instance().instrument_settings.get_target_roster())
+        self.combos['select_target'].addItems(QApplication.instance().instrument_settings.get_target_roster(
+            formatlist=['number', 'composition', 'diameter']))
 
     def add_deposition_step(self):
         self.list_view.addItem(DepStepItem('New Step {}'.format(self.list_view.count() + 1), copy_idx=None))

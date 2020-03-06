@@ -98,10 +98,30 @@ class InstrumentPreferencesDialog(QTabWidget):
         self.write_settings_to_xml()
         self.settings_applied.emit()
 
-    def get_target_roster(self):
-        target_roster = []
-        for key, widget in self.lines_carousel_comp.items():
-            target_roster.append(str(key) + ' - ' + str(widget.text()))
+    def get_target_roster(self, formatlist=None, sep=' - '):
+        # Create a list of 6 empty strings
+        target_roster = [''] * 6
+
+        if formatlist is None:  # Return a list of target compositions
+            for key, widget in self.lines_carousel_comp.items():
+                target_roster[int(key)] = str(widget.text())
+        elif isinstance(formatlist, list):
+            for formatter in formatlist:
+                # If the target_roster already has non-blank strings, add a separator
+                for i, roster_item in enumerate(target_roster):
+                    if roster_item != '':
+                        target_roster[i] = roster_item + sep
+
+                # Add the next item based on formatter
+                if formatter.lower() in ['c', 'composition']:
+                    for key, widget in self.lines_carousel_comp.items():
+                        target_roster[int(key)] += str(widget.text())
+                elif formatter.lower() in ['n', 'number', 'id']:
+                    for key in self.lines_carousel_comp:
+                        target_roster[int(key)] += ('#' + str(key))
+                elif formatter.lower() in ['s', 'size', 'diameter']:
+                    for key, widget in self.lines_carousel_size.items():
+                        target_roster[int(key)] += (widget.text() + ' mm')
 
         return target_roster
 
