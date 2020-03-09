@@ -82,7 +82,7 @@ class MotorControlPanel(QDockWidget):
 
         if not self.lines['sub_speed'].hasFocus():
             sub_step_speed = float(self.brain.arduino.query_motor_parameters('substrate', 'max speed'))
-            sub_speed = sub_step_position / Global.SUB_STEPS_PER_MM
+            sub_speed = sub_step_speed / Global.SUB_STEPS_PER_MM
             self.lines['sub_speed'].setText(str(sub_speed))
 
     def toggle_hotkeys(self):
