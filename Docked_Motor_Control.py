@@ -31,8 +31,9 @@ class MotorControlPanel(QDockWidget):
 
         self.sc_left = QShortcut(QKeySequence(Qt.Key_Left), self)
         self.sc_right = QShortcut(QKeySequence(Qt.Key_Right), self)
-        self.installEventFilter(self)
-        self.hotkey_disable = False
+
+        # self.installEventFilter(self)
+        # self.hotkey_disable = False
 
         self.motor_update_timer = QTimer()
 
@@ -85,18 +86,18 @@ class MotorControlPanel(QDockWidget):
             sub_speed = sub_step_speed / Global.SUB_STEPS_PER_MM
             self.lines['sub_speed'].setText(str(sub_speed))
 
-    def toggle_hotkeys(self):
-        # Toggle the hotkey disable boolean
-        self.hotkey_disable = not self.hotkey_disable
-
-        # Act on hotkey_disable
-        self.sc_left.blockSignals(self.hotkey_disable)
-        self.sc_right.blockSignals(self.hotkey_disable)
-
-        if self.hotkey_disable:
-            self.installEventFilter(self)
-        elif not self.hotkey_disable:
-            self.removeEventFilter(self)
+    # def toggle_hotkeys(self):
+    #     # Toggle the hotkey disable boolean
+    #     self.hotkey_disable = not self.hotkey_disable
+    #
+    #     # Act on hotkey_disable
+    #     self.sc_left.blockSignals(self.hotkey_disable)
+    #     self.sc_right.blockSignals(self.hotkey_disable)
+    #
+    #     if self.hotkey_disable:
+    #         self.installEventFilter(self)
+    #     elif not self.hotkey_disable:
+    #         self.removeEventFilter(self)
 
     def sub_up(self):
         self.brain.arduino.update_motor_param('sub', 'start', Global.SUB_UP)
@@ -145,23 +146,3 @@ class MotorControlPanel(QDockWidget):
         else:
             self.brain.arduino.update_motor_param('target', 'raster', 0)
             print('Raster Off')
-
-    # Build custom behavior for keys that control substrate movement
-    def keyReleaseEvent(self, eventQKeyEvent):
-        key = eventQKeyEvent.key()
-        if not eventQKeyEvent.isAutoRepeat():
-            if key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Plus, Qt.Key_Minus]:
-                self.sub_halt()
-
-    def eventFilter(self, source, event):
-        if event.type() == QEvent.KeyPress:
-            if event.key() in [Qt.Key_Up, Qt.Key_Plus]:
-                self.sub_up()
-            elif event.key() in [Qt.Key_Down, Qt.Key_Minus]:
-                self.sub_down()
-            # elif event.key() == Qt.Key_Left:
-            #     self.target_left()
-            # elif event.key() == Qt.Key_Right:
-            #     self.target_right()
-
-        return super().eventFilter(source, event)

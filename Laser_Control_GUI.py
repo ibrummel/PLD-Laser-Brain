@@ -4,7 +4,7 @@ Created on Mon Mar 11 10:01:53 2019
 
 @author: Ian
 """
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction, QFileDialog, QMessageBox)
 import sys
 from Laser_Hardware import CompexLaser
@@ -42,6 +42,10 @@ class PLDMainWindow(QMainWindow):
         self.lsc_docked = LaserStatusControl(self.laser, self.brain)
         self.motor_control_docked = MotorControlPanel(self.brain)
         self.dep_control = DepControlBox(self.laser, self.brain, self)
+
+        self.installEventFilter(self)
+        self.hotkey_disable = False
+
         self.init_ui()
         self.init_connections()
 
@@ -172,6 +176,26 @@ class PLDMainWindow(QMainWindow):
             path_obj = path_obj.with_suffix(extension_str)
 
         return str(path_obj)
+
+    # Build custom behavior for keys that control substrate movement
+    def keyReleaseEvent(self, eventQKeyEvent):
+        key = eventQKeyEvent.key()
+        if not eventQKeyEvent.isAutoRepeat():
+            if key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Plus, Qt.Key_Minus]:
+                self.motor_control_docked.sub_halt()
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.KeyPress:
+            if event.key() in [Qt.Key_Up, Qt.Key_Plus]:
+                self.motor_control_docked.sub_up()
+            elif event.key() in [Qt.Key_Down, Qt.Key_Minus]:
+                self.motor_control_docked.sub_down()
+            # elif event.key() == Qt.Key_Left:
+            #     self.target_left()
+            # elif event.key() == Qt.Key_Right:
+            #     self.target_right()
+
+        return super().eventFilter(source, event)
 
 
 def main():
