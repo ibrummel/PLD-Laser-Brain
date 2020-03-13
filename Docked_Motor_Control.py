@@ -113,6 +113,7 @@ class MotorControlPanel(QDockWidget):
         elif goal_pos < Global.SUB_D0:
             goal_pos = Global.SUB_D0
         self.lines['sub_position'].setText(str(goal_pos))
+        self.lines['sub_position'].clearFocus()
 
         self.brain.move_sub_to(goal_pos)
 
@@ -136,6 +137,7 @@ class MotorControlPanel(QDockWidget):
 
     def set_sub_speed_from_line(self):
         self.brain.set_sub_speed(float(self.lines['sub_speed'].text()))
+        self.lines['sub_speed'].clearFocus()
 
     def raster_current_target(self):
         if self.checks['raster'].isChecked():
