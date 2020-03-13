@@ -6,6 +6,7 @@ from RPi_Hardware import RPiHardware
 from PyQt5 import uic
 import Global_Values as Global
 import Static_Functions as Static
+import numpy as np
 
 
 class MotorControlPanel(QDockWidget):
@@ -78,12 +79,12 @@ class MotorControlPanel(QDockWidget):
 
         if not self.lines['sub_position'].hasFocus():
             sub_step_position = int(self.brain.arduino.query_motor_parameters('substrate', 'position'))
-            sub_position = sub_step_position / Global.SUB_STEPS_PER_MM + Global.SUB_D0
+            sub_position = np.round((sub_step_position / Global.SUB_STEPS_PER_MM + Global.SUB_D0), 3)
             self.lines['sub_position'].setText(str(sub_position))
 
         if not self.lines['sub_speed'].hasFocus():
             sub_step_speed = float(self.brain.arduino.query_motor_parameters('substrate', 'max speed'))
-            sub_speed = sub_step_speed / Global.SUB_STEPS_PER_MM
+            sub_speed = np.round((sub_step_speed / Global.SUB_STEPS_PER_MM), 3)
             self.lines['sub_speed'].setText(str(sub_speed))
 
     # def toggle_hotkeys(self):
