@@ -12,6 +12,7 @@ import numpy as np
 import threading
 from warnings import warn
 import Global_Values as Global
+from math import ceil
 
 
 class RPiHardware(QWidget):
@@ -19,6 +20,7 @@ class RPiHardware(QWidget):
     sub_top = pyqtSignal()
     target_changed = pyqtSignal()
     laser_finished = pyqtSignal()
+    laser_time_to_completion = pyqtSignal(int)
 
     def __init__(self, laser: CompexLaser, arduino: LaserBrainArduino):
         super().__init__()
@@ -52,6 +54,10 @@ class RPiHardware(QWidget):
 
     def start_laser(self, num_pulses=None):
         self.laser.on()  # All cases need the laser in on mode.
+        if num_pulses is None:
+            self.laser_time_to_completion.emit(-9999)
+        else:
+            self.laser_time_to_completion.emit(ceil(num_pulses / self.laser.reprate))
         if self.laser.trigger_src == 'INT':
             if num_pulses is None:
                 pass

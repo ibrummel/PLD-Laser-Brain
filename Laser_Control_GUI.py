@@ -4,8 +4,8 @@ Created on Mon Mar 11 10:01:53 2019
 
 @author: Ian
 """
-from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction, QFileDialog, QMessageBox)
+from PyQt5.QtCore import Qt, QEvent, QTimer
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction, QFileDialog, QMessageBox, QStatusBar)
 import sys
 from Laser_Hardware import CompexLaser
 from RPi_Hardware import RPiHardware
@@ -17,6 +17,7 @@ from Instrument_Preferences import InstrumentPreferencesDialog
 from pathlib import Path
 import os
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
 
 
 # Adds a settings attribute to the application for use elsewhere.
@@ -42,6 +43,9 @@ class PLDMainWindow(QMainWindow):
         self.lsc_docked = LaserStatusControl(self.laser, self.brain)
         self.motor_control_docked = MotorControlPanel(self.brain)
         self.dep_control = DepControlBox(self.laser, self.brain, self)
+        self.statusbar = QStatusBar()
+        self.timeout_counter = None
+        self.laser_running_timer = QTimer()
 
         self.installEventFilter(self)
         self.hotkey_disable = False
@@ -53,6 +57,7 @@ class PLDMainWindow(QMainWindow):
         self.setObjectName('Main Window')
         self.setWindowTitle('PLD Laser Control')
         self.setCentralWidget(self.dep_control)
+        self.setStatusBar(self.statusbar)
 
         # self.lsc_docked.setWidget(LaserStatusControl(self.laser, self.brain))
         self.lsc_docked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
@@ -90,6 +95,35 @@ class PLDMainWindow(QMainWindow):
 
     def init_connections(self):
         self.dep_control.deposition_changed.connect(self.set_unsaved_changes)
+
+        self.brain.laser_time_to_completion.connect(self.start_completion_timer)
+        self.laser_running_timer.timeout.connect(self.update_completion_timer)
+
+    def start_completion_timer(self, time: int):
+        self.timeout_counter = time
+        if self.timeout_counter == -9999:
+            self.statusbar.showMessage("Laser running without targeted number of pulses.")
+        else:
+            self.update_completion_timer()
+            self.laser_running_timer.start(1000)
+
+    def manual_laser_stop_status(self):
+        if self.timeout_counter > 0:
+            time_left = str(timedelta(seconds=self.timeout_counter))
+            self.statusbar.showMessage("Laser stopped manually, estimated time remaining {}.".format(time_left), 5000)
+            self.timeout_counter = 0
+        elif self.timeout_counter == -9999:
+            self.statusbar.showMessage("Laser stopped.", 5000)
+
+    def update_completion_timer(self):
+        if self.timeout_counter > 0:
+            time_left = str(timedelta(seconds=self.timeout_counter))
+            self.statusbar.showMessage("Laser running, estimated time remaining {}".format(time_left))
+            self.timeout_counter -= 1
+        elif self.timeout_counter == 0:
+            self.statusbar.showMessage("Pulsing Complete.", 2000)
+        else:
+            return
 
     def set_unsaved_changes(self):
         self.unsaved_changes = True

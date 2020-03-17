@@ -1,6 +1,6 @@
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, QTimer, QRegExp
-from PyQt5.QtGui import QFont, QIntValidator, QDoubleValidator
+from PyQt5.QtCore import Qt, QTimer, QRegExp, pyqtSignal
+from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton,
                              QWidget, QMessageBox, QDockWidget)
 from Laser_Hardware import CompexLaser
@@ -11,6 +11,8 @@ from RPi_Hardware import RPiHardware
 
 
 class LaserStatusControl(QDockWidget):
+
+    laser_manual_stop = pyqtSignal()
 
     def __init__(self, laser: CompexLaser, brain: RPiHardware):
         super().__init__()
@@ -166,6 +168,7 @@ class LaserStatusControl(QDockWidget):
             self.brain.stop_laser()
             if num_pulses is not None:
                 self.lines['num_pulses'].setText('')
+            self.laser_manual_stop.emit()
             self.btns['start_stop'].setChecked(False)
             self.btns['start_stop'].setText('Start Laser')
         elif self.laser.rd_opmode() == 'OFF:31':
