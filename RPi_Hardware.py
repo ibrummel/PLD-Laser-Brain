@@ -57,7 +57,7 @@ class RPiHardware(QWidget):
         if num_pulses is None:
             self.laser_time_to_completion.emit(-9999)
         else:
-            self.laser_time_to_completion.emit(ceil(num_pulses / self.laser.reprate))
+            self.laser_time_to_completion.emit(ceil(self.laser_start_delay_msec/1000 + num_pulses / self.laser.reprate))
         if self.laser.trigger_src == 'INT':
             if num_pulses is None:
                 pass

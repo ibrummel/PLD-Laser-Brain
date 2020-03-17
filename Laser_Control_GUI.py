@@ -96,18 +96,19 @@ class PLDMainWindow(QMainWindow):
     def init_connections(self):
         self.dep_control.deposition_changed.connect(self.set_unsaved_changes)
 
-        self.brain.laser_time_to_completion.connect(self.start_completion_timer)
-        self.laser_running_timer.timeout.connect(self.update_completion_timer)
+        self.brain.laser_time_to_completion.connect(self.start_statusbar_completion_timer)
+        self.laser_running_timer.timeout.connect(self.update_statusbar_completion_timer)
+        self.lsc_docked.laser_manual_stop.connect(self.manual_laser_stop_statusbar_update)
 
-    def start_completion_timer(self, time: int):
+    def start_statusbar_completion_timer(self, time: int):
         self.timeout_counter = time
         if self.timeout_counter == -9999:
             self.statusbar.showMessage("Laser running without targeted number of pulses.")
         else:
-            self.update_completion_timer()
+            self.update_statusbar_completion_timer()
             self.laser_running_timer.start(1000)
 
-    def manual_laser_stop_status(self):
+    def manual_laser_stop_statusbar_update(self):
         if self.timeout_counter > 0:
             time_left = str(timedelta(seconds=self.timeout_counter))
             self.statusbar.showMessage("Laser stopped manually, estimated time remaining {}.".format(time_left), 5000)
@@ -115,7 +116,7 @@ class PLDMainWindow(QMainWindow):
         elif self.timeout_counter == -9999:
             self.statusbar.showMessage("Laser stopped.", 5000)
 
-    def update_completion_timer(self):
+    def update_statusbar_completion_timer(self):
         if self.timeout_counter > 0:
             time_left = str(timedelta(seconds=self.timeout_counter))
             self.statusbar.showMessage("Laser running, estimated time remaining {}".format(time_left))
