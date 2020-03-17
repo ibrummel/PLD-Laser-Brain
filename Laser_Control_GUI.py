@@ -110,6 +110,7 @@ class PLDMainWindow(QMainWindow):
 
     def manual_laser_stop_statusbar_update(self):
         if self.timeout_counter > 0:
+            self.laser_running_timer.stop()
             time_left = str(timedelta(seconds=self.timeout_counter))
             self.statusbar.showMessage("Laser stopped manually, estimated time remaining {}.".format(time_left), 5000)
             self.timeout_counter = 0
@@ -122,7 +123,8 @@ class PLDMainWindow(QMainWindow):
             self.statusbar.showMessage("Laser running, estimated time remaining {}".format(time_left))
             self.timeout_counter -= 1
         elif self.timeout_counter == 0:
-            self.statusbar.showMessage("Pulsing Complete.", 2000)
+            self.statusbar.showMessage("Pulsing Complete.", 5000)
+            self.laser_running_timer.stop()
         else:
             return
 
