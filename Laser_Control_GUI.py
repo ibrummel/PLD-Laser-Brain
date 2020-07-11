@@ -44,7 +44,7 @@ class PLDMainWindow(QMainWindow):
         self.motor_control_docked = MotorControlPanel(self.brain)
         self.dep_control = DepControlBox(self.laser, self.brain, self)
         self.statusbar = QStatusBar()
-        self.timeout_counter = None
+        self.timeout_counter = -9999 # Starts with the value of a completed timer.
         self.laser_running_timer = QTimer()
 
         self.installEventFilter(self)

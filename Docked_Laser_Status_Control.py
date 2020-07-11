@@ -186,7 +186,11 @@ class LaserStatusControl(QDockWidget):
 
         # Re-enables the updater for the LSC after handling start/stop
         sleep(Global.OP_DELAY)
-        self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
+        try:
+            self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
+        except VisaIOError:
+            # If the reprate fails to read, set timer to update at 5Hz
+            self.update_timer.start(200)
 
     def check_warmup(self):
         curr_opmode = self.laser.rd_opmode()
