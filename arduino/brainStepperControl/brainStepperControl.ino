@@ -9,7 +9,7 @@ enum USER_PINS {
   TARGET_STEP = 4,
   TARGET_DIR = 5,
   LASER_RUN = 20,
-  LASER_STEP = 12,
+  LASER_STEP = 11,
   LASER_DIR = A0 // A0 is used as it is currently not connected to anything and we don't need a direction pin here.
 };
 
