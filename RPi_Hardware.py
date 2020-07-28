@@ -140,6 +140,7 @@ class RPiHardware(QWidget):
 
     def home_target_carousel(self):
         home_carousel = HomeTargetCarouselDialog(self)
+        home_carousel.exec_()
         if home_carousel == QDialog.accepted:
             self.arduino.update_motor_param('carousel', 'position', 0)
         elif home_carousel == QDialog.rejected:
@@ -253,7 +254,7 @@ class GPIOHandler(QObject):
 class HomeTargetCarouselDialog(QDialog):
     def __init__(self, brain: RPiHardware):
         super().__init__()
-
+        print("Homing Target Carousel (init run)")
         self.brain = brain
         self.setWindowTitle('Home Target Carousel')
 
@@ -342,7 +343,7 @@ class HomeTargetCarouselDialog(QDialog):
         self.moving_right = False
 
     def halt(self):
-        self.brain.halt_target()
+        self.brain.arduino.halt_motor('carousel')
         self.moving_right = False
         self.moving_left = False
 
