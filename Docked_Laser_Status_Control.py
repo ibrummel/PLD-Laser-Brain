@@ -214,7 +214,7 @@ class LaserStatusControl(QDockWidget):
             self.laser.set_timeout(False)
             sleep(Global.OP_DELAY)
             self.laser.off()
-            self.btns['start_stop'].setText('Stop Laser')
+            self.btns['start_stop'].setChecked(False)
         elif timeout_clear == QMessageBox.Cancel:
             pass
 
