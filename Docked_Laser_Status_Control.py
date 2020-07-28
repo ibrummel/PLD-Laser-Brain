@@ -56,8 +56,8 @@ class LaserStatusControl(QDockWidget):
         self.update_timer = QTimer()
         self.timer_check_warmup = QTimer()
 
-        # Run function to adjust widget parameters/build the LSC
         self.init_connections()
+        self.update_pulse_counter() # Reads the current pulse counter value
 
     def init_connections(self):
         # Mode Selection Box. Will default to current laser running mode
@@ -96,6 +96,7 @@ class LaserStatusControl(QDockWidget):
         self.timer_check_warmup.timeout.connect(self.check_warmup)
 
         self.brain.laser_finished.connect(self.change_on_off)
+        self.brain.laser_finished.connect(self.update_pulse_counter)
 
     def update_lsc(self):
         # Updater for the laser status readouts. Only updates for fields that are
@@ -126,6 +127,9 @@ class LaserStatusControl(QDockWidget):
             sleep(Global.OP_DELAY)
         except VisaIOError as err:
             print("Error reading laser tube pressure for LSC update.")
+
+    def update_pulse_counter(self):
+        self.lines['pulse_counter'].setText(str(self.laser.rd_user_counter()))
 
     def terminal_send(self):
         # Sends the command that was typed into the terminal.

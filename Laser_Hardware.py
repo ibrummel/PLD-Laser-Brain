@@ -43,6 +43,8 @@ class CompexLaser:
         self.op_delay = 0.01  # Delay for back to back serial ops
         self.trigger_src = self.rd_trigger()
         self.reprate = self.rd_reprate()
+        self.total_pulse_counter = self.rd_total_counter()
+        self.user_pulse_counter = self.rd_user_counter()
 
         # # Set the laser to energy constant mode to pull internal energy setting
         # curr_mode = self.rd_mode()
@@ -360,10 +362,11 @@ class CompexLaser:
         # Note: This value is soley determined by laser model.
         return self.laser.query('COD?')
 
-    def rd_counter(self):
+    def rd_user_counter(self):
         # Reads the current number of pulses accumulated since the last
         # user counter reset
-        return self.laser.query('COUNTER?')
+        self.user_pulse_counter = int(self.laser.query('COUNTER?'))
+        return self.user_pulse_counter
 
     def rd_counts(self):
         # Reads the initial value of the countdown counter. Does
@@ -485,7 +488,8 @@ class CompexLaser:
     def rd_total_counter(self):
         # Reads the total counter number of pulses for the laser. Note this
         # value cannot be reset and is for the lifetime of the laser cabinet.
-        return self.laser.query('TOTALCOUNTER?')
+        self.total_pulse_counter = int(self.laser.query('TOTALCOUNTER?'))
+        return self.total_pulse_counter
 
     def rd_trigger(self):
         # Reads the current laser triggering mode. Returns: INT or EXT.

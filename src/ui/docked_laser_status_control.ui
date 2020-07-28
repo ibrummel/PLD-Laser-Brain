@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>182</height>
+    <width>1261</width>
+    <height>297</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>638</width>
-    <height>182</height>
+    <width>1261</width>
+    <height>297</height>
    </size>
   </property>
   <property name="font">
@@ -167,14 +167,7 @@
         <item row="0" column="1">
          <widget class="QComboBox" name="combo_laser_mode"/>
         </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QFormLayout" name="formLayout">
-        <property name="formAlignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-        <item row="0" column="0">
+        <item row="1" column="0">
          <widget class="QLabel" name="lbl_ext_trigger">
           <property name="font">
            <font>
@@ -189,22 +182,46 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
+        <item row="1" column="1">
          <widget class="QCheckBox" name="check_ext_trigger">
           <property name="text">
            <string/>
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
+       </layout>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="formLayout">
+        <property name="formAlignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <item row="2" column="0">
          <widget class="QLabel" name="lbl_num_pulses">
           <property name="text">
            <string># of Pulses</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="2" column="1">
          <widget class="QLineEdit" name="line_num_pulses"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lbl_pulse_counter">
+          <property name="text">
+           <string>Pulse Count:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="line_pulse_counter">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads the current laser pulse counter at startup and anytime the laser stops pulsing. The value defaults to the user pulse counter, which can be reset, but can be set to read out the total pulse counter, which is not resettable. Value has units of kilopulses.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
