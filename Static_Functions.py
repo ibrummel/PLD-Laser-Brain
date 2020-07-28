@@ -13,8 +13,9 @@ def truncate(number, decimals=0):
         factor = float(10 ** decimals)
         return trunc(number * factor) / factor
 
-def calc_raster_steps(target_diameter: float):
+def calc_raster_steps(target_diameter: float, target_utilization=1.0):
     # See calculations in Ian Brummel, Lab Notebook 2, 16 June 2020
+    target_diameter = target_diameter * target_utilization
     alpha = np.arccos((((target_diameter / 2) ** 2)/ (2 * ((Global.CAROUSEL_DIA_MM / 2) ** 2))) - 1)
     raster_steps = alpha * (Global.SUB_STEPS_PER_REV / (2 * np.pi))
 
