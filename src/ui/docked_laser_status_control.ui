@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1261</width>
-    <height>297</height>
+    <width>1300</width>
+    <height>350</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1261</width>
-    <height>297</height>
+    <width>1300</width>
+    <height>350</height>
    </size>
   </property>
   <property name="font">
@@ -146,7 +146,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,2,3">
+     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,0,3">
       <item>
        <layout class="QFormLayout" name="formLayout_3">
         <property name="formAlignment">

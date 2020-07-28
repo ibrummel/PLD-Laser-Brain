@@ -138,13 +138,26 @@ class RPiHardware(QWidget):
         sub_spd = mm_spd * Global.SUB_STEPS_PER_MM
         self.arduino.update_motor_param('substrate', 'max speed', sub_spd)
 
-    def home_target_carousel(self):
+    def set_sub_acceleration(self, mmpss: float):
+        sub_acc = mmpss * Global.SUB_STEPS_PER_MM
+        self.arduino.update_motor_param('substrate', 'acceleration', sub_acc)
+
+    def set_carousel_home(self):
         home_carousel = HomeTargetCarouselDialog(self)
         home_carousel.exec_()
         if home_carousel == QDialog.accepted:
             self.arduino.update_motor_param('carousel', 'position', 0)
         elif home_carousel == QDialog.rejected:
             warn("User canceled target carousel homing process, previous home value is preserved.")
+
+    def set_carousel_rps(self, rps_speed: float):
+        carousel_spd = rps_speed * Global.CAROUSEL_STEPS_PER_REV
+        self.arduino.update_motor_param('carousel', 'max speed', carousel_spd)
+
+    def set_carousel_acceleration(self, rpss: float):
+        carousel_acc = rpss * Global.CAROUSEL_STEPS_PER_REV
+        self.arduino.update_motor_param('carousel', 'acceleration', carousel_acc)
+
 
     def move_to_target(self, target_num: int):
         """

@@ -58,12 +58,14 @@ class MotorControlPanel(QDockWidget):
         self.btns['carousel_next'].clicked.connect(self.target_left)
         self.btns['carousel_prev'].clicked.connect(self.target_right)
         self.combos['current_target'].currentIndexChanged.connect(self.move_to_target)
+        self.lines['carousel_speed'].returnPressed.connect(self.set_carousel_speed_from_line)
+        self.lines['carousel_accel'].returnPressed.connect(self.set_carousel_accel_from_line)
         self.sc_left.activated.connect(self.target_left)
         self.sc_right.activated.connect(self.target_right)
         # FIXME: Probably don't want this implementation of raster?
         self.checks['raster'].stateChanged.connect(self.raster_current_target)
         self.brain.target_changed.connect(lambda: self.check_raster.setChecked(False))
-        self.btns['carousel_home'].clicked.connect(self.brain.home_target_carousel)
+        self.btns['carousel_home'].clicked.connect(self.brain.set_carousel_home)
         self.btns['sub_home'].clicked.connect(self.brain.home_sub)
 
     def update_target_roster(self):
@@ -139,6 +141,14 @@ class MotorControlPanel(QDockWidget):
     def set_sub_speed_from_line(self):
         self.brain.set_sub_speed(float(self.lines['sub_speed'].text()))
         self.lines['sub_speed'].clearFocus()
+
+    def set_carousel_speed_from_line(self):
+        self.brain.set_carousel_rps(float(self.lines['carousel_speed'].text()))
+        self.lines['carousel_speed'].clearFocus()
+
+    def set_carousel_accel_from_line(self):
+        self.brain.set_carousel_acceleration(float(self.lines['carousel_accel'].text()))
+        self.lines['carousel_accel'].clearFocus()
 
     def raster_current_target(self):
         target_utilization = 0.90
