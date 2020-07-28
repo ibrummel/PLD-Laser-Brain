@@ -239,7 +239,7 @@ def main():
     app = PLDControlApp(sys.argv)
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
-    # laser = VisaLaser('ASRL3::INSTR', 'laser.yaml@sim')
+    # laser = CompexLaser('ASRL3::INSTR', 'laser.yaml@sim')
     laser = CompexLaser('ASRL/dev/ttyAMA1::INSTR', '@py')
     arduino = LaserBrainArduino('/dev/ttyACM0')
     brain = RPiHardware(laser=laser, arduino=arduino)

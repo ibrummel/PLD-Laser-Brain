@@ -226,6 +226,28 @@ devices:
         specs:
           valid: ["ON", "OFF"]
           type: str
+      totalcounter:
+        default: 1200
+        getter:
+          q: "TOTALCOUNTER?"
+          r: "{:d}"
+        setter:
+          q: "TOTALCOUNTER={:d}"
+        specs:
+          min: 1
+          max: 1000000
+          type: int
+      counter:
+        default: 5
+        getter:
+          q: "COUNTER?"
+          r: "{:d}"
+        setter:
+          q: "COUNTER={:d}"
+        specs:
+          min: 1
+          max: 1000000
+          type: int
       mode:
         default: HV
         getter:
