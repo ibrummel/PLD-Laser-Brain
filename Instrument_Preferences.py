@@ -1,6 +1,6 @@
 import os
 
-from PyQt5.QtCore import QRegExp, pyqtSignal
+from PyQt5.QtCore import QRegExp, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog
 from PyQt5 import uic
 import xml.etree.ElementTree as ET
@@ -42,8 +42,11 @@ class InstrumentPreferencesDialog(QTabWidget):
                             for widget in self.findChildren(QLineEdit, QRegExp("line_laser_max_*"))}
         self.pulse_counters = {widget.objectName().split('_')[1]: widget
                                for widget in self.findChildren(QLineEdit, QRegExp("line_*_pulse_counter"))}
+        self.btns_laser_maint = {widget.objectName().split('btn_maint_')[1]: widget
+                                 for widget in self.findChildren(QLineEdit, QRegExp("btn_maint_*"))}
 
         # Class variables
+        self.maint_timer = QTimer()
         self.settings_file_path = 'settings.xml'
         self.pld_settings = ET.Element  # Empty element tree, needs to be read in on the next line
         # Errors on reading a settings file are handled within this function.
@@ -59,6 +62,8 @@ class InstrumentPreferencesDialog(QTabWidget):
             widget.clicked.connect(self.ok)
         for key, widget in self.btns_cancel.items():
             widget.clicked.connect(self.cancel)
+
+        self.btns_laser_maint['new_fill'].clicked.connect(self.new_gas_fill)
 
     # noinspection PyTypeChecker
     # To avoid erroneous errors where it thinks XML cant handle xpaths as strings
@@ -84,6 +89,32 @@ class InstrumentPreferencesDialog(QTabWidget):
 
     def init_hardware(self, brain: RPiHardware):
         self.brain = brain
+
+    def new_gas_fill(self):
+        self.brain.laser.new_fill()
+        self.maint_timer.timeout.connect(self.check_new_fill_status)
+        self.maint_timer.start(1)
+
+    def check_fill_status(self):
+        opmode = self.brain.laser.rd_opmode()
+        print("Current tube pressure: ", self.brain.laser.rd_tube_press())
+        if opmode == "NEW FILL":
+            print("New fill procedure started")
+        elif opmode == "NEW FILL, EVAC":
+            print("Evacuating laser tube for new gas fill")
+        elif opmode == "NEW FILL, WAIT":
+            print("Performing new fill leak test")
+        elif opmode == "NEW FILL, FILL":
+            print("Filling laser tube with new gas")
+        elif opmode == "NEW FILL:3":
+            print("No gas flow for new fill. You need to restart the procedure")
+        elif opmode == "OFF":
+            print("New gas fill complete")
+            self.maint_timer.stop()
+            self.maint_timer.timeout.disconnect(self.check_fill_status)
+        else:
+            print(opmode)
+
 
     def open(self):
         self.parse_xml_to_settings(self.settings_file_path)

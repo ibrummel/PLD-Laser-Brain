@@ -426,7 +426,7 @@
    <attribute name="title">
     <string>Laser Settings</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout_11" stretch="0,1,0,0">
+   <layout class="QVBoxLayout" name="verticalLayout_11" stretch="0,1,0,0,0">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
@@ -492,6 +492,36 @@
           <widget class="QLineEdit" name="line_laser_max_reprate"/>
          </item>
         </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>Laser Maintenance</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_12">
+       <item>
+        <widget class="QPushButton" name="btn_maint_new_fill">
+         <property name="text">
+          <string>Start New Gas Fill</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_maint_evac_laser_tube">
+         <property name="text">
+          <string>Evacuate Laser Tube</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_maint_evac_gas_lines">
+         <property name="text">
+          <string>Evacuate Gas Lines</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
