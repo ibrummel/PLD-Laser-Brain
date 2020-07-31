@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
-    <height>773</height>
+    <width>530</width>
+    <height>1029</height>
    </rect>
   </property>
   <property name="cursor">
@@ -17,7 +17,7 @@
    <string>PLD Control Settings</string>
   </property>
   <property name="currentIndex">
-   <number>0</number>
+   <number>2</number>
   </property>
   <widget class="QWidget" name="tab_target_carousel_settings">
    <property name="cursor">
@@ -426,7 +426,7 @@
    <attribute name="title">
     <string>Laser Settings</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout_11" stretch="0,1,0">
+   <layout class="QVBoxLayout" name="verticalLayout_11" stretch="0,1,0,0">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
@@ -492,6 +492,43 @@
           <widget class="QLineEdit" name="line_laser_max_reprate"/>
          </item>
         </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Laser Pulse Counts</string>
+      </property>
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="lbl_user_pulse_counter">
+         <property name="text">
+          <string>User Pulse Counter:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="line_user_pulse_counter">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lbl_total_pulse_counter">
+         <property name="text">
+          <string>Total Pulse Counter:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="line_total_pulse_counter">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

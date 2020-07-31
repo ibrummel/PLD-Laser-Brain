@@ -4,6 +4,8 @@ from PyQt5.QtCore import QRegExp, pyqtSignal
 from PyQt5.QtWidgets import QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog
 from PyQt5 import uic
 import xml.etree.ElementTree as ET
+from RPi_Hardware import RPiHardware
+
 
 # ToDo: Set up validators to limit settings?
 class InstrumentPreferencesDialog(QTabWidget):
@@ -12,6 +14,8 @@ class InstrumentPreferencesDialog(QTabWidget):
     def __init__(self):
         super().__init__()
 
+        # This is set later to kludge it past initialization order issues FIXME
+        self.brain = None
         # Load the .ui file
         uic.loadUi('./src/ui/pld_settings.ui', self)
 
@@ -36,6 +40,8 @@ class InstrumentPreferencesDialog(QTabWidget):
                                 for widget in self.findChildren(QLineEdit, QRegExp("line_substrate_max_*"))}
         self.lines_laser = {widget.objectName().split('line_laser_')[1]: widget
                             for widget in self.findChildren(QLineEdit, QRegExp("line_laser_max_*"))}
+        self.pulse_counters = {widget.objectName().split('_')[1]: widget
+                               for widget in self.findChildren(QLineEdit, QRegExp("line_*_pulse_counter"))}
 
         # Class variables
         self.settings_file_path = 'settings.xml'
@@ -71,6 +77,13 @@ class InstrumentPreferencesDialog(QTabWidget):
 
         for key, widget in self.lines_laser.items():
             widget.setText(self.pld_settings.find("./laser/{}".format(key)).text)
+
+        if isinstance(self.brain, RPiHardware):
+            self.pulse_counters['user'].setText(str(self.brain.laser.rd_user_counter()))
+            self.pulse_counters['total'].setText(str(self.brain.laser.rd_total_counter()))
+
+    def init_hardware(self, brain: RPiHardware):
+        self.brain = brain
 
     def open(self):
         self.parse_xml_to_settings(self.settings_file_path)
