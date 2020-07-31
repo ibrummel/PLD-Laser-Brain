@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>750</width>
-    <height>215</height>
+    <width>1261</width>
+    <height>297</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>750</width>
-    <height>215</height>
+    <width>1261</width>
+    <height>297</height>
    </size>
   </property>
   <property name="font">
@@ -219,7 +219,7 @@
            <bool>false</bool>
           </property>
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads the current laser pulse counter at startup and anytime the laser stops pulsing. The value defaults to the user pulse counter, which can be reset, but can be set to read out the total pulse counter, which is not resettable. Value has units of kilopulses.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reads the user pulse counter at startup and anytime the laser stops pulsing. Note this value can be reset. Value has units of kilopulses.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
          </widget>
         </item>

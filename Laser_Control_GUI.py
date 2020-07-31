@@ -36,6 +36,8 @@ class PLDMainWindow(QMainWindow):
         self.menu_actions = {}
         self.laser = laser
         self.brain = brain
+        # Supply the brain interface to the settings dialog
+        QApplication.instance().instrument_settings.init_hardware(brain)
         self.loaded_deposition_path = None
         self.unsaved_changes = False
 
