@@ -40,10 +40,10 @@ class InstrumentPreferencesDialog(QTabWidget):
                                 for widget in self.findChildren(QLineEdit, QRegExp("line_substrate_max_*"))}
         self.lines_laser = {widget.objectName().split('line_laser_')[1]: widget
                             for widget in self.findChildren(QLineEdit, QRegExp("line_laser_max_*"))}
-        self.pulse_counters = {widget.objectName().split('_')[1]: widget
-                               for widget in self.findChildren(QLineEdit, QRegExp("line_*_pulse_counter"))}
+        self.pulse_counters = {widget.objectName().split('_')[3]: widget
+                               for widget in self.findChildren(QLineEdit, QRegExp("line_pulse_counter_*"))}
         self.btns_laser_maint = {widget.objectName().split('btn_maint_')[1]: widget
-                                 for widget in self.findChildren(QLineEdit, QRegExp("btn_maint_*"))}
+                                 for widget in self.findChildren(QPushButton, QRegExp("btn_maint_*"))}
 
         # Class variables
         self.maint_timer = QTimer()
