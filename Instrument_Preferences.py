@@ -194,17 +194,17 @@ class NewGasFillDialog(QDialog):
     def __init__(self, brain: RPiHardware, settings: InstrumentPreferencesDialog):
         super().__init__()
         self.brain = brain
-        self.settings = settings
         self.setWindowTitle('Excimer Laser New Gas Fill')
+        self.settings = settings
 
         uic.loadUi('./src/ui/laser_maint_new_fill_dialog.ui', self)
 
-        self.pg_prep = self.findChild(QWidget, QRegExp("pg_prep"))
+        #self.pg_prep = self.findChild(QWidget, QRegExp("pg_prep"))
         self.line_halogen_filter_ratio = self.findChild(QLineEdit, QRegExp("line_halogen_filter_ratio"))
         self.btn_continue_fill = self.findChild(QPushButton, QRegExp("btn_continue_fill"))
         self.btn_cancel_fill = self.findChild(QPushButton, QRegExp("btn_cancel_fill"))
 
-        self.pg_run = self.findChild(QWidget, QRegExp("pg_run"))
+        #self.pg_run = self.findChild(QWidget, QRegExp("pg_run"))
         self.lbl_fill_status = self.findChild(QLabel, QRegExp("lbl_fill_status"))
         self.line_laser_status = self.findChild(QLineEdit, QRegExp("line_laser_status"))
         self.line_tube_press = self.findChild(QLineEdit, QRegExp("line_tube_press"))
@@ -271,6 +271,7 @@ class NewGasFillDialog(QDialog):
             print(opmode)
 
     def start_new_fill(self):
+        self.setCurrentIndex(1)
         self.brain.laser.new_fill()
         self.maint_timer.start(1)
 
