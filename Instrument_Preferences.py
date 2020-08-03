@@ -66,7 +66,7 @@ class InstrumentPreferencesDialog(QTabWidget):
             widget.clicked.connect(self.cancel)
 
         self.btns_laser_maint['new_fill'].clicked.connect(self.new_gas_fill)
-        self.btns_laser_maint['reset_user_counter'].clicked.connect(self.brain.laser.reset_counter)
+        self.btns_laser_maint['reset_user_counter'].clicked.connect(self.reset_user_counter)
 
     # noinspection PyTypeChecker
     # To avoid erroneous errors where it thinks XML cant handle xpaths as strings
@@ -92,6 +92,9 @@ class InstrumentPreferencesDialog(QTabWidget):
 
     def init_hardware(self, brain: RPiHardware):
         self.brain = brain
+
+    def reset_user_counter(self):
+        self.brain.laser.reset_counter()
 
     def new_gas_fill(self):
         self.maint_window = NewGasFillDialog(self.brain, self)
