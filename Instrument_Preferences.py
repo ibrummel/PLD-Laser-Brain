@@ -94,7 +94,6 @@ class InstrumentPreferencesDialog(QTabWidget):
 
     def new_gas_fill(self):
         self.maint_window = NewGasFillDialog(self.brain, self)
-        self.maint_timer.timeout.connect(self.maint_window.check_fill_status)
 
     def open(self):
         self.parse_xml_to_settings(self.settings_file_path)
@@ -273,6 +272,7 @@ class NewGasFillDialog(QDialog):
 
     def start_new_fill(self):
         self.stack.setCurrentIndex(1)
+        self.settings.maint_timer.timeout.connect(self.check_fill_status)
         self.brain.laser.new_fill()
         self.maint_timer.start(1)
 
@@ -281,5 +281,8 @@ class NewGasFillDialog(QDialog):
 
     def close(self):
         self.settings.maint_timer.stop()
-        self.settings.maint_timer.timeout.disconnect(self.check_fill_status)
+        try:
+            self.settings.maint_timer.timeout.disconnect(self.check_fill_status)
+        except TypeError:
+            pass
         super().close()
