@@ -267,7 +267,6 @@ class GPIOHandler(QObject):
 class HomeTargetCarouselDialog(QDialog):
     def __init__(self, brain: RPiHardware):
         super().__init__()
-        print("Homing Target Carousel (init run)")
         self.brain = brain
         self.setWindowTitle('Home Target Carousel')
 
