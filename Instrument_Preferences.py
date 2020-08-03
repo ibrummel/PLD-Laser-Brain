@@ -66,6 +66,7 @@ class InstrumentPreferencesDialog(QTabWidget):
             widget.clicked.connect(self.cancel)
 
         self.btns_laser_maint['new_fill'].clicked.connect(self.new_gas_fill)
+        self.btns_laser_maint['reset_user_counter'].clicked.connect(self.brain.laser.reset_counter)
 
     # noinspection PyTypeChecker
     # To avoid erroneous errors where it thinks XML cant handle xpaths as strings
