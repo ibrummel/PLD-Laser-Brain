@@ -151,7 +151,7 @@ class MotorControlPanel(QDockWidget):
         self.lines['carousel_accel'].clearFocus()
 
     def raster_current_target(self):
-        target_utilization = 0.90
+        target_utilization = 0.75
         if self.checks['raster'].isChecked():
             find_string = "./target_carousel/target[@ID='{}']/Size".format(self.brain.current_target())
             target_size = float(QApplication.instance().instrument_settings.pld_settings.find(find_string).text)
