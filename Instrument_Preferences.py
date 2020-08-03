@@ -274,7 +274,7 @@ class NewGasFillDialog(QDialog):
         self.stack.setCurrentIndex(1)
         self.settings.maint_timer.timeout.connect(self.check_fill_status)
         self.brain.laser.fill_new()
-        self.maint_timer.start(1)
+        self.settings.maint_timer.start(250)
 
     def abort(self):
         self.brain.laser.off()
