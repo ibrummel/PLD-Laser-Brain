@@ -1,7 +1,8 @@
 import os
 
 from PyQt5.QtCore import QRegExp, pyqtSignal, QTimer
-from PyQt5.QtWidgets import QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog
+from PyQt5.QtWidgets import QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog, QDialog, QWidget, \
+    QLabel, QMessageBox
 from PyQt5 import uic
 import xml.etree.ElementTree as ET
 from RPi_Hardware import RPiHardware
@@ -47,6 +48,7 @@ class InstrumentPreferencesDialog(QTabWidget):
 
         # Class variables
         self.maint_timer = QTimer()
+        self.maint_window = None
         self.settings_file_path = 'settings.xml'
         self.pld_settings = ET.Element  # Empty element tree, needs to be read in on the next line
         # Errors on reading a settings file are handled within this function.
@@ -91,30 +93,8 @@ class InstrumentPreferencesDialog(QTabWidget):
         self.brain = brain
 
     def new_gas_fill(self):
-        self.brain.laser.new_fill()
-        self.maint_timer.timeout.connect(self.check_new_fill_status)
-        self.maint_timer.start(1)
-
-    def check_fill_status(self):
-        opmode = self.brain.laser.rd_opmode()
-        print("Current tube pressure: ", self.brain.laser.rd_tube_press())
-        if opmode == "NEW FILL":
-            print("New fill procedure started")
-        elif opmode == "NEW FILL, EVAC":
-            print("Evacuating laser tube for new gas fill")
-        elif opmode == "NEW FILL, WAIT":
-            print("Performing new fill leak test")
-        elif opmode == "NEW FILL, FILL":
-            print("Filling laser tube with new gas")
-        elif opmode == "NEW FILL:3":
-            print("No gas flow for new fill. You need to restart the procedure")
-        elif opmode == "OFF":
-            print("New gas fill complete")
-            self.maint_timer.stop()
-            self.maint_timer.timeout.disconnect(self.check_fill_status)
-        else:
-            print(opmode)
-
+        self.maint_window = NewGasFillDialog(self.brain, self)
+        self.maint_timer.timeout.connect(self.maint_window.check_fill_status)
 
     def open(self):
         self.parse_xml_to_settings(self.settings_file_path)
@@ -208,3 +188,96 @@ class InstrumentPreferencesDialog(QTabWidget):
         etree = ET.ElementTree(self.pld_settings)
         self.settings_file_path = 'settings.xml'
         etree.write(self.settings_file_path)
+
+
+class NewGasFillDialog(QDialog):
+    def __init__(self, brain: RPiHardware, settings: InstrumentPreferencesDialog):
+        super().__init__()
+        self.brain = brain
+        self.settings = settings
+        self.setWindowTitle('Excimer Laser New Gas Fill')
+
+        uic.loadUi('./src/ui/laser_maint_new_fill_dialog.ui', self)
+
+        self.pg_prep = self.findChild(QWidget, QRegExp("pg_prep"))
+        self.line_halogen_filter_ratio = self.findChild(QLineEdit, QRegExp("line_halogen_filter_ratio"))
+        self.btn_continue_fill = self.findChild(QPushButton, QRegExp("btn_continue_fill"))
+        self.btn_cancel_fill = self.findChild(QPushButton, QRegExp("btn_cancel_fill"))
+
+        self.pg_run = self.findChild(QWidget, QRegExp("pg_run"))
+        self.lbl_fill_status = self.findChild(QLabel, QRegExp("lbl_fill_status"))
+        self.line_laser_status = self.findChild(QLineEdit, QRegExp("line_laser_status"))
+        self.line_tube_press = self.findChild(QLineEdit, QRegExp("line_tube_press"))
+        self.btn_ice_cancel = self.findChild(QPushButton, QRegExp("btn_ice_cancel"))
+
+        self.init_connections()
+        self.update_fields()
+        self.exec_()
+
+    def init_connections(self):
+        self.btn_cancel_fill.clicked.connect(self.close)
+        self.btn_continue_fill.clicked.connect(self.start_new_fill)
+        self.btn_ice_cancel.clicked.connect(self.abort)
+
+    def update_fields(self):
+        filter_ratio = self.brain.laser.rd_filter_contamination()
+        self.line_halogen_filter_ratio.setText(filter_ratio)
+        opmode = self.brain.laser.rd_opmode()
+        self.line_laser_status.setText(opmode)
+        tube_press = self.brain.laser.rd_tube_press()
+        self.line_tube_press.setText(tube_press)
+
+        return filter_ratio, opmode, tube_press
+
+    def check_fill_status(self):
+        filter_ratio, opmode, tube_press = self.update_fields()
+        print("Current tube pressure: ", tube_press)
+
+        if opmode == "NEW FILL":
+            self.lbl_fill_status.setText("New fill procedure started")
+            print("New fill procedure started")
+        elif opmode == "NEW FILL, EVAC":
+            self.lbl_fill_status.setText("Evacuating laser tube for new gas fill")
+            print("Evacuating laser tube for new gas fill")
+        elif opmode == "NEW FILL, WAIT":
+            self.lbl_fill_status.setText("Performing new fill leak test")
+            print("Performing new fill leak test")
+        elif opmode == "NEW FILL, FILL":
+            self.lbl_fill_status.setText("Filling laser tube with new gas")
+            print("Filling laser tube with new gas")
+        elif opmode == "NEW FILL:3":
+            self.lbl_fill_status.setText("No gas flow for new fill. You need to restart the procedure")
+            print("No gas flow for new fill. You need to restart the procedure")
+            no_flow = QMessageBox.warning(self, "No gas flow",
+                                          "The laser threw a 'No gas flow' error. Please ensure that all relevant "
+                                          "cylinders and valves on the gas panel are open then click OK. Clicking cancel"
+                                          "will perform a safety fill to 1050 mbar and the new fill procedure will need"
+                                          "to be repeated.",
+                                          QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
+            if no_flow == QMessageBox.Ok:
+                self.start_new_fill()
+            if no_flow == QMessageBox.Cancel:
+                self.brain.laser.off()
+        elif opmode == "OFF":
+            self.lbl_fill_status.setText("New gas fill complete")
+            print("New gas fill complete")
+            complete = QMessageBox.information(self, "New Gas Fill Complete",
+                                               "The new gas fill procedure is complete click ok to close this dialog",
+                                               QMessageBox.Ok, QMessageBox.Ok)
+            self.close()
+        elif opmode == "SAFETY FILL":
+            print("Safety fill triggered, this is most likely due to a laser tube leak according to the manual.")
+        else:
+            print(opmode)
+
+    def start_new_fill(self):
+        self.brain.laser.new_fill()
+        self.maint_timer.start(1)
+
+    def abort(self):
+        self.brain.laser.off()
+
+    def close(self):
+        self.settings.maint_timer.stop()
+        self.settings.maint_timer.timeout.disconnect(self.check_fill_status)
+        super().close()

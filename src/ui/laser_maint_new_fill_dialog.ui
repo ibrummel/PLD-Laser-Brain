@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>673</width>
+    <height>485</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="pg_prep">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Prepare for new gas fill:</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,0,0">
+          <item>
+           <widget class="QLabel" name="lbl_prep_instruction">
+            <property name="text">
+             <string>1. Verify that premix and inert cylinders have more than 10 bar pressure remaining.
+2. Open premix and inert cylinder valves and set regulators to 5 bar.
+3. Verify that gas panel outlets to the laser are open.
+4. Verify halogen filter ratio (displayed below) is below 90%.
+
+Press continue when ready to start new fill.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="lbl_halogen_filter_ratio">
+              <property name="text">
+               <string>Halogen Filter Ratio:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="line_halogen_filter_ratio"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QPushButton" name="btn_continue_fill">
+              <property name="text">
+               <string>Continue</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_cancel_fill">
+              <property name="text">
+               <string>Cancel</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="pg_running">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>New gas fill in progress:</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="1,0">
+          <item>
+           <widget class="QLabel" name="lbl_fill_status">
+            <property name="font">
+             <font>
+              <pointsize>14</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>New fill procedure started</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QFormLayout" name="formLayout_2">
+            <item row="1" column="0">
+             <widget class="QLabel" name="lbl_tube_press">
+              <property name="text">
+               <string>Current Tube Pressure:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="line_tube_press"/>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="lbl_ice_cancel">
+              <property name="text">
+               <string>In case of emergency</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="btn_ice_cancel">
+              <property name="text">
+               <string>Cancel</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="lbl_laser_status">
+              <property name="text">
+               <string>Laser Status Readout:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="line_laser_status"/>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
