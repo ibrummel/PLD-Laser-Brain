@@ -250,15 +250,11 @@ class NewGasFillDialog(QDialog):
             print("No gas flow for new fill. You need to restart the procedure")
             no_flow = QMessageBox.warning(self, "No gas flow",
                                           "The laser threw a 'No gas flow' error. Please ensure that all relevant "
-                                          "cylinders and valves on the gas panel are open then click OK. Clicking cancel"
-                                          "will perform a safety fill to 1050 mbar and the new fill procedure will need"
-                                          "to be repeated.",
-                                          QMessageBox.Ok | QMessageBox.Cancel, QMessageBox.Ok)
-            if no_flow == QMessageBox.Ok:
-                self.start_new_fill()
-            if no_flow == QMessageBox.Cancel:
-                self.brain.laser.off()
-        elif opmode == "OFF":
+                                          "cylinders and valves on the gas panel are open then click OK. (Note: laser "
+                                          "will continue filling process as soon as gas flow is detected, clicking ok "
+                                          "only closes this warning)",
+                                          QMessageBox.Ok, QMessageBox.Ok)
+        elif opmode == "OFF" or opmode == "OFF:0":
             self.lbl_fill_status.setText("New gas fill complete")
             print("New gas fill complete")
             complete = QMessageBox.information(self, "New Gas Fill Complete",
