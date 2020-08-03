@@ -2,7 +2,7 @@ import os
 
 from PyQt5.QtCore import QRegExp, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog, QDialog, QWidget, \
-    QLabel, QMessageBox
+    QLabel, QMessageBox, QStackedWidget
 from PyQt5 import uic
 import xml.etree.ElementTree as ET
 from RPi_Hardware import RPiHardware
@@ -199,16 +199,17 @@ class NewGasFillDialog(QDialog):
 
         uic.loadUi('./src/ui/laser_maint_new_fill_dialog.ui', self)
 
-        #self.pg_prep = self.findChild(QWidget, QRegExp("pg_prep"))
-        self.line_halogen_filter_ratio = self.findChild(QLineEdit, QRegExp("line_halogen_filter_ratio"))
-        self.btn_continue_fill = self.findChild(QPushButton, QRegExp("btn_continue_fill"))
-        self.btn_cancel_fill = self.findChild(QPushButton, QRegExp("btn_cancel_fill"))
+        self.stack = self.findChildren(QStackedWidget, QRegExp("stackedWidget"))[0]
+        self.pg_prep = self.findChildren(QWidget, QRegExp("pg_prep"))[0]
+        self.line_halogen_filter_ratio = self.findChildren(QLineEdit, QRegExp("line_halogen_filter_ratio"))[0]
+        self.btn_continue_fill = self.findChildren(QPushButton, QRegExp("btn_continue_fill"))[0]
+        self.btn_cancel_fill = self.findChildren(QPushButton, QRegExp("btn_cancel_fill"))[0]
 
-        #self.pg_run = self.findChild(QWidget, QRegExp("pg_run"))
-        self.lbl_fill_status = self.findChild(QLabel, QRegExp("lbl_fill_status"))
-        self.line_laser_status = self.findChild(QLineEdit, QRegExp("line_laser_status"))
-        self.line_tube_press = self.findChild(QLineEdit, QRegExp("line_tube_press"))
-        self.btn_ice_cancel = self.findChild(QPushButton, QRegExp("btn_ice_cancel"))
+        self.pg_run = self.findChildren(QWidget, QRegExp("pg_run"))[0]
+        self.lbl_fill_status = self.findChildren(QLabel, QRegExp("lbl_fill_status"))[0]
+        self.line_laser_status = self.findChildren(QLineEdit, QRegExp("line_laser_status"))[0]
+        self.line_tube_press = self.findChildren(QLineEdit, QRegExp("line_tube_press"))[0]
+        self.btn_ice_cancel = self.findChildren(QPushButton, QRegExp("btn_ice_cancel"))[0]
 
         self.init_connections()
         self.update_fields()
@@ -271,7 +272,7 @@ class NewGasFillDialog(QDialog):
             print(opmode)
 
     def start_new_fill(self):
-        self.setCurrentIndex(1)
+        self.stack.setCurrentIndex(1)
         self.brain.laser.new_fill()
         self.maint_timer.start(1)
 
