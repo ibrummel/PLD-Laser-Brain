@@ -94,7 +94,10 @@ class InstrumentPreferencesDialog(QTabWidget):
         self.brain = brain
 
     def reset_user_counter(self):
+        #print("Running reset on user counter")
         self.brain.laser.reset_counter()
+        self.init_fields()
+        #print("User counter reset complete")
 
     def new_gas_fill(self):
         self.maint_window = NewGasFillDialog(self.brain, self)

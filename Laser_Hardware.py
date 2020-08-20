@@ -191,7 +191,11 @@ class CompexLaser:
     def reset_counter(self):
         # Resets the user counter on the laser; Only available when the
         # laser is in off mode.
-        self.laser.write('COUNTER=RESET')
+        self.laser.write("COUNTER=RESET")
+        sleep(0.1)
+        counter = self.laser.query("COUNTER?")
+        if counter != '0':
+            print("Counter reset failed. Counter value:", counter)
 
     def set_counts(self, counts):
         # Sets a countdown value, this switches the laser to external
