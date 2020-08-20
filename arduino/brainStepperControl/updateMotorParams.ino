@@ -4,6 +4,9 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
     switch (inCommandParam) {
       case 'a':                       // Set acceleration if parameter to update is 'a'
         motor.setAcceleration(inCommandValFloat);
+        // Store the acceleration value for access from the GUI
+        if (axis == 't') targetAccel = inCommandValFloat;
+        else if (axis == 's') subAccel = inCommandValFloat;
         break;
       case 'm':                       // Set max speed if parameter to update is 'm'
         motor.setMaxSpeed(inCommandValFloat);
@@ -84,6 +87,10 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
     switch (inCommandParam) {
       case 'p':
         Serial.println(motor.currentPosition());
+        break;
+      case 'a':
+        if (axis == 't') Serial.println(targetAccel);
+        else if (axis == 's') Serial.println(subAccel);
         break;
       case 'm':
         Serial.println(motor.maxSpeed());

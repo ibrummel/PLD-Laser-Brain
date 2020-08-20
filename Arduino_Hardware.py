@@ -40,7 +40,8 @@ class LaserBrainArduino(QObject):
                                    'raster': 'r', 'r': 'r',
                                    'position': 'p', 'p': 'p'}
 
-        self.valid_motor_queries = {'position': 'p', 'p': 'p',
+        self.valid_motor_queries = {'accel': 'a', 'acceleration': 'a', 'a': 'a',
+                                    'position': 'p', 'p': 'p',
                                     'max speed': 'm', 'm': 'm',
                                     'speed': 'v', 'velocity': 'v', 'v': 'v',
                                     'goal position': 'g', 'g': 'g',

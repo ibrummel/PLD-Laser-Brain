@@ -88,6 +88,16 @@ class MotorControlPanel(QDockWidget):
             sub_step_speed = float(self.brain.arduino.query_motor_parameters('substrate', 'max speed'))
             sub_speed = np.round((sub_step_speed / Global.SUB_STEPS_PER_MM), 3)
             self.lines['sub_speed'].setText(str(sub_speed))
+            
+        if not self.lines['carousel_speed'].hasFocus():
+            carousel_step_speed = float(self.brain.arduino.query_motor_parameters('carousel', 'max speed'))
+            carousel_speed = np.round((carousel_step_speed / Global.CAROUSEL_STEPS_PER_REV), 3)
+            self.lines['carousel_speed'].setText(str(carousel_speed))
+            
+        if not self.lines['carousel_accel'].hasFocus():
+            carousel_step_accel = float(self.brain.arduino.query_motor_parameters('carousel', 'acceleration'))
+            carousel_accel = np.round((carousel_step_accel / Global.CAROUSEL_STEPS_PER_REV), 3)
+            self.lines['carousel_accel'].setText(str(carousel_accel))
 
     # def toggle_hotkeys(self):
     #     # Toggle the hotkey disable boolean

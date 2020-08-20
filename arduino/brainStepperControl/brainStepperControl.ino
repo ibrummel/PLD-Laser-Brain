@@ -49,6 +49,8 @@ bool subRunIndef = false;     // Flag for running motors indefinitely: substrate
 bool targetRunIndef = false;  // Flag for running motors indefinitely: target
 int subDirIndef = 0;          // Flag for indefinite movement direction: substrate
 int targetDirIndef = 0;       // Flag for indefinite movement direction: target
+float targetAccel = 1000;     // Stores the acceleration in steps/sec/sec for the target motor 
+float subAccel = 20000;       // Stores the acceleration in steps/sec/sec for the substrate motor
 int currentTarget = 0;        // Stores the target ID for the closest target position to the current position
 int rasterSteps = 0;          // Stores the number of steps across the target, set based on target size.
 bool rasterOn = false;        // Sets the raster on off state
@@ -62,10 +64,10 @@ void setup() {
 
   // ** Set up motor limits and parameters ** //
   substrate.setMaxSpeed(1000);  // set the max substrate speed to 4rps
-  target.setMaxSpeed(1000); // set max target speed as 1 rps FIXME: This might be too fast
+  target.setMaxSpeed(600); // set max target speed as 1/6 rps
 
   substrate.setAcceleration(20000); // Probably going to stick with runSpeed for constant speeds since we have plenty of torque
-  target.setAcceleration(1000); // set acceleration limits
+  target.setAcceleration(targetAccel); // set acceleration limits
 
   // Invert pins for the directions to match reality
   substrate.setPinsInverted(true, false, true);
