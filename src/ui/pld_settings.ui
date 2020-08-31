@@ -582,12 +582,15 @@
           <height>45</height>
          </size>
         </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
      </layout>
     </item>
     <item>
-     <widget class="QGroupBox" name="gbox_target_motor">
+     <widget class="QGroupBox" name="gbox_carousel_motor">
       <property name="title">
        <string>Targets Motor Settings</string>
       </property>
@@ -739,12 +742,15 @@
           <height>45</height>
          </size>
         </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
      </layout>
     </item>
     <item>
-     <widget class="QGroupBox" name="gbox_laser">
+     <widget class="QGroupBox" name="gbox_laser_settings">
       <property name="title">
        <string>Laser Settings</string>
       </property>
@@ -767,7 +773,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox_2">
+     <widget class="QGroupBox" name="gbox_laser_maint">
       <property name="title">
        <string>Laser Maintenance</string>
       </property>
@@ -797,7 +803,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QGroupBox" name="gbox_pulse_counters">
       <property name="title">
        <string>Laser Pulse Counts</string>
       </property>

@@ -28,7 +28,7 @@ class InstrumentPreferencesDialog(QTabWidget):
         self.lines_carousel_util = {widget.objectName().split('_')[-1]: widget
                                     for widget in self.findChildren(QLineEdit, QRegExp("line_carousel_util_*"))}
         self.lines_carousel_height = {widget.objectName().split('_')[-1]: widget
-                                    for widget in self.findChildren(QLineEdit, QRegExp("line_carousel_height_*"))}
+                                      for widget in self.findChildren(QLineEdit, QRegExp("line_carousel_height_*"))}
         self.btns_apply = {widget.objectName().split('_')[-1]: widget
                            for widget in self.findChildren(QPushButton, QRegExp("btn_apply_*"))}
         self.btns_ok = {widget.objectName().split('_')[-1]: widget
@@ -58,6 +58,12 @@ class InstrumentPreferencesDialog(QTabWidget):
         # Errors on reading a settings file are handled within this function.
         self.parse_xml_to_settings(self.settings_file_path)
 
+        # Disable dangerous settings groupboxes
+        self.gbox_laser_maint.setEnabled(False)
+        self.gbox_laser_settings.setEnabled(False)
+        self.gbox_carousel_motor.setEnabled(False)
+        self.gbox_substrate_motor.setEnabled(False)
+
         self.init_connections()
         self.init_fields()
 
@@ -69,6 +75,8 @@ class InstrumentPreferencesDialog(QTabWidget):
         for key, widget in self.btns_cancel.items():
             widget.clicked.connect(self.cancel)
 
+        self.tbtn_motor_settings_unlock.clicked.connect(self.unlock_settings)
+        self.tbtn_laser_settings_unlock.clicked.connect(self.unlock_settings)
         self.btns_laser_maint['new_fill'].clicked.connect(self.new_gas_fill)
         self.btns_laser_maint['reset_user_counter'].clicked.connect(self.reset_user_counter)
 
@@ -103,11 +111,34 @@ class InstrumentPreferencesDialog(QTabWidget):
     def init_hardware(self, brain: RPiHardware):
         self.brain = brain
 
+    def unlock_settings(self):
+        if not self.tbtn_motor_settings_unlock.isChecked():
+            password = SettingsPasswordDialog(attempt_limit=5)
+            if password == QMessageBox.Accepted:
+                self.gbox_laser_maint.setEnabled(True)
+                self.gbox_laser_settings.setEnabled(True)
+                self.gbox_carousel_motor.setEnabled(True)
+                self.gbox_substrate_motor.setEnabled(True)
+                self.tbtn_motor_settings_unlock.setChecked(True)
+                self.tbtn_laser_settings_unlock.setChecked(True)
+            else:
+                self.gbox_laser_maint.setEnabled(False)
+                self.gbox_laser_settings.setEnabled(False)
+                self.gbox_carousel_motor.setEnabled(False)
+                self.gbox_substrate_motor.setEnabled(False)
+        else:
+            self.gbox_laser_maint.setEnabled(False)
+            self.gbox_laser_settings.setEnabled(False)
+            self.gbox_carousel_motor.setEnabled(False)
+            self.gbox_substrate_motor.setEnabled(False)
+            self.tbtn_motor_settings_unlock.setChecked(False)
+            self.tbtn_laser_settings_unlock.setChecked(False)
+
     def reset_user_counter(self):
-        #print("Running reset on user counter")
+        # print("Running reset on user counter")
         self.brain.laser.reset_counter()
         self.init_fields()
-        #print("User counter reset complete")
+        # print("User counter reset complete")
 
     def new_gas_fill(self):
         self.maint_window = NewGasFillDialog(self.brain, self)
@@ -210,6 +241,40 @@ class InstrumentPreferencesDialog(QTabWidget):
         etree = ET.ElementTree(self.pld_settings)
         self.settings_file_path = 'settings.xml'
         etree.write(self.settings_file_path)
+
+
+class SettingsPasswordDialog(QDialog):
+    def __init__(self, password='thinfilm1', attempt_limit=None):
+        super().__init__()
+        self.setWindowTitle("Settings Password Entry")
+
+        uic.loadUi('./src/ui/settings_password.ui', self)
+
+        self.password = password
+        self.attempt_limit = attempt_limit
+        self.incorrect_attempts = 0
+
+        self.init_connections()
+        self.exec_()
+
+    def init_connections(self):
+        self.btn_ok.clicked.connect(self.accept)
+        self.btn_cancel.connect(self.reject)
+
+    def accept(self):
+        if self.line_password.text == self.password:
+            super().accept()
+        elif self.attempt_limit is not None and self.incorrect_attempts < self.attempt_limit:
+            QMessageBox.information(self, "Incorrect Password",
+                                    "The incorrect password was entered, you have {} attempts "
+                                    "remaining.".format(self.incorrect_attempts - self.attempt_limit), QMessageBox.Ok,
+                                    QMessageBox.Ok)
+        elif self.attempt_limit is not None and self.incorrect_attempts >= self.attempt_limit:
+            super().reject()
+        else:
+            QMessageBox.information(self, "Incorrect Password",
+                                    "The incorrect password was entered, you have unlimited attempts remaining.",
+                                    QMessageBox.Ok, QMessageBox.Ok)
 
 
 class NewGasFillDialog(QDialog):
