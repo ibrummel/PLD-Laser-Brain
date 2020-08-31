@@ -362,6 +362,7 @@ class HomeTargetCarouselDialog(QDialog):
     # Override the accept and reject methods to reset speed after homing/cancelling
     def accept(self):
         self.brain.arduino.update_motor_param('target', 'speed', self.stored_speed)
+        self.brain.arduino.update_motor_param('target', 'position', 0)
         super().accept()
 
     def reject(self):
