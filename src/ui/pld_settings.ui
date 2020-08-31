@@ -29,7 +29,7 @@
    <string>PLD Control Settings</string>
   </property>
   <property name="currentIndex">
-   <number>2</number>
+   <number>0</number>
   </property>
   <widget class="QWidget" name="tab_target_carousel_settings">
    <property name="cursor">
@@ -38,34 +38,77 @@
    <attribute name="title">
     <string>Target Carousel</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,1,1,1,1,1,0">
     <item>
      <widget class="QGroupBox" name="gbox_carousel_0">
       <property name="title">
-       <string>Target Position 1</string>
+       <string>Target Position 0</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <layout class="QFormLayout" name="form_carousel_0">
          <item row="0" column="0">
+          <widget class="QLabel" name="lbl_carousel_composition_0">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Target Composition:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="line_carousel_composition_0">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QLabel" name="lbl_carousel_size_0">
            <property name="text">
             <string>Target Diameter (mm):</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="line_carousel_size_0"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="lbl_carousel_composition_0">
-           <property name="text">
-            <string>Target Composition:</string>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="line_carousel_size_0">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target diameter for this carousel position in mm. This number is used to how far to raster each target when rastering is enabled. &lt;span style=&quot; font-weight:600;&quot;&gt;WARNING: When in doubt, under estimate this value. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="line_carousel_composition_0"/>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0">
+         <item>
+          <widget class="QLabel" name="lbl_carousel_util_0">
+           <property name="text">
+            <string>Target Utilization:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_util_0">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target utilization fraction. This should be entered as a decimal number between 0 and 1 representing the amount of target area that will be rastered over. A good starting value for this number is 0.90.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_carousel_height_0">
+           <property name="text">
+            <string>Target Height:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_height_0">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target offset height in mm. This is the height of the target measured from the top surface of the sample holder. This value will be used to adjust for the laser not hitting near the diameter of the target. Positive values represent a target that is taller than the holder. Negative values represent a target that is below the top surface of the holder. If your target is flush with the sample holder, enter 0.0.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -75,30 +118,73 @@
     <item>
      <widget class="QGroupBox" name="gbox_carousel_1">
       <property name="title">
-       <string>Target Position 2</string>
+       <string>Target Position 1</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <layout class="QFormLayout" name="form_carousel_1">
          <item row="0" column="0">
+          <widget class="QLabel" name="lbl_carousel_composition_1">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Target Composition:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="line_carousel_composition_1">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QLabel" name="lbl_carousel_size_1">
            <property name="text">
             <string>Target Diameter (mm):</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="line_carousel_size_1"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="lbl_carousel_composition_1">
-           <property name="text">
-            <string>Target Composition:</string>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="line_carousel_size_1">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target diameter for this carousel position in mm. This number is used to how far to raster each target when rastering is enabled. &lt;span style=&quot; font-weight:600;&quot;&gt;WARNING: When in doubt, under estimate this value. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="line_carousel_composition_1"/>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0,0,0">
+         <item>
+          <widget class="QLabel" name="lbl_carousel_util_1">
+           <property name="text">
+            <string>Target Utilization:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_util_1">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target utilization fraction. This should be entered as a decimal number between 0 and 1 representing the amount of target area that will be rastered over. A good starting value for this number is 0.90.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_carousel_height_1">
+           <property name="text">
+            <string>Target Height:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_height_1">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target offset height in mm. This is the height of the target measured from the top surface of the sample holder. This value will be used to adjust for the laser not hitting near the diameter of the target. Positive values represent a target that is taller than the holder. Negative values represent a target that is below the top surface of the holder. If your target is flush with the sample holder, enter 0.0.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -108,30 +194,73 @@
     <item>
      <widget class="QGroupBox" name="gbox_carousel_2">
       <property name="title">
-       <string>Target Position 3</string>
+       <string>Target Position 2</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
         <layout class="QFormLayout" name="form_carousel_2">
          <item row="0" column="0">
+          <widget class="QLabel" name="lbl_carousel_composition_2">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Target Composition:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="line_carousel_composition_2">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QLabel" name="lbl_carousel_size_2">
            <property name="text">
             <string>Target Diameter (mm):</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="line_carousel_size_2"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="lbl_carousel_composition_2">
-           <property name="text">
-            <string>Target Composition:</string>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="line_carousel_size_2">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target diameter for this carousel position in mm. This number is used to how far to raster each target when rastering is enabled. &lt;span style=&quot; font-weight:600;&quot;&gt;WARNING: When in doubt, under estimate this value. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="line_carousel_composition_2"/>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,0,0,0">
+         <item>
+          <widget class="QLabel" name="lbl_carousel_util_2">
+           <property name="text">
+            <string>Target Utilization:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_util_2">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target utilization fraction. This should be entered as a decimal number between 0 and 1 representing the amount of target area that will be rastered over. A good starting value for this number is 0.90.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_carousel_height_2">
+           <property name="text">
+            <string>Target Height:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_height_2">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target offset height in mm. This is the height of the target measured from the top surface of the sample holder. This value will be used to adjust for the laser not hitting near the diameter of the target. Positive values represent a target that is taller than the holder. Negative values represent a target that is below the top surface of the holder. If your target is flush with the sample holder, enter 0.0.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -141,30 +270,73 @@
     <item>
      <widget class="QGroupBox" name="gbox_carousel_3">
       <property name="title">
-       <string>Target Position 4</string>
+       <string>Target Position 3</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
         <layout class="QFormLayout" name="form_carousel_3">
          <item row="0" column="0">
+          <widget class="QLabel" name="lbl_carousel_composition_3">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Target Composition:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="line_carousel_composition_3">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QLabel" name="lbl_carousel_size_3">
            <property name="text">
             <string>Target Diameter (mm):</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="line_carousel_size_3"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="lbl_carousel_composition_3">
-           <property name="text">
-            <string>Target Composition:</string>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="line_carousel_size_3">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target diameter for this carousel position in mm. This number is used to how far to raster each target when rastering is enabled. &lt;span style=&quot; font-weight:600;&quot;&gt;WARNING: When in doubt, under estimate this value. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="line_carousel_composition_3"/>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0,0,0,0">
+         <item>
+          <widget class="QLabel" name="lbl_carousel_util_3">
+           <property name="text">
+            <string>Target Utilization:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_util_3">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target utilization fraction. This should be entered as a decimal number between 0 and 1 representing the amount of target area that will be rastered over. A good starting value for this number is 0.90.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_carousel_height_3">
+           <property name="text">
+            <string>Target Height:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_height_3">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target offset height in mm. This is the height of the target measured from the top surface of the sample holder. This value will be used to adjust for the laser not hitting near the diameter of the target. Positive values represent a target that is taller than the holder. Negative values represent a target that is below the top surface of the holder. If your target is flush with the sample holder, enter 0.0.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -174,30 +346,73 @@
     <item>
      <widget class="QGroupBox" name="gbox_carousel_4">
       <property name="title">
-       <string>Target Position 5</string>
+       <string>Target Position 4</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
         <layout class="QFormLayout" name="form_carousel_4">
          <item row="0" column="0">
+          <widget class="QLabel" name="lbl_carousel_composition_4">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Target Composition:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="line_carousel_composition_4">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QLabel" name="lbl_carousel_size_4">
            <property name="text">
             <string>Target Diameter (mm):</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="line_carousel_size_4"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="lbl_carousel_composition_4">
-           <property name="text">
-            <string>Target Composition:</string>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="line_carousel_size_4">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target diameter for this carousel position in mm. This number is used to how far to raster each target when rastering is enabled. &lt;span style=&quot; font-weight:600;&quot;&gt;WARNING: When in doubt, under estimate this value. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="line_carousel_composition_4"/>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="0,0,0,0">
+         <item>
+          <widget class="QLabel" name="lbl_carousel_util_4">
+           <property name="text">
+            <string>Target Utilization:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_util_4">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target utilization fraction. This should be entered as a decimal number between 0 and 1 representing the amount of target area that will be rastered over. A good starting value for this number is 0.90.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_carousel_height_4">
+           <property name="text">
+            <string>Target Height:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_height_4">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target offset height in mm. This is the height of the target measured from the top surface of the sample holder. This value will be used to adjust for the laser not hitting near the diameter of the target. Positive values represent a target that is taller than the holder. Negative values represent a target that is below the top surface of the holder. If your target is flush with the sample holder, enter 0.0.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -207,30 +422,73 @@
     <item>
      <widget class="QGroupBox" name="gbox_carousel_5">
       <property name="title">
-       <string>Target Position 6</string>
+       <string>Target Position 5</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_8">
        <item>
         <layout class="QFormLayout" name="form_carousel_5">
          <item row="0" column="0">
+          <widget class="QLabel" name="lbl_carousel_composition_5">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Target Composition:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="line_carousel_composition_5">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target composition for this carousel position. This value is only used as an identifier in the target selection GUI and does not affect any other settings. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QLabel" name="lbl_carousel_size_5">
            <property name="text">
             <string>Target Diameter (mm):</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="line_carousel_size_5"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="lbl_carousel_composition_5">
-           <property name="text">
-            <string>Target Composition:</string>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="line_carousel_size_5">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target diameter for this carousel position in mm. This number is used to how far to raster each target when rastering is enabled. &lt;span style=&quot; font-weight:600;&quot;&gt;WARNING: When in doubt, under estimate this value. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="line_carousel_composition_5"/>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="0,0,0,0">
+         <item>
+          <widget class="QLabel" name="lbl_carousel_util_5">
+           <property name="text">
+            <string>Target Utilization:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_util_5">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target utilization fraction. This should be entered as a decimal number between 0 and 1 representing the amount of target area that will be rastered over. A good starting value for this number is 0.90.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lbl_carousel_height_5">
+           <property name="text">
+            <string>Target Height:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_carousel_height_5">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter the target offset height in mm. This is the height of the target measured from the top surface of the sample holder. This value will be used to adjust for the laser not hitting near the diameter of the target. Positive values represent a target that is taller than the holder. Negative values represent a target that is below the top surface of the holder. If your target is flush with the sample holder, enter 0.0.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

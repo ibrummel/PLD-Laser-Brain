@@ -25,6 +25,10 @@ class InstrumentPreferencesDialog(QTabWidget):
                                     for widget in self.findChildren(QLineEdit, QRegExp("line_carousel_composition_*"))}
         self.lines_carousel_size = {widget.objectName().split('_')[-1]: widget
                                     for widget in self.findChildren(QLineEdit, QRegExp("line_carousel_size_*"))}
+        self.lines_carousel_util = {widget.objectName().split('_')[-1]: widget
+                                    for widget in self.findChildren(QLineEdit, QRegExp("line_carousel_util_*"))}
+        self.lines_carousel_height = {widget.objectName().split('_')[-1]: widget
+                                    for widget in self.findChildren(QLineEdit, QRegExp("line_carousel_height_*"))}
         self.btns_apply = {widget.objectName().split('_')[-1]: widget
                            for widget in self.findChildren(QPushButton, QRegExp("btn_apply_*"))}
         self.btns_ok = {widget.objectName().split('_')[-1]: widget
@@ -77,6 +81,12 @@ class InstrumentPreferencesDialog(QTabWidget):
         for key, widget in self.lines_carousel_size.items():
             widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Size".format(key)).text)
 
+        for key, widget in self.lines_carousel_util.items():
+            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Utilization".format(key)).text)
+
+        for key, widget in self.lines_carousel_height.items():
+            widget.setText(self.pld_settings.find("./target_carousel/target[@ID='{}']/Height".format(key)).text)
+
         for key, widget in self.lines_targ_motor.items():
             widget.setText(self.pld_settings.find("./target/{}".format(key)).text)
 
@@ -115,6 +125,12 @@ class InstrumentPreferencesDialog(QTabWidget):
 
         for key, widget in self.lines_carousel_size.items():
             self.pld_settings.find("./target_carousel/target[@ID='{}']/Size".format(key)).text = widget.text()
+
+        for key, widget in self.lines_carousel_util.items():
+            self.pld_settings.find("./target_carousel/target[@ID='{}']/Utilization".format(key)).text = widget.text()
+
+        for key, widget in self.lines_carousel_height.items():
+            self.pld_settings.find("./target_carousel/target[@ID='{}']/Height".format(key)).text = widget.text()
 
         for key, widget in self.lines_targ_motor.items():
             self.pld_settings.find("./target/{}".format(key)).text = widget.text()

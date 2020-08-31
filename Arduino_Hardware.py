@@ -15,7 +15,7 @@ class LaserBrainArduino(QObject):
 
         self.valid_axes = {'laser': 'l', 'l': 'l',                      # l is for laser
                            'sub': 's', 'substrate': 's', 's': 's',      # s is for substrate
-                           'targ': 't', 'target': 't', 't': 't',        # t is for target
+                           'carousel': 't', 'target': 't', 't': 't',    # t is for target
                            'pin write': 'o', 'write': 'o', 'o': 'o',    # o is for (gpi)o
                            'pin read': 'i', 'read': 'i', 'i': 'i',      # i is for (gp)i(o)
                            'serial forward': 'f', 'f': 'f',             # f is for (serial) f(orward)

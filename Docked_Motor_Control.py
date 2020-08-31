@@ -161,12 +161,14 @@ class MotorControlPanel(QDockWidget):
         self.lines['carousel_accel'].clearFocus()
 
     def raster_current_target(self):
-        target_utilization = 0.75
         if self.checks['raster'].isChecked():
-            find_string = "./target_carousel/target[@ID='{}']/Size".format(self.brain.current_target())
-            target_size = float(QApplication.instance().instrument_settings.pld_settings.find(find_string).text)
-            raster_steps = Static.calc_raster_steps(target_size, target_utilization)
-            self.brain.arduino.update_motor_param('target', 'raster', raster_steps)
+            target_string = "./target_carousel/target[@ID='{}']/".format(self.brain.current_target())
+            pld_settings = QApplication.instance().instrument_settings.pld_settings
+            target_size = float(pld_settings.find(target_string + 'Size').text)
+            target_utilization = float(pld_settings.find(target_string + 'Utilization').text)
+            target_height = float(pld_settings.find(target_string + 'Height').text)
+            raster_steps = Static.calc_raster_steps(target_size, target_utilization, target_height)
+            self.brain.arduino.update_motor_param('carousel', 'raster', raster_steps)
         else:
-            self.brain.arduino.update_motor_param('target', 'raster', 0)
+            self.brain.arduino.update_motor_param('carousel', 'raster', 0)
             print('Raster Off')

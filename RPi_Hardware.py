@@ -164,7 +164,7 @@ class RPiHardware(QWidget):
         Moves to the target indicated by target_num. Target numbers are zero indexed and can be kept track of
         of in the upper level GUI
         """
-        self.arduino.update_motor_param('target', 'goal', target_num % 6)
+        self.arduino.update_motor_param('carousel', 'goal', target_num % 6)
 
     def current_target(self):
         # This calculates the current position as a fraction of the total rotation, then multiplies by the number of
@@ -274,8 +274,8 @@ class HomeTargetCarouselDialog(QDialog):
         self.moving_left = False
         # Store the old speed and then set speed to a lower value so the
         # position is easier to control by hand.
-        self.stored_speed = brain.arduino.query_motor_parameters('target', 'speed')
-        self.brain.arduino.update_motor_param('target', 'speed', Global.CAROUSEL_MANUAL_SPEED)
+        self.stored_speed = brain.arduino.query_motor_parameters('carousel', 'speed')
+        self.brain.arduino.update_motor_param('carousel', 'speed', Global.CAROUSEL_MANUAL_SPEED)
 
         self.right_btn = QPushButton()
         self.right_btn.setAutoRepeat(True)
@@ -345,12 +345,12 @@ class HomeTargetCarouselDialog(QDialog):
 
     def right(self):
         # ToDo: Check the if 0 or 1 goes left or right.
-        self.brain.arduino.update_motor_param('target', 'start', Global.CAROUSEL_CW)
+        self.brain.arduino.update_motor_param('carousel', 'start', Global.CAROUSEL_CW)
         self.moving_right = True
         self.moving_left = False
 
     def left(self):
-        self.brain.arduino.update_motor_param('target', 'start', Global.CAROUSEL_CCW)
+        self.brain.arduino.update_motor_param('carousel', 'start', Global.CAROUSEL_CCW)
         self.moving_left = True
         self.moving_right = False
 
@@ -361,12 +361,12 @@ class HomeTargetCarouselDialog(QDialog):
 
     # Override the accept and reject methods to reset speed after homing/cancelling
     def accept(self):
-        self.brain.arduino.update_motor_param('target', 'speed', self.stored_speed)
-        self.brain.arduino.update_motor_param('target', 'position', 0)
+        self.brain.arduino.update_motor_param('carousel', 'speed', self.stored_speed)
+        self.brain.arduino.update_motor_param('carousel', 'position', 0)
         super().accept()
 
     def reject(self):
-        self.brain.arduino.update_motor_param('target', 'speed', self.stored_speed)
+        self.brain.arduino.update_motor_param('carousel', 'speed', self.stored_speed)
         super().reject()
 
     # Override the event filter and the key release event to handle arrow keys
