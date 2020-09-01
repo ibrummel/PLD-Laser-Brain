@@ -2,27 +2,39 @@
 	<target_carousel>
 		<target ID="0">
 			<Size>50.8</Size>
-			<Composition>SrTiO3(?)</Composition>
+			<Composition>Pb(Sc,Ta)O3</Composition>
+			<Height>0.0</Height>
+			<Utilization>0.90</Utilization>
 		</target>
 		<target ID="1">
 			<Size>1</Size>
 			<Composition>Blank1</Composition>
+			<Height>0.0</Height>
+			<Utilization>0.90</Utilization>
 		</target>
 		<target ID="2">
 			<Size>20</Size>
-			<Composition>Disilicate (Yb?)</Composition>
+			<Composition>LLTaO</Composition>
+			<Height>0.0</Height>
+			<Utilization>0.90</Utilization>
 		</target>
 		<target ID="3">
-			<Size>3</Size>
-			<Composition>Blank3</Composition>
+			<Size>25</Size>
+			<Composition>new target</Composition>
+			<Height>0.0</Height>
+			<Utilization>0.90</Utilization>
 		</target>
 		<target ID="4">
 			<Size>50.8</Size>
-			<Composition>CaTiO3(?)</Composition>
+			<Composition>SrTiO3</Composition>
+			<Height>0.0</Height>
+			<Utilization>0.90</Utilization>
 		</target>
 		<target ID="5">
 			<Size>5</Size>
 			<Composition>Blank5</Composition>
+			<Height>0.0</Height>
+			<Utilization>0.90</Utilization>
 		</target>
 	</target_carousel>
 	<substrate>
