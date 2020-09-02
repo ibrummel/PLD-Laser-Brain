@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>750</width>
-    <height>215</height>
+    <height>228</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>750</width>
-    <height>215</height>
+    <height>228</height>
    </size>
   </property>
   <property name="font">
@@ -40,7 +40,7 @@
       <property name="title">
        <string>Target Carousel:</string>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,3">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="spacing">
@@ -113,25 +113,53 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="line_carousel_speed"/>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="line_carousel_accel"/>
-         </item>
-         <item row="2" column="0">
+         <item row="3" column="0">
           <widget class="QLabel" name="lbl_carousel_speed">
            <property name="text">
             <string>Speed (rev/s):</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="line_carousel_speed"/>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="line_carousel_accel"/>
+         </item>
+         <item row="4" column="0">
           <widget class="QLabel" name="lbl_carousel_accel">
            <property name="text">
             <string>Accel (rev/s^2):</string>
            </property>
           </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="lbl_carousel_offset">
+           <property name="text">
+            <string>Target Offset:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
+           <item>
+            <widget class="QLineEdit" name="line_carousel_offset">
+             <property name="toolTip">
+              <string>Enter an offset number of steps for use with small targets that cannot be easily rastered. Number of steps can be positive or negative.</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="btn_clear_carousel_offset">
+             <property name="toolTip">
+              <string>Clear the currently applied target carousel offset and return to the current target's center position.</string>
+             </property>
+             <property name="text">
+              <string>Clear</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
