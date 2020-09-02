@@ -15,6 +15,7 @@ class MotorControlPanel(QDockWidget):
 
         # Declare brain as RPi interface object
         self.brain = brain
+        self.applied_carousel_offset = None
 
         # Load the ui file and discover all necessary items
         uic.loadUi('./src/ui/docked_motor_control.ui', self)
@@ -58,6 +59,8 @@ class MotorControlPanel(QDockWidget):
         self.btns['carousel_next'].clicked.connect(self.target_left)
         self.btns['carousel_prev'].clicked.connect(self.target_right)
         self.combos['current_target'].currentIndexChanged.connect(self.move_to_target)
+        self.lines['carousel_offset'].returnPressed.connect(self.move_carousel_offset)
+        self.btns['clear_carousel_offset'].clicked.connect(self.clear_carousel_offset)
         self.lines['carousel_speed'].returnPressed.connect(self.set_carousel_speed_from_line)
         self.lines['carousel_accel'].returnPressed.connect(self.set_carousel_accel_from_line)
         self.sc_left.activated.connect(self.target_left)
@@ -147,6 +150,19 @@ class MotorControlPanel(QDockWidget):
         goal = int(self.combos['current_target'].currentIndex())
         print('Moving to target {}'.format(goal))
         self.brain.move_to_target(goal)
+
+    def move_carousel_offset(self):
+        current_pos = int(self.brain.arduino.query_motor_parameters('carousel', 'position'))
+        input_offset = int(self.lines['carousel_offset'].text)
+        goal = current_pos + input_offset - self.applied_carousel_offset
+        self.applied_carousel_offset = input_offset
+        self.brain.arduino.update_motor_param('carousel', 'goal', goal)
+
+    def clear_carousel_offset(self):
+        current_pos = int(self.brain.arduino.query_motor_parameters('carousel', 'position'))
+        goal = current_pos - self.applied_carousel_offset # Calculate the nominal center position of the target
+        self.applied_carousel_offset = 0  # Clear the current offset from memory by setting offset to 0
+        self.brain.arduino.update_motor_param('carousel', 'goal', goal) # Move to target center
 
     def set_sub_speed_from_line(self):
         self.brain.set_sub_speed(float(self.lines['sub_speed'].text()))
