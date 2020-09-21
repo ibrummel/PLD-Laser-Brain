@@ -32,7 +32,7 @@ void updateMotorParams(AccelStepper50pctDuty & motor, char axis) {           // 
 
           // Make the shortest move to the requested target, position will be
           // kept between 0 and SUB_STEPS_PER_REV in main loop
-          motor.move(shortestMoveToTarget(inCommandValLong * (CAROUSEL_STEPS_PER_REV/6)));
+          motor.move(shortestMoveToTarget(inCommandValLong % CAROUSEL_STEPS_PER_REV));
         }
         break;
       case 't':

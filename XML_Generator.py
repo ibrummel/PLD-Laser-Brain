@@ -8,14 +8,20 @@ def generate_new_settings_xml():
     targets = []
     sizes = []
     compositions = []
+    heights = []
+    util = []
 
     for i in range(0, 6):
         targets.append(ET.SubElement(target_carousel, 'target'))
         targets[i].set('ID', str(i))
         sizes.append(ET.SubElement(targets[i], 'Size'))
         compositions.append(ET.SubElement(targets[i], 'Composition'))
+        heights.append(ET.SubElement(targets[i], 'Height'))
+        util.append(ET.SubElement(targets[i], 'Utilization'))
         sizes[i].text = str(i)
         compositions[i].text = 'Blank' + str(i)
+        heights[i].text = str(i)
+        util[i].text = str(0.90)
 
     substrate = {'root': ET.SubElement(pld, 'substrate')}
     substrate['max_speed'] = ET.SubElement(substrate['root'], 'max_speed')

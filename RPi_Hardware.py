@@ -164,7 +164,8 @@ class RPiHardware(QWidget):
         Moves to the target indicated by target_num. Target numbers are zero indexed and can be kept track of
         of in the upper level GUI
         """
-        self.arduino.update_motor_param('carousel', 'goal', target_num % 6)
+        goal = (target_num % 6) * (Global.CAROUSEL_STEPS_PER_REV/6)
+        self.arduino.update_motor_param('carousel', 'goal', goal)
 
     def current_target(self):
         # This calculates the current position as a fraction of the total rotation, then multiplies by the number of
