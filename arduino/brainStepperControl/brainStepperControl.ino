@@ -153,9 +153,15 @@ void loop() {
   if (target.isRunning()) digitalWrite(TARGET_RUN, HIGH);
   else if (!target.isRunning() && (target.currentPosition() >= 6000 || target.currentPosition() < 0)) {
     // Keep the target position a positive number by adding multiples of the rotation
+//    Serial.print("Working on resetting the target position. Current Position: ");
+//    Serial.println(target.currentPosition());
     while (target.currentPosition() < 0) target.setCurrentPosition(target.currentPosition() + CAROUSEL_STEPS_PER_REV);
     // Keep the target position between 0 and 6000
+//    Serial.print("Current position is positive, setting mod6: ");
+//    Serial.println(target.currentPosition());
     target.setCurrentPosition(target.currentPosition() % CAROUSEL_STEPS_PER_REV);
+//    Serial.print("Final modified target position: ");
+//    Serial.println(target.currentPosition());
   }
   else digitalWrite(TARGET_RUN, HIGH);
 
