@@ -171,6 +171,7 @@ class RPiHardware(QWidget):
         # This calculates the current position as a fraction of the total rotation, then multiplies by the number of
         #  of steps and rounds to get to an integer target positon, finally takes the modulus by the number of positions
         #  to account for the circle (position 6 = position 0)
+        # print(self.arduino.query_motor_parameters('carousel', 'position'))
         current_pos = int(self.arduino.query_motor_parameters('carousel', 'position'))
         return int(np.around(((current_pos % Global.CAROUSEL_STEPS_PER_REV) / Global.CAROUSEL_STEPS_PER_REV) * 6) % 6)
 

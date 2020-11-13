@@ -114,7 +114,7 @@ class InstrumentPreferencesDialog(QTabWidget):
     def unlock_settings(self):
         if not self.tbtn_motor_settings_unlock.isChecked():
             password = SettingsPasswordDialog(attempt_limit=5)
-            if password == QMessageBox.Accepted:
+            if password.result() == QMessageBox.Accepted:
                 self.gbox_laser_maint.setEnabled(True)
                 self.gbox_laser_settings.setEnabled(True)
                 self.gbox_carousel_motor.setEnabled(True)
@@ -259,15 +259,16 @@ class SettingsPasswordDialog(QDialog):
 
     def init_connections(self):
         self.btn_ok.clicked.connect(self.accept)
-        self.btn_cancel.connect(self.reject)
+        self.btn_cancel.clicked.connect(self.reject)
 
     def accept(self):
-        if self.line_password.text == self.password:
+        if self.line_password.text() == self.password:
             super().accept()
         elif self.attempt_limit is not None and self.incorrect_attempts < self.attempt_limit:
+            self.incorrect_attempts += 1
             QMessageBox.information(self, "Incorrect Password",
                                     "The incorrect password was entered, you have {} attempts "
-                                    "remaining.".format(self.incorrect_attempts - self.attempt_limit), QMessageBox.Ok,
+                                    "remaining.".format(self.attempt_limit - self.incorrect_attempts), QMessageBox.Ok,
                                     QMessageBox.Ok)
         elif self.attempt_limit is not None and self.incorrect_attempts >= self.attempt_limit:
             super().reject()
