@@ -149,6 +149,7 @@ class MotorControlPanel(QDockWidget):
     def move_to_target(self):
         goal = int(self.combos['current_target'].currentIndex())
         print('Moving to target {}'.format(goal))
+        self.line_carousel_offset.setText('0')
         self.brain.move_to_target(goal)
 
     def move_carousel_offset(self):
@@ -162,6 +163,7 @@ class MotorControlPanel(QDockWidget):
         current_pos = int(self.brain.arduino.query_motor_parameters('carousel', 'position'))
         goal = current_pos - self.applied_carousel_offset # Calculate the nominal center position of the target
         self.applied_carousel_offset = 0  # Clear the current offset from memory by setting offset to 0
+        self.line_carousel_offset.setText('0')
         self.brain.arduino.update_motor_param('carousel', 'goal', goal) # Move to target center
 
     def set_sub_speed_from_line(self):
