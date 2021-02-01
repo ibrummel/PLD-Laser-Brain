@@ -34,4 +34,5 @@ def genMsgString(command: str):
          message.append(crc['CRC2'])
          
          return message
-         
+
+# Serial port 1 is /dev/ttyAMA0 --> SQM is connected here.
