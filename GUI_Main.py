@@ -32,6 +32,7 @@ class PLDControlApp(QApplication):
 
 # Fixme: This should be moved to its own module and be set up to be configurable for other
 #  modules in the project. (i.e. have a logger name variable etc)
+# ToDo: add code to shut down the laser if the GUI dies. Don't want the laser just running with no control
 class PLDErrorLogger(QObject):
     
     def __init__(self, pop_up: bool):
