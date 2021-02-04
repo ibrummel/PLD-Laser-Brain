@@ -29,7 +29,7 @@
    <string>PLD Control Settings</string>
   </property>
   <property name="currentIndex">
-   <number>0</number>
+   <number>2</number>
   </property>
   <widget class="QWidget" name="tab_target_carousel_settings">
    <property name="cursor">
@@ -49,8 +49,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>493</width>
-         <height>936</height>
+         <width>604</width>
+         <height>1200</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -812,9 +812,16 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btn_maint_evac_gas_lines">
+        <widget class="QPushButton" name="btn_maint_evac_premix">
          <property name="text">
-          <string>Evacuate Gas Lines</string>
+          <string>Evacuate Premix/Buffer Gas Line</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_maint_evac_intert">
+         <property name="text">
+          <string>Evacuate Inert Gas Line</string>
          </property>
         </widget>
        </item>

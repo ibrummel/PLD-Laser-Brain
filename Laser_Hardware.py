@@ -100,7 +100,7 @@ class CompexLaser:
     def flush_line(self, line_name):
         # Flushes(evacuates) the supplied line values can be
         # RARE, HALOGEN, BUFFER, or INERT
-        valid_line_names = ['RARE', 'HALOGEN', 'INERT']
+        valid_line_names = ['RARE', 'HALOGEN', 'INERT', 'BUFFER']
         if line_name.upper() in valid_line_names:
             self.laser.write('OPMODE=FLUSH %s LINE' % line_name.upper())
         else:
@@ -151,7 +151,14 @@ class CompexLaser:
 
     def purge_line(self, line_name):
         # Purges the selected line (flushes/evacuates and fills with inert).
-        self.laser.write('OPMODE=PURGE %s LINE' % line_name.upper())
+        valid_line_names = ['RARE', 'HALOGEN', 'INERT', 'BUFFER']
+        if line_name.upper() in valid_line_names:
+            self.laser.write('OPMODE=PURGE %s LINE' % line_name.upper())
+        else:
+            try:
+                raise LaserOutOfRangeError()
+            except LaserOutOfRangeError:
+                print('Invalid line value supplied, command not sent')
 
     def purge_tube(self):
         # Purges the laser tube (flushes/evacuates and fills with inert).

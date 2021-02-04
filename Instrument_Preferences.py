@@ -79,6 +79,8 @@ class InstrumentPreferencesDialog(QTabWidget):
         self.tbtn_laser_settings_unlock.clicked.connect(self.unlock_settings)
         self.btns_laser_maint['new_fill'].clicked.connect(self.new_gas_fill)
         self.btns_laser_maint['reset_user_counter'].clicked.connect(self.reset_user_counter)
+        self.btns_laser_maint['evac_inert'].clicked.connect(self.evac_inert)
+        self.btns_laser_maint['evac_premix'].clicked.connect(self.evac_premix)
 
     # noinspection PyTypeChecker
     # To avoid erroneous errors where it thinks XML cant handle xpaths as strings
@@ -142,6 +144,12 @@ class InstrumentPreferencesDialog(QTabWidget):
 
     def new_gas_fill(self):
         self.maint_window = NewGasFillDialog(self.brain, self)
+
+    def evac_premix(self):
+        self.brain.laser.flush_line('BUFFER')
+
+    def evac_inert(self):
+        self.brain.laser.flush_line('INERT')
 
     def open(self):
         self.parse_xml_to_settings(self.settings_file_path)
