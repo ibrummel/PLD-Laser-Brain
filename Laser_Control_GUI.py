@@ -4,7 +4,7 @@ Created on Mon Mar 11 10:01:53 2019
 
 @author: Ian
 """
-from PyQt5.QtCore import Qt, QEvent, QTimer
+from PyQt5.QtCore import Qt, QEvent, QTimer, QObject
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction, QFileDialog, QMessageBox, QStatusBar)
 import sys
 from Laser_Hardware import CompexLaser
@@ -18,6 +18,9 @@ from pathlib import Path
 import os
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
+import logging
+from logging.handlers import RotatingFileHandler
+import traceback
 
 
 # Adds a settings attribute to the application for use elsewhere.
@@ -27,6 +30,48 @@ class PLDControlApp(QApplication):
         super().__init__(*args, **kwargs)
         self.instrument_settings = InstrumentPreferencesDialog()
 
+# Fixme: This should be moved to its own module and be set up to be configurable for other
+#  modules in the project. (i.e. have a logger name variable etc)
+class PLDErrorLogger(QObject):
+    
+    def __init__(self, pop_up: bool):
+        self.pop_up = pop_up
+        super().__init__()
+        
+        # Create a logger entity
+        self.error_logger = logging.getLogger("Rotating Log")
+        self.error_logger.setLevel(logging.WARNING)
+        log_handler = RotatingFileHandler("pld_log.txt", maxBytes=10000, backupCount=5)
+        log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        log_handler.setFormatter(log_formatter)
+        self.error_logger.addHandler(log_handler)
+
+    def pld_excepthook(self, excType, excValue, tracebackobj):
+        """
+        Class function to catch unhandled exceptions.
+        
+        @param excType exception type
+        @param excValue exception value
+        @param tracebackobj traceback object
+        
+        See https://riverbankcomputing.com/pipermail/pyqt/2009-May/022961.html for reference
+        """
+        separator = '-' * 80
+        tbinfo = traceback.format_tb(tracebackobj)
+        errmsg = '%s: \n%s' % (str(excType), str(excValue))
+        sections = ["----\nError:\n", errmsg, "----\nGenerated Traceback:\n", "\n".join(tbinfo)]
+        msg = '\n'.join(sections)
+
+        self.error_logger.critical(str(msg) + "\n".join([separator, "Unhandled Excpetion Exiting Application", separator]))
+
+        if self.pop_up:
+            errorbox = QMessageBox()
+            errorbox.setText("An error has occurred. It should be written to 'log.txt'"
+                             "in the directory that the PLD control application is stored"
+                             +str(msg))
+            errorbox.exec_()
+        
+        sys.exit("-1: Unhandled Exception. See logs.")
 
 class PLDMainWindow(QMainWindow):
 
@@ -237,8 +282,14 @@ class PLDMainWindow(QMainWindow):
         return super().eventFilter(source, event)
 
 
-def main():
+def main():    
     app = PLDControlApp(sys.argv)
+    
+    # Log unhandled exceptions by changing the system excepthook to a custom function
+    # that logs to pld_log.txt
+    PLD_error_handler = PLDErrorLogger(pop_up=True)
+    sys.excepthook = PLD_error_handler.pld_excepthook
+    
     # Use the following call for remote testing (without access to the laser), note that the laser.yaml file must be in
     # the working directory
     # laser = CompexLaser('ASRL3::INSTR', 'laser.yaml@sim')
@@ -247,7 +298,7 @@ def main():
     brain = RPiHardware(laser=laser, arduino=arduino)
     ex = PLDMainWindow(laser, brain)
     ex.show()
-
+    
     sys.exit(app.exec_())
 
 
