@@ -6,7 +6,7 @@ Created on Tue Mar  5 12:17:18 2019
 """
 # analysis:ignore
 
-import visa
+import pyvisa as visa
 import csv
 from time import sleep
 
