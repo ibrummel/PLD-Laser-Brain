@@ -97,7 +97,9 @@ class RPiHardware(QWidget):
 
     def stop_laser(self):
         # Stop the laser from generating or accepting trigger pulses.
+        sleep(Global.OP_DELAY)
         self.laser.off()
+        sleep(Global.OP_DELAY)
         if self.laser.trigger_src == 'EXT':
             self.arduino.halt_laser()
 
