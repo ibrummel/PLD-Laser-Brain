@@ -43,7 +43,7 @@ class LaserStatusControl(QDockWidget):
         self.timer_laser_status_polling = QTimer()
         self.timer_laser_status_polling.setInterval(1000)
         self.failed_reads = 0
-        self.laser_connected = False
+        self.laser_connected = True
 
         # Add items to the laser mode combo
         self.combos['laser_mode'].addItems(self.inModes.values())
@@ -141,6 +141,7 @@ class LaserStatusControl(QDockWidget):
             self.laser_connected = True
             self.failed_reads = 0
             if check_connected:
+                print("Laser reconnected...")
                 self.timer_laser_status_polling.stop()
 
     def update_pulse_counter(self):
