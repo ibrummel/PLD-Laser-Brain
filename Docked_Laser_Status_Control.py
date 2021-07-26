@@ -39,11 +39,14 @@ class LaserStatusControl(QDockWidget):
         self.laser = laser
         self.brain = brain
 
+        # Laser Polling/Disconnected Mode
+        self.timer_laser_status_polling = QTimer()
+        self.timer_laser_status_polling.setInterval(1000)
+        self.failed_reads = 0
+        self.laser_connected = False
+
         # Add items to the laser mode combo
         self.combos['laser_mode'].addItems(self.inModes.values())
-        # Sets the mode again using the current mode in order to set the line edits as enabled/disabled on open
-        curr_mode = self.inModes[self.laser.rd_mode()]
-        self.change_mode(curr_mode)
 
         # ToDo: Move all of these into the CompexLaser class so that there are less calls to update them and less
         #  places to lose track of their values.
@@ -53,14 +56,17 @@ class LaserStatusControl(QDockWidget):
         # self.lines['energy'].setValidator(QIntValidator(50, 510))
         self.current_hv = self.laser.rd_hv()
         # self.lines['voltage'].setValidator(QDoubleValidator(18, 27, 1))
-        self.update_timer = QTimer()
+        self.timer_lsc_update = QTimer()
         self.timer_check_warmup = QTimer()
 
         self.init_connections()
-        self.update_pulse_counter() # Reads the current pulse counter value
+        self.update_pulse_counter()  # Reads the current pulse counter value
 
     def init_connections(self):
         # Mode Selection Box. Will default to current laser running mode
+        # Sets the mode again using the current mode in order to set the line edits as enabled/disabled on open
+        curr_mode = self.inModes[self.laser.rd_mode()]
+        self.change_mode(curr_mode)
         self.combos['laser_mode'].currentTextChanged.connect(self.change_mode)
 
         # Energy reading/setting box: while laser is running, will display
@@ -89,44 +95,53 @@ class LaserStatusControl(QDockWidget):
         self.btns['start_stop'].clicked.connect(self.change_on_off)
 
         # Moved from main() into the function
-        self.update_timer.timeout.connect(self.update_lsc)
-        self.update_timer.start(int(1000 / int(self.laser.reprate)))
+        self.timer_lsc_update.timeout.connect(self.update_lsc)
+        self.timer_lsc_update.start(int(1000 / int(self.laser.reprate)))
 
         self.timer_check_warmup.setInterval(1000)
         self.timer_check_warmup.timeout.connect(self.check_warmup)
 
+        self.timer_laser_status_polling.timeout.connect(lambda: self.update_lsc(check_connected=True))
+
         self.brain.laser_finished.connect(self.change_on_off)
         self.brain.laser_finished.connect(self.update_pulse_counter)
 
-    def update_lsc(self):
+    def update_lsc(self, check_connected=False):
         # Updater for the laser status readouts. Only updates for fields that are
         # not currently selected.
-        try:
-            if not self.lines['energy'].hasFocus():
-                self.lines['energy'].setText(self.laser.rd_energy())
-            sleep(Global.OP_DELAY)
-        except VisaIOError as err:
-            print("Error reading laser energy for LSC update.")
+        if self.laser_connected or check_connected:
+            try:
+                if not self.lines['energy'].hasFocus():
+                    self.lines['energy'].setText(self.laser.rd_energy())
+                sleep(Global.OP_DELAY)
 
-        try:
-            if not self.lines['voltage'].hasFocus():
-                self.lines['voltage'].setText(self.laser.rd_hv())
-            sleep(Global.OP_DELAY)
-        except VisaIOError as err:
-            print("Error reading laser HV for LSC update.")
+                if not self.lines['voltage'].hasFocus():
+                    self.lines['voltage'].setText(self.laser.rd_hv())
+                sleep(Global.OP_DELAY)
 
-        try:
-            if not self.lines['reprate'].hasFocus():
-                self.lines['reprate'].setText(str(self.laser.reprate))
-            sleep(Global.OP_DELAY)
-        except VisaIOError as err:
-            print("Error reading laser reprate for LSC update.")
+                if not self.lines['reprate'].hasFocus():
+                    self.lines['reprate'].setText(str(self.laser.reprate))
+                sleep(Global.OP_DELAY)
 
-        try:
-            self.lines['tube_press'].setText(self.laser.rd_tube_press())
-            sleep(Global.OP_DELAY)
-        except VisaIOError as err:
-            print("Error reading laser tube pressure for LSC update.")
+                self.lines['tube_press'].setText(self.laser.rd_tube_press())
+                sleep(Global.OP_DELAY)
+            except VisaIOError as err:
+                # Print error if the laser is believed to be connected
+                if self.laser_connected:
+                    print("Error on reading status from the laser. Error message: {}".format(err))
+                # Increment number of failed reads
+                self.failed_reads += 1
+                # If there have been 10 consecutive failed reads move to disconnected state
+                if self.failed_reads > 10:
+                    self.laser_connected = False
+                    print("Laser disconnected. Polling for reconnection...")
+                return
+
+            # If the status update completes set connected status to true and reset the failed read counter
+            self.laser_connected = True
+            self.failed_reads = 0
+            if check_connected:
+                self.timer_laser_status_polling.stop()
 
     def update_pulse_counter(self):
         self.lines['pulse_counter'].setText(str(self.laser.rd_user_counter()))
@@ -160,7 +175,7 @@ class LaserStatusControl(QDockWidget):
         on_opmodes = ['ON', 'OFF,WAIT']
         # On button press stops the timer that updates the display so that
         # we don't see timeouts on pressing the button to stop/start
-        self.update_timer.stop()
+        self.timer_lsc_update.stop()
         sleep(Global.OP_DELAY)
 
         try:
@@ -191,10 +206,10 @@ class LaserStatusControl(QDockWidget):
         # Re-enables the updater for the LSC after handling start/stop
         sleep(Global.OP_DELAY)
         try:
-            self.update_timer.start(int(1000 / int(self.laser.rd_reprate())))
+            self.timer_lsc_update.start(int(1000 / int(self.laser.rd_reprate())))
         except VisaIOError:
             # If the reprate fails to read, set timer to update at 5Hz
-            self.update_timer.start(200)
+            self.timer_lsc_update.start(200)
 
     def check_warmup(self):
         curr_opmode = self.laser.rd_opmode()
@@ -252,28 +267,3 @@ class LaserStatusControl(QDockWidget):
             if value_error == QMessageBox.Ok:
                 self.lines['voltage'].setText(self.current_hv)
         self.lines['voltage'].clearFocus()
-
-    # def set_reprate(self):
-    #     if self.laser.trigger_src == 'INT':
-    #         if 1 <= int(self.lines['reprate'].text()) <= 30:
-    #             self.int_reprate_current = self.lines['reprate'].text()
-    #             self.laser.set_reprate(self.int_reprate_current)
-    #         else:
-    #             value_error = QMessageBox.question(self, 'Value Error',
-    #                                                'The repitition rate entered is not within acceptable limits. Repitition\
-    #                                                rate will be reset to last good value.',
-    #                                                QMessageBox.Ok, QMessageBox.Ok)
-    #             if value_error == QMessageBox.Ok:
-    #                 self.lines['reprate'].setText(self.int_reprate_current)
-    #     elif self.laser.trigger_src == 'EXT':
-    #         if 1 <= int(self.lines['reprate'].text()) <= 30:
-    #             self.ext_reprate_current = self.lines['reprate'].text()
-    #             self.brain.start_pulsing(self.ext_reprate_current)
-    #         else:
-    #             value_error = QMessageBox.question(self, 'Value Error',
-    #                                                'The repitition rate entered is not within acceptable limits. Repitition\
-    #                                                rate will be reset to last good value.',
-    #                                                QMessageBox.Ok, QMessageBox.Ok)
-    #             if value_error == QMessageBox.Ok:
-    #                 self.lines['reprate'].setText(self.ext_reprate_current)
-    #     self.lines['reprate'].clearFocus()
