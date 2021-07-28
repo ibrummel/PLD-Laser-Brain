@@ -107,8 +107,8 @@ class InstrumentPreferencesDialog(QTabWidget):
             widget.setText(self.pld_settings.find("./laser/{}".format(key)).text)
 
         if isinstance(self.brain, RPiHardware):
-            self.pulse_counters['user'].setText(str(self.brain.laser.rd_user_counter()))
-            self.pulse_counters['total'].setText(str(self.brain.laser.rd_total_counter()))
+            self.pulse_counters['user'].setText(str(self.brain.laser.get_user_counter()))
+            self.pulse_counters['total'].setText(str(self.brain.laser.get_total_counter()))
 
     def init_hardware(self, brain: RPiHardware):
         self.brain = brain
@@ -317,11 +317,11 @@ class NewGasFillDialog(QDialog):
         self.btn_ice_cancel.clicked.connect(self.abort)
 
     def update_fields(self):
-        filter_ratio = self.brain.laser.rd_filter_contamination()
+        filter_ratio = self.brain.laser.get_filter_contamination()
         self.line_halogen_filter_ratio.setText(filter_ratio)
-        opmode = self.brain.laser.rd_opmode()
+        opmode = self.brain.laser.get_opmode()
         self.line_laser_status.setText(opmode)
-        tube_press = self.brain.laser.rd_tube_press()
+        tube_press = self.brain.laser.get_tube_press()
         self.line_tube_press.setText(tube_press)
 
         return filter_ratio, opmode, tube_press

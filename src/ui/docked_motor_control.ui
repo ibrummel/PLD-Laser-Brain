@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>750</width>
-    <height>228</height>
+    <width>1215</width>
+    <height>397</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,14 +18,17 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>750</width>
-    <height>228</height>
+    <width>1215</width>
+    <height>397</height>
    </size>
   </property>
   <property name="font">
    <font>
     <pointsize>10</pointsize>
    </font>
+  </property>
+  <property name="features">
+   <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
   </property>
   <property name="allowedAreas">
    <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>

@@ -52,9 +52,9 @@ class LaserStatusControl(QDockWidget):
         #  places to lose track of their values.
 
         # Create widgets and other GUI elements
-        self.current_egy = self.laser.rd_energy()
+        self.current_egy = self.laser.get_energy()
         # self.lines['energy'].setValidator(QIntValidator(50, 510))
-        self.current_hv = self.laser.rd_hv()
+        self.current_hv = self.laser.get_hv()
         # self.lines['voltage'].setValidator(QDoubleValidator(18, 27, 1))
         self.timer_lsc_update = QTimer()
         self.timer_check_warmup = QTimer()
@@ -65,7 +65,7 @@ class LaserStatusControl(QDockWidget):
     def init_connections(self):
         # Mode Selection Box. Will default to current laser running mode
         # Sets the mode again using the current mode in order to set the line edits as enabled/disabled on open
-        curr_mode = self.inModes[self.laser.rd_mode()]
+        curr_mode = self.inModes[self.laser.get_mode()]
         self.change_mode(curr_mode)
         self.combos['laser_mode'].currentTextChanged.connect(self.change_mode)
 
@@ -112,18 +112,18 @@ class LaserStatusControl(QDockWidget):
         if self.laser_connected or check_connected:
             try:
                 if not self.lines['energy'].hasFocus():
-                    self.lines['energy'].setText(self.laser.rd_energy())
+                    self.lines['energy'].setText(self.laser.get_energy())
                 sleep(Global.OP_DELAY)
 
                 if not self.lines['voltage'].hasFocus():
-                    self.lines['voltage'].setText(self.laser.rd_hv())
+                    self.lines['voltage'].setText(self.laser.get_hv())
                 sleep(Global.OP_DELAY)
 
                 if not self.lines['reprate'].hasFocus():
                     self.lines['reprate'].setText(str(self.laser.reprate))
                 sleep(Global.OP_DELAY)
 
-                self.lines['tube_press'].setText(self.laser.rd_tube_press())
+                self.lines['tube_press'].setText(self.laser.get_tube_press())
                 sleep(Global.OP_DELAY)
             except VisaIOError as err:
                 # Print error if the laser is believed to be connected
@@ -145,7 +145,7 @@ class LaserStatusControl(QDockWidget):
                 self.timer_laser_status_polling.stop()
 
     def update_pulse_counter(self):
-        self.lines['pulse_counter'].setText(str(self.laser.rd_user_counter()))
+        self.lines['pulse_counter'].setText(str(self.laser.get_user_counter()))
 
     def terminal_send(self):
         # Sends the command that was typed into the terminal.
@@ -184,16 +184,16 @@ class LaserStatusControl(QDockWidget):
         except ValueError as err:
             num_pulses = None
 
-        if self.laser.rd_opmode() in on_opmodes:
+        if self.laser.get_opmode() in on_opmodes:
             self.brain.stop_laser()
             if num_pulses is not None:
                 self.lines['num_pulses'].setText('')
             self.laser_manual_stop.emit()
             self.btns['start_stop'].setChecked(False)
             self.btns['start_stop'].setText('Start Laser')
-        elif self.laser.rd_opmode() == 'OFF:31':
+        elif self.laser.get_opmode() == 'OFF:31':
             self.laser_timeout_handler()
-        elif self.laser.rd_opmode() == 'OFF:21':
+        elif self.laser.get_opmode() == 'OFF:21':
             # FIXME: Add a countdown timer?
             self.btns['start_stop'].setDisabled(True)
             self.timer_check_warmup.start()  # Starts a timer that will check if the warmup is over every second
@@ -207,13 +207,13 @@ class LaserStatusControl(QDockWidget):
         # Re-enables the updater for the LSC after handling start/stop
         sleep(Global.OP_DELAY)
         try:
-            self.timer_lsc_update.start(int(1000 / int(self.laser.rd_reprate())))
+            self.timer_lsc_update.start(int(1000 / int(self.laser.get_reprate())))
         except VisaIOError:
             # If the reprate fails to read, set timer to update at 5Hz
             self.timer_lsc_update.start(200)
 
     def check_warmup(self):
-        curr_opmode = self.laser.rd_opmode()
+        curr_opmode = self.laser.get_opmode()
         if curr_opmode == 'OFF:0':
             self.timer_check_warmup.stop()
             self.btns['start_stop'].setDisabled(False)

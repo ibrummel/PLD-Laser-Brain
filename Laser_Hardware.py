@@ -13,7 +13,7 @@ from time import sleep
 from PyQt5.QtWidgets import QInputDialog
 
 
-class LaserOutOfRangeError(BaseException):
+class LaserOutOfRangeError(ValueError):
     pass
 
 
@@ -41,10 +41,10 @@ class CompexLaser:
             
         # Setup Class variables
         self.op_delay = 0.01  # Delay for back to back serial ops
-        self.trigger_src = self.rd_trigger()
-        self.reprate = self.rd_reprate()
-        self.total_pulse_counter = self.rd_total_counter()
-        self.user_pulse_counter = self.rd_user_counter()
+        self.trigger_src = self.get_trigger()
+        self.reprate = self.get_reprate()
+        self.total_pulse_counter = self.get_total_counter()
+        self.user_pulse_counter = self.get_user_counter()
 
         # # Set the laser to energy constant mode to pull internal energy setting
         # curr_mode = self.rd_mode()
@@ -311,7 +311,7 @@ class CompexLaser:
         # Sets the reprate for the laser
         self.laser.write('REPRATE={}'.format(hz))
         sleep(self.op_delay)
-        self.rd_reprate()
+        self.get_reprate()
 
     def set_roomtemp_hilow(self, rt):
         # Only for use with an HCl source as the source reaction is very temp
@@ -343,7 +343,7 @@ class CompexLaser:
         if trigger.upper() in valid_trigger:
             self.laser.write('TRIGGER=%s' % trigger.upper())
             sleep(self.op_delay)
-            self.rd_trigger()
+            self.get_trigger()
         else:
             try:
                 raise LaserOutOfRangeError()
@@ -354,116 +354,116 @@ class CompexLaser:
 #     Polling Methods: Read data and status from the laser.
 # =============================================================================
 
-    def rd_accumulator(self):
+    def get_accumulator(self):
         # Provides the current pressure in the accumulator if there is a
         # halogen source installed. Will return 0 if there is no halogen
         # source installed.
         return self.laser.query('ACCU?')
 
-    def rd_buffer_press(self):
+    def get_buffer_press(self):
         # Reads the partial pressure of the buffer gas in mbar
         return self.laser.query('BUFFER?')
 
-    def rd_halogen_source_capacity(self):
+    def get_halogen_source_capacity(self):
         # Reads the remaining halogen source capacity.
         return self.laser.query('CAP.LEFT?')
 
-    def rd_charge_on_demand(self):
+    def get_charge_on_demand(self):
         # Reads the charge on demand delay in microseconds.
         # Note: This value is soley determined by laser model.
         return self.laser.query('COD?')
 
-    def rd_user_counter(self):
+    def get_user_counter(self):
         # Reads the current number of pulses accumulated since the last
         # user counter reset
         self.user_pulse_counter = int(self.laser.query('COUNTER?'))
         return self.user_pulse_counter
 
-    def rd_counts(self):
+    def get_counts(self):
         # Reads the initial value of the countdown counter. Does
         # not return the number of pulses remaining.
         return self.laser.query('COUNTS?')
 
-    def rd_energy(self):
+    def get_energy(self):
         # Depending on operating mode: 1) Laser OFF: returns the preset/target
         # energy setting 2) Laser ON: displays the measured beam energy, if
         # polled again between trigger pulses, will return 0 3) During ENERGY
         # CAL: reads the momentary monitor reading (unitless)
         return self.laser.query('EGY?')
 
-    def rd_energy_setting(self):
+    def get_energy_setting(self):
         # Reads the preset/target energy value for energy constant mode.
         return self.laser.query('EGY SET?')
 
-    def rd_energy_range(self):
+    def get_energy_range(self):
         # Reads the energy tolerance range in percent.
         return self.laser.query('EGY RANGE?')
 
-    def rd_pulse_averaging(self):
+    def get_pulse_averaging(self):
         # Reads the number of pulses being used to calculate a mean value
         # for the beam energy. A reading of 0 means the value has been set
         # automatically, based on the reprate.
         return self.laser.query('FILTER?')
 
-    def rd_filter_contamination(self):
+    def get_filter_contamination(self):
         # Reads the capacity of the halogen filter in percent
         return self.laser.query('FILTER CONTAMINATION?')
 
-    def rd_gas_mode(self):
+    def get_gas_mode(self):
         # Reads the current gas mode setting.
         return self.laser.query('GASMODE?')
 
-    def rd_halogen_press(self):
+    def get_halogen_press(self):
         # Reads the current partial pressure of the halogen gas in mbar.
         return self.laser.query('HALOGEN?')
 
-    def rd_hv(self):
+    def get_hv(self):
         # Reads the charging voltage in HV mode.
         return self.laser.query('HV?')
 
-    def rd_inert_press(self):
+    def get_inert_press(self):
         # Reads the current partial pressure of the inert gas.
         return self.laser.query('INERT?')
 
-    def rd_interlock(self):
+    def get_interlock(self):
         # Reads a comma separated list of activated interlocks. Returns NONE
         # if no interlocks are active.
         # FIXME: Figure out of the Estop is working and why it doesnt seem
         # to throw an interlock
         return self.laser.query('INTERLOCK?')
 
-    def rd_leak_rate(self):
+    def get_leak_rate(self):
         # For a fluorine source, reads the leak rate of the tube as measured
         # during the new fill procedure. Units of [mbar/2min]
         return self.laser.query('LEAKRATE?')
 
-    def rd_menu(self):
+    def get_menu(self):
         # Reads the current gas menu number, wavelength, and gas mixture as a
         # a tuple.
         return str.split(self.laser.query('MENU?'), ' ')
 
-    def rd_mode(self):
+    def get_mode(self):
         # Reads the current laser running mode: HV, EGY PGR, or EGY NGR.
         return self.laser.query('MODE?')
 
-    def rd_opmode(self):
+    def get_opmode(self):
         # Reads the laser opmode state. This value can be parsed to give
         # insight into error states, operation health, etc.
         # FIXME: Should probably set up a parser so that any error
         # states are more readable
         return self.laser.query('OPMODE?')
 
-    def rd_is_power_stabilized(self):
+    def get_is_power_stabilized(self):
         # Provides a boolean value for power stabilization state.
         if self.laser.query('POWER STABILIZATION ACHIEVED?') == 'YES':
             return True
         return False
 
-    def rd_tube_press(self):
+    def get_tube_press(self):
         # Reads the current tube pressure in mbar.
         return self.laser.query('PRESSURE?')
 
-    def rd_pulse_diff(self):
+    def get_pulse_diff(self):
         # Returns the delta of trigger pulses to pulses received by the
         # energy monitor.
         # dp = (# of ext trigger pulses) - (# of pulses measured)
@@ -471,50 +471,50 @@ class CompexLaser:
         # WE ARE GETTING THE CORRECT NUMBER OF PULSES.
         return self.laser.query('PULSE DIFF?')
 
-    def rd_rare_press(self):
+    def get_rare_press(self):
         # Reads the partial pressure of the Rare in mbar.
         return self.laser.query('RARE?')
 
-    def rd_reprate(self):
+    def get_reprate(self):
         # Reads the current reprate status.
         self.reprate = int(self.laser.query('REPRATE?'))
         return self.reprate
 
-    def rd_roomtemp_hilow(self):
+    def get_roomtemp_hilow(self):
         # Only with a halogen source: Room temp value (can be High or Low), if
         # no halogen source, returns high.
         return self.laser.query('ROOMTEMP?')
 
-    def rd_f_source_temp(self):
+    def get_f_source_temp(self):
         # Reads the temperature in fluorine source, returns 0 if there is no
         # fluorine source is attached.
         return self.laser.query('TEMP?')
 
-    def rd_is_timeout(self):
+    def get_is_timeout(self):
         # Returns a boolean for if timeout is enabled.
         if self.laser.query('TIMEOUT?') == 'ON':
             return True
         return False
 
-    def rd_total_counter(self):
+    def get_total_counter(self):
         # Reads the total counter number of pulses for the laser. Note this
         # value cannot be reset and is for the lifetime of the laser cabinet.
         self.total_pulse_counter = int(self.laser.query('TOTALCOUNTER?'))
         return self.total_pulse_counter
 
-    def rd_trigger(self):
+    def get_trigger(self):
         # Reads the current laser triggering mode. Returns: INT or EXT.
         self.trigger_src = self.laser.query('TRIGGER?')
         return self.trigger_src
 
-    def rd_laser_model(self):
+    def get_laser_model(self):
         # Reads the laser model.
         return self.laser.query('TYPE OF LASER?')
 
-    def rd_version(self):
+    def get_version(self):
         # Reads the current laser software version
         return self.laser.query('VERSION?')
 
     def interpret_opmode(self):
-        current_opmode = self.rd_opmode()
+        current_opmode = self.get_opmode()
         return current_opmode, self.laserCodes[current_opmode]

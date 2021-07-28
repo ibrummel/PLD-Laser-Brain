@@ -27,6 +27,9 @@
     <pointsize>10</pointsize>
    </font>
   </property>
+  <property name="features">
+   <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+  </property>
   <property name="allowedAreas">
    <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>
   </property>
