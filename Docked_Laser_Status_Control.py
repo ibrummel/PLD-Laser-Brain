@@ -128,13 +128,14 @@ class LaserStatusControl(QDockWidget):
             except VisaIOError as err:
                 # Print error if the laser is believed to be connected
                 if self.laser_connected:
-                    print("Error on reading status from the laser. Error message: {}".format(err))
+                    print("{}: Error on reading status from the laser. Error message: {}".format(self.failed_reads, err),)
                 # Increment number of failed reads
                 self.failed_reads += 1
                 # If there have been 10 consecutive failed reads move to disconnected state
-                if self.failed_reads > 10:
+                if self.failed_reads >= 10 and self.laser_connected:
                     self.laser_connected = False
                     print("Laser disconnected. Polling for reconnection...")
+                    self.timer_laser_status_polling.start()
                 return
 
             # If the status update completes set connected status to true and reset the failed read counter
