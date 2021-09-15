@@ -11,7 +11,6 @@ from RPi_Hardware import RPiHardware
 
 
 class LaserStatusControl(QDockWidget):
-
     laser_manual_stop = pyqtSignal()
 
     def __init__(self, laser: CompexLaser, brain: RPiHardware):
@@ -128,7 +127,7 @@ class LaserStatusControl(QDockWidget):
             except VisaIOError as err:
                 # Print error if the laser is believed to be connected
                 if self.laser_connected:
-                    print("{}: Error on reading status from the laser. Error message: {}".format(self.failed_reads, err),)
+                    print("{}: Error reading status from the laser. Error message: {}".format(self.failed_reads, err))
                 # Increment number of failed reads
                 self.failed_reads += 1
                 # If there have been 10 consecutive failed reads move to disconnected state
@@ -240,9 +239,8 @@ class LaserStatusControl(QDockWidget):
             pass
 
     def warmup_warn(self):
-        warmup_clear = QMessageBox.question(self, 'Laser Status: Warm-Up',
-                                            "Start/stop button will be enabled when the warmup ends.",
-                                            QMessageBox.Ok, QMessageBox.Ok)
+        QMessageBox.question(self, 'Laser Status: Warm-Up', "Start/stop button will be enabled when the warmup ends.",
+                             QMessageBox.Ok, QMessageBox.Ok)
 
     def set_energy(self):
         if 50 <= int(self.lines['energy'].text()) <= 510:

@@ -32,7 +32,8 @@ class CompexLaser:
         try:
             self.laser = self.resManager.open_resource(laser_id,
                                                        write_termination='\r',
-                                                       read_termination='\r')
+                                                       read_termination='\r',)
+            self.laser.timeout = 100
         except NameError:
             print(self.resManager.list_resources())
             print("Could not connect to laser, check for instrument name \
