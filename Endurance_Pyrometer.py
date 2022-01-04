@@ -83,10 +83,10 @@ class EndurancePyrometer(object):
                                      'Y',
                                      'Z',
                                      ]
-        # Create an object for connecting to and communicating with the pyrometer
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ip_addr = ip_addr
         self.port = port
+
+        # Get initial data/video
         self.set_webserver_status(1)
         self.set_video_status(1)
         sleep(1)
@@ -150,6 +150,8 @@ class EndurancePyrometer(object):
         :return: Returns value from the pyrometer as a string, to be processed by the calling function
         :rtype: str
         """
+        # Create an object for connecting to and communicating with the pyrometer
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.settimeout(0.5)
         self.socket.connect((self.ip_addr, self.port))
         self.socket.send(request.encode(self._default_encoding))
