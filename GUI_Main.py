@@ -9,9 +9,12 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction, QFileDialog, QM
 import sys
 from Laser_Hardware import CompexLaser
 from RPi_Hardware import RPiHardware
+from Endurance_Pyrometer import EndurancePyrometer
 from Arduino_Hardware import LaserBrainArduino
 from Docked_Motor_Control import MotorControlPanel
 from Docked_Laser_Status_Control import LaserStatusControl
+from Docked_Pyrometer_Control import PyrometerControl
+from Endurance_Pyrometer import EndurancePyrometer
 from Deposition_Control import DepControlBox
 from Instrument_Preferences import InstrumentPreferencesDialog
 from pathlib import Path
@@ -76,12 +79,13 @@ class PLDErrorLogger(QObject):
 
 class PLDMainWindow(QMainWindow):
 
-    def __init__(self, laser: CompexLaser, brain: RPiHardware):
+    def __init__(self, laser: CompexLaser, brain: RPiHardware, pyrometer: EndurancePyrometer):
         super().__init__()
         self.menus = {}
         self.menu_actions = {}
         self.laser = laser
         self.brain = brain
+        self.pyrometer = pyrometer
         # Supply the brain interface to the settings dialog
         QApplication.instance().instrument_settings.init_hardware(brain)
         self.loaded_deposition_path = None
@@ -90,9 +94,10 @@ class PLDMainWindow(QMainWindow):
         # Create a docked widget to hold the LSC module
         self.lsc_docked = LaserStatusControl(self.laser, self.brain)
         self.motor_control_docked = MotorControlPanel(self.brain)
+        self.pyro_control_docked = PyrometerControl(self.pyrometer)
         self.dep_control = DepControlBox(self.laser, self.brain, self)
         self.statusbar = QStatusBar()
-        self.timeout_counter = -9999 # Starts with the value of a completed timer.
+        self.timeout_counter = -9999  # Starts with the value of a completed timer.
         self.laser_running_timer = QTimer()
 
         self.installEventFilter(self)
@@ -107,15 +112,15 @@ class PLDMainWindow(QMainWindow):
         self.setCentralWidget(self.dep_control)
         self.setStatusBar(self.statusbar)
 
-        # self.lsc_docked.setWidget(LaserStatusControl(self.laser, self.brain))
         self.lsc_docked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
-        # self.motor_control_docked.setWidget(MotorControlPanel(self.brain))
         self.motor_control_docked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
+        self.pyro_control_docked.setAllowedAreas(Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea)
         self.setCorner(Qt.TopLeftCorner | Qt.TopRightCorner, Qt.TopDockWidgetArea)
         self.setCorner(Qt.BottomLeftCorner | Qt.BottomRightCorner, Qt.BottomDockWidgetArea)
         self.addDockWidget(Qt.TopDockWidgetArea, self.lsc_docked)
         self.addDockWidget(Qt.TopDockWidgetArea, self.motor_control_docked)
-        self.tabifyDockWidget(self.lsc_docked, self.motor_control_docked)
+        self.addDockWidget(Qt.TopDockWidgetArea, self.pyro_control_docked)
+        self.tabifyDockWidget(self.lsc_docked, self.motor_control_docked, self.pyro_control_docked)
         self.lsc_docked.raise_()
 
         self.init_menubar()
@@ -296,6 +301,7 @@ def main():
     # laser = CompexLaser('ASRL3::INSTR', 'laser.yaml@sim')
     laser = CompexLaser('ASRL/dev/ttyAMA1::INSTR', '@py')
     arduino = LaserBrainArduino('/dev/ttyACM0')
+    pyrometer = EndurancePyrometer()
     brain = RPiHardware(laser=laser, arduino=arduino)
     ex = PLDMainWindow(laser, brain)
     ex.show()
