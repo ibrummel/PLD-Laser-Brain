@@ -169,10 +169,10 @@ class EndurancePyrometer(object):
         Get the two-color temperature from the pyrometer.
 
         :return: Returns a string representing the two-color temperature from the pyrometer
-        :rtype: float
+        :rtype: str
         """
         param = "T"
-        return float(self._query_param(param))
+        return self._query_param(param)  # NOTE: Can return EUUU, EAAA, and float values
 
     def set_temperature_units(self, unit):
         """
