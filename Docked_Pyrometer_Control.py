@@ -22,10 +22,6 @@ class PyrometerControl(QDockWidget):
         # Initialize the ui from the python UI file
         self.ui = Ui_docked_pyro_controls()
         self.ui.setupUi(self)
-        # Save the pyrometer object to a class variable and check if connected
-        self.pyrometer = pyrometer
-        self._pyro_connected = False
-        self.check_pyro_connection()
         # Read the current slope from the pyrometer and put it in the UI
         self.ui.ln_pyro_slope.setText(str(self.pyrometer.get_slope()))
         # Set the initial logging state to false (don't start logging on init) and set up logging timer.
@@ -38,6 +34,10 @@ class PyrometerControl(QDockWidget):
         # Set a default value for the pyrometer log file + initialize GUI
         self._log_file = "{}_pyrometer_log.csv".format(date.today().strftime("%Y.%m.%d"))
         self.ui.ln_pyro_log_file.setText(self._log_file)
+        # Save the pyrometer object to a class variable and check if connected
+        self.pyrometer = pyrometer
+        self._pyro_connected = False
+        self.check_pyro_connection()
         # Set up a timer to continually update the GUI with the current temperature.
         self.pyrometer_value_update_timer = QTimer()
         self.pyrometer_value_update_timer.start(250)  # Update live temperature readout every 0.25 seconds
