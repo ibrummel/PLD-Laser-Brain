@@ -4,13 +4,13 @@ import socket
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QImage, QPixmap
 from src.ui.docked_pyrometer_control_ui import Ui_docked_pyro_controls
-from PyQt5.QtWidgets import QDockWidget, QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QDockWidget, QMessageBox, QFileDialog, QMainWindow
 from Endurance_Pyrometer import EndurancePyrometer
 from datetime import date, datetime
 
 
 class PyrometerControl(QDockWidget):
-    def __init__(self, pyrometer: EndurancePyrometer):
+    def __init__(self, pyrometer: EndurancePyrometer, parent: QMainWindow):
         """
         A dockable widget made to work with the PLD/laser control GUI developed for the Ihlefeld group PLD system
 
