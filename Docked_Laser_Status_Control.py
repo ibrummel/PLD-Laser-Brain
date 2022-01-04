@@ -40,7 +40,7 @@ class LaserStatusControl(QDockWidget):
 
         # Laser Polling/Disconnected Mode
         self.timer_laser_status_polling = QTimer()
-        self.timer_laser_status_polling.setInterval(1000)
+        self.timer_laser_status_polling.setInterval(10000)
         self.failed_reads = 0
         self.laser_connected = True
 
