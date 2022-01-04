@@ -16,14 +16,7 @@ class EndurancePyrometer(object):
         :param kwargs: Keyword arguments to be passed to the obect init function
         """
         super(EndurancePyrometer, self).__init__(*args, **kwargs)
-        # Create an object for connecting to and communicating with the pyrometer
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.ip_addr = ip_addr
-        self.port = port
-        self.set_webserver_status(1)
-        self.set_video_status(1)
-        sleep(1)
-        self.video_capture = cv2.VideoCapture("{}/camera?action=stream&resolution=720p".format(self.ip_addr))
+        # Set up constants for pyrometer communication
         self._default_encoding = 'utf-8'
         self._read_length = 1024 * 3
         self._response_char = '!'
@@ -90,6 +83,15 @@ class EndurancePyrometer(object):
                                      'Y',
                                      'Z',
                                      ]
+        # Create an object for connecting to and communicating with the pyrometer
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.ip_addr = ip_addr
+        self.port = port
+        self.set_webserver_status(1)
+        self.set_video_status(1)
+        sleep(1)
+        self.video_capture = cv2.VideoCapture("{}/camera?action=stream&resolution=720p".format(self.ip_addr))
+
 
     def _query_param(self, param):
         """
