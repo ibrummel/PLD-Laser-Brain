@@ -140,7 +140,7 @@ class DepControlBox(QWidget):
         self.btns['copy_step'].clicked.connect(self.copy_deposition_step)
         self.lines['step_name'].editingFinished.connect(self.update_item_name)
         self.list_view.currentItemChanged.connect(self.on_item_change)
-        self.parent.pld_settings_dialog.settings_applied.connect(self.update_target_roster)
+        self.parent().pld_settings_dialog.settings_applied.connect(self.update_target_roster)
 
         # Cross thread communications
         self.btns['run_dep'].clicked.connect(self.run_deposition)
@@ -214,7 +214,7 @@ class DepControlBox(QWidget):
 
     def update_target_roster(self):
         self.combos['select_target'].clear()
-        self.combos['select_target'].addItems(self.parent.pld_settings_dialog.get_target_roster(
+        self.combos['select_target'].addItems(self.parent().pld_settings_dialog.get_target_roster(
             formatlist=['number', 'composition', 'diameter']))
 
     def add_deposition_step(self):

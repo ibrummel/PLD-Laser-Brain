@@ -124,7 +124,7 @@ class InstrumentPreferencesDialog(QTabWidget):
                 self.gbox_substrate_motor.setEnabled(True)
                 self.tbtn_motor_settings_unlock.setChecked(True)
                 self.tbtn_laser_settings_unlock.setChecked(True)
-                self.parent.lsc_docked.timer_lsc_update.stop()
+                self.parent().lsc_docked.timer_lsc_update.stop()
                 print("Stopped LSC timer")
             else:
                 self.gbox_laser_maint.setEnabled(False)
@@ -138,7 +138,7 @@ class InstrumentPreferencesDialog(QTabWidget):
             self.gbox_substrate_motor.setEnabled(False)
             self.tbtn_motor_settings_unlock.setChecked(False)
             self.tbtn_laser_settings_unlock.setChecked(False)
-            self.parent.lsc_docked.timer_lsc_update.start()
+            self.parent().lsc_docked.timer_lsc_update.start()
             print("Started LSC timer")
 
     def reset_user_counter(self):

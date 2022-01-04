@@ -47,7 +47,7 @@ class MotorControlPanel(QDockWidget):
         # Set up updating fields on a timer
         self.motor_update_timer.timeout.connect(self.update_fields)
         self.motor_update_timer.start(100)
-        self.parent.pld_settings_dialog.settings_applied.connect(self.update_target_roster)
+        self.parent().pld_settings_dialog.settings_applied.connect(self.update_target_roster)
 
         # Initiate control connections
         self.btns['sub_up'].pressed.connect(self.sub_up)
@@ -74,7 +74,7 @@ class MotorControlPanel(QDockWidget):
     def update_target_roster(self):
         self.combos['current_target'].blockSignals(True)
         self.combos['current_target'].clear()
-        self.combos['current_target'].addItems(self.parent.pld_settings_dialog.get_target_roster(
+        self.combos['current_target'].addItems(self.parent().pld_settings_dialog.get_target_roster(
             formatlist=['number', 'composition', 'diameter']))
         self.combos['current_target'].blockSignals(False)
 
@@ -181,7 +181,7 @@ class MotorControlPanel(QDockWidget):
     def raster_current_target(self):
         if self.checks['raster'].isChecked():
             target_string = "./target_carousel/target[@ID='{}']/".format(self.brain.current_target())
-            pld_settings = self.parent.pld_settings_dialog.pld_settings
+            pld_settings = self.parent().pld_settings_dialog.pld_settings
             target_size = float(pld_settings.find(target_string + 'Size').text)
             target_utilization = float(pld_settings.find(target_string + 'Utilization').text)
             target_height = float(pld_settings.find(target_string + 'Height').text)
