@@ -2,7 +2,7 @@ import os
 
 from PyQt5.QtCore import QRegExp, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog, QDialog, QWidget, \
-    QLabel, QMessageBox, QStackedWidget
+    QLabel, QMessageBox, QStackedWidget, QMainWindow
 from PyQt5 import uic
 import xml.etree.ElementTree as ET
 from RPi_Hardware import RPiHardware
@@ -12,8 +12,9 @@ from RPi_Hardware import RPiHardware
 class InstrumentPreferencesDialog(QTabWidget):
     settings_applied = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, parent: QMainWindow):
         super().__init__()
+        self.setParent(parent)
 
         # This is set later to kludge it past initialization order issues FIXME
         self.brain = None
@@ -123,6 +124,8 @@ class InstrumentPreferencesDialog(QTabWidget):
                 self.gbox_substrate_motor.setEnabled(True)
                 self.tbtn_motor_settings_unlock.setChecked(True)
                 self.tbtn_laser_settings_unlock.setChecked(True)
+                self.parent.lsc_docked.timer_lsc_update.stop()
+                print("Stopped LSC timer")
             else:
                 self.gbox_laser_maint.setEnabled(False)
                 self.gbox_laser_settings.setEnabled(False)
@@ -135,6 +138,8 @@ class InstrumentPreferencesDialog(QTabWidget):
             self.gbox_substrate_motor.setEnabled(False)
             self.tbtn_motor_settings_unlock.setChecked(False)
             self.tbtn_laser_settings_unlock.setChecked(False)
+            self.parent.lsc_docked.timer_lsc_update.start()
+            print("Started LSC timer")
 
     def reset_user_counter(self):
         # print("Running reset on user counter")
@@ -182,6 +187,8 @@ class InstrumentPreferencesDialog(QTabWidget):
 
         self.write_settings_to_xml()
         self.settings_applied.emit()
+        if self.tbtn_motor_settings_unlock.isChecked():
+            self.unlock_settings()
 
     def get_target_roster(self, formatlist=None, sep=' - '):
         # Create a list of 6 empty strings
@@ -241,8 +248,6 @@ class InstrumentPreferencesDialog(QTabWidget):
             self.parse_xml_to_settings(self.settings_file_path)
         self.pld_settings = pld
 
-        # Actually do something with the parsed file
-        # ToDo: Verify this, I just inverted the apply function
         self.init_fields()
 
     def write_settings_to_xml(self):

@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction, QFileDialog, QM
 import sys
 from Laser_Hardware import CompexLaser
 from RPi_Hardware import RPiHardware
-from Endurance_Pyrometer import EndurancePyrometer
 from Arduino_Hardware import LaserBrainArduino
 from Docked_Motor_Control import MotorControlPanel
 from Docked_Laser_Status_Control import LaserStatusControl
@@ -24,14 +23,6 @@ from datetime import datetime, timedelta
 import logging
 from logging.handlers import RotatingFileHandler
 import traceback
-
-
-# Adds a settings attribute to the application for use elsewhere.
-class PLDControlApp(QApplication):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.instrument_settings = InstrumentPreferencesDialog()
 
 # Fixme: This should be moved to its own module and be set up to be configurable for other
 #  modules in the project. (i.e. have a logger name variable etc)
@@ -87,15 +78,16 @@ class PLDMainWindow(QMainWindow):
         self.brain = brain
         self.pyrometer = pyrometer
         # Supply the brain interface to the settings dialog
-        QApplication.instance().instrument_settings.init_hardware(brain)
+        self.pld_settings_dialog = InstrumentPreferencesDialog(parent=self)
+        self.pld_settings_dialog.init_hardware(brain)
         self.loaded_deposition_path = None
         self.unsaved_changes = False
 
         # Create a docked widget to hold the LSC module
-        self.lsc_docked = LaserStatusControl(self.laser, self.brain)
-        self.motor_control_docked = MotorControlPanel(self.brain)
-        self.pyro_control_docked = PyrometerControl(self.pyrometer)
-        self.dep_control = DepControlBox(self.laser, self.brain, self)
+        self.lsc_docked = LaserStatusControl(self.laser, self.brain, parent=self)
+        self.motor_control_docked = MotorControlPanel(self.brain, parent=self)
+        self.pyro_control_docked = PyrometerControl(self.pyrometer, parent=self)
+        self.dep_control = DepControlBox(self.laser, self.brain, parent=self)
         self.statusbar = QStatusBar()
         self.timeout_counter = -9999  # Starts with the value of a completed timer.
         self.laser_running_timer = QTimer()
@@ -194,7 +186,7 @@ class PLDMainWindow(QMainWindow):
 
     def open_preferences(self):
         # Opens the app's settings dialog
-        QApplication.instance().instrument_settings.open()
+        self.parent.pld_settings_dialog.open()
 
     def load_deposition(self):
         self.query_overwrite('Loading')
@@ -289,7 +281,7 @@ class PLDMainWindow(QMainWindow):
 
 
 def main():    
-    app = PLDControlApp(sys.argv)
+    app = QApplication(sys.argv)
     
     # Log unhandled exceptions by changing the system excepthook to a custom function
     # that logs to pld_log.txt
