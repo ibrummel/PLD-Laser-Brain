@@ -295,7 +295,7 @@ def main():
     arduino = LaserBrainArduino('/dev/ttyACM0')
     pyrometer = EndurancePyrometer()
     brain = RPiHardware(laser=laser, arduino=arduino)
-    ex = PLDMainWindow(laser, brain)
+    ex = PLDMainWindow(laser, brain, pyrometer)
     ex.show()
     
     sys.exit(app.exec_())
