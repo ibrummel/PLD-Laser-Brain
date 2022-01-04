@@ -79,6 +79,7 @@ class PLDMainWindow(QMainWindow):
         self.pyrometer = pyrometer
         # Supply the brain interface to the settings dialog
         self.pld_settings_dialog = InstrumentPreferencesDialog(parent=self)
+        self.pld_settings_dialog.hide()
         self.pld_settings_dialog.init_hardware(brain)
         self.loaded_deposition_path = None
         self.unsaved_changes = False
@@ -112,7 +113,8 @@ class PLDMainWindow(QMainWindow):
         self.addDockWidget(Qt.TopDockWidgetArea, self.lsc_docked)
         self.addDockWidget(Qt.TopDockWidgetArea, self.motor_control_docked)
         self.addDockWidget(Qt.TopDockWidgetArea, self.pyro_control_docked)
-        self.tabifyDockWidget(self.lsc_docked, self.motor_control_docked, self.pyro_control_docked)
+        self.tabifyDockWidget(self.lsc_docked, self.motor_control_docked)
+        self.tabifyDockWidget(self.motor_control_docked, self.pyro_control_docked)
         self.lsc_docked.raise_()
 
         self.init_menubar()

@@ -90,7 +90,7 @@ class EndurancePyrometer(object):
         self.set_webserver_status(1)
         self.set_video_status(1)
         sleep(1)
-        self.video_capture = cv2.VideoCapture("{}/camera?action=stream&resolution=720p".format(self.ip_addr))
+        self.video_capture = cv2.VideoCapture("http://{}/camera?action=stream&resolution=720p".format(self.ip_addr))
 
 
     def _query_param(self, param):
@@ -272,7 +272,7 @@ class EndurancePyrometer(object):
         ret, frame = self.video_capture.read()
         if ret:
             rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            w, h, ch = rgb_image.shape()
+            w, h, ch = rgb_image.shape
             bytes_per_line = w * ch
             return {'image': rgb_image, 'w': w, 'h': h, 'ch': ch, 'bytes_per_line': bytes_per_line}
         else:

@@ -48,6 +48,8 @@ class PyrometerControl(QDockWidget):
         self._video_fps = 12
         self.video_frame_timer = QTimer()
         self.video_frame_timer.start(int(1000 / self._video_fps))
+        
+        self.init_connections()
 
     def init_connections(self):
         """
@@ -55,7 +57,8 @@ class PyrometerControl(QDockWidget):
 
         :return: None
         """
-        self.ui.btn_pyro_log_start_stop.clicked.connect(self.start_stop_logging)
+        if self._pyro_connected:
+            self.ui.btn_pyro_log_start_stop.clicked.connect(self.start_stop_logging)
         self.ui.ln_pyro_log_file.editingFinished.connect(self.set_log_file_by_line)
         self.ui.btn_pyro_log_file.clicked.connect(self.set_log_file_by_dialog)
         self.ui.ln_log_interval.editingFinished.connect(self.set_log_interval)
@@ -77,15 +80,22 @@ class PyrometerControl(QDockWidget):
             self._pyro_connected = True
         except socket.timeout as error:  # TODO: Figure out what the actual socket timeout error is called
             self._pyro_connected = False
+            print("Connection to pyrometer timed out")
 
         if prev_state != self._pyro_connected:
             if not self._pyro_connected:
                 self.ui.btn_pyro_log_start_stop.setText("Check Connection")
-                self.ui.btn_pyro_log_start_stop.clicked.disconnect(self.start_stop_logging)
+                try:
+                    self.ui.btn_pyro_log_start_stop.clicked.disconnect(self.start_stop_logging)
+                except TypeError:
+                    print('Tried to disconnect start_stop_logging but it was not connected')
                 self.ui.btn_pyro_log_start_stop.clicked.connect(self.check_pyro_connection)
             elif self._pyro_connected:
                 self.ui.btn_pyro_log_start_stop.setText("Start Logging" if self._logging else "Stop Logging")
-                self.ui.btn_pyro_log_start_stop.clicked.disconnect(self.check_pyro_connection)
+                try:
+                    self.ui.btn_pyro_log_start_stop.clicked.disconnect(self.check_pyro_connection)
+                except TypeError:
+                    print('Tried to disconnect check_pyro_connection but it was not connected')
                 self.ui.btn_pyro_log_start_stop.clicked.connect(self.start_stop_logging)
 
         # DONE: Finish logic for checking connected and add actions on log button changing to reconnect button
@@ -241,9 +251,9 @@ class PyrometerControl(QDockWidget):
         """
         if self._pyro_connected:
             img = self.pyrometer.get_live_image()
-            qt_format_image = QImage(img['rgb_image'].data, img['w'], img['h'], img['bytes_per_line'],
+            qt_format_image = QImage(img['image'].data, img['w'], img['h'], img['bytes_per_line'],
                                      QImage.Format_RGB888)
-            pixmap_height = self.ui.lbl_pyro_live_video.size()[1]
+            pixmap_height = self.ui.lbl_pyro_live_video.size().height()
             pixmap_width = np.round(pixmap_height * (16 / 9))
             scaled_qt_format_image = qt_format_image.scaled(pixmap_width, pixmap_height, Qt.KeepAspectRatio)
             self.ui.lbl_pyro_live_video.setPixmap(QPixmap.fromImage(scaled_qt_format_image))
