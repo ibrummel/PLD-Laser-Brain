@@ -2,7 +2,7 @@ from PyQt5 import uic
 from PyQt5.QtCore import Qt, QTimer, QRegExp, pyqtSignal
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QLabel, QLineEdit, QPushButton,
-                             QWidget, QMessageBox, QDockWidget)
+                             QWidget, QMessageBox, QDockWidget, QMainWindow)
 from Laser_Hardware import CompexLaser
 from pyvisa.errors import VisaIOError
 from time import sleep
@@ -13,8 +13,9 @@ from RPi_Hardware import RPiHardware
 class LaserStatusControl(QDockWidget):
     laser_manual_stop = pyqtSignal()
 
-    def __init__(self, laser: CompexLaser, brain: RPiHardware):
+    def __init__(self, laser: CompexLaser, brain: RPiHardware, parent: QMainWindow):
         super().__init__()
+        self.setParent(parent)
 
         # Load UI and discover necessary items
         uic.loadUi('./src/ui/docked_laser_status_control.ui', self)
