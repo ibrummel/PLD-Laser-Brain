@@ -15,6 +15,7 @@ class InstrumentPreferencesDialog(QTabWidget):
     def __init__(self, parent: QMainWindow):
         super().__init__()
         self.setParent(parent)
+        self._maint_unlocked = False
 
         # This is set later to kludge it past initialization order issues FIXME
         self.brain = None
@@ -115,15 +116,14 @@ class InstrumentPreferencesDialog(QTabWidget):
         self.brain = brain
 
     def unlock_settings(self):
-        if not self.tbtn_motor_settings_unlock.isChecked():
+        if not self._maint_unlocked:
             password = SettingsPasswordDialog(attempt_limit=5)
             if password.result() == QMessageBox.Accepted:
                 self.gbox_laser_maint.setEnabled(True)
                 self.gbox_laser_settings.setEnabled(True)
                 self.gbox_carousel_motor.setEnabled(True)
                 self.gbox_substrate_motor.setEnabled(True)
-                self.tbtn_motor_settings_unlock.setChecked(True)
-                self.tbtn_laser_settings_unlock.setChecked(True)
+                self._maint_unlocked = True
                 self.parent().lsc_docked.timer_lsc_update.stop()
                 print("Stopped LSC timer")
             else:
@@ -131,13 +131,13 @@ class InstrumentPreferencesDialog(QTabWidget):
                 self.gbox_laser_settings.setEnabled(False)
                 self.gbox_carousel_motor.setEnabled(False)
                 self.gbox_substrate_motor.setEnabled(False)
+                self._maint_unlocked = False
         else:
             self.gbox_laser_maint.setEnabled(False)
             self.gbox_laser_settings.setEnabled(False)
             self.gbox_carousel_motor.setEnabled(False)
             self.gbox_substrate_motor.setEnabled(False)
-            self.tbtn_motor_settings_unlock.setChecked(False)
-            self.tbtn_laser_settings_unlock.setChecked(False)
+            self._maint_unlocked = False
             self.parent().lsc_docked.timer_lsc_update.start()
             print("Started LSC timer")
 
