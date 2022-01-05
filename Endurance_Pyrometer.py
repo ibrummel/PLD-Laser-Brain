@@ -90,7 +90,7 @@ class EndurancePyrometer(object):
         self.set_webserver_status(1)
         self.set_video_status(1)
         sleep(1)
-        self.video_capture = cv2.VideoCapture("http://{}/camera?action=stream&resolution=720p".format(self.ip_addr))
+        self._open_video_capture()
 
 
     def _query_param(self, param):
@@ -163,6 +163,9 @@ class EndurancePyrometer(object):
 
         self.socket.close()
         return answer
+
+    def _open_video_capture(self):
+        self.video_capture = cv2.VideoCapture("http://{}/camera?action=stream&resolution=720p".format(self.ip_addr))
 
     def get_twocolor_temp(self):
         """
@@ -269,6 +272,8 @@ class EndurancePyrometer(object):
         :returns: Returns a dictionary with the captured image + statistics
         :rtype: dict
         """
+#         self.set_webserver_status(1)
+#         self.set_video_status(1)
         ret, frame = self.video_capture.read()
         if ret:
             rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -277,4 +282,6 @@ class EndurancePyrometer(object):
             return {'image': rgb_image, 'w': w, 'h': h, 'ch': ch, 'bytes_per_line': bytes_per_line}
         else:
             print("Failed to get image, trying again")
+            self.video_capture.release()
+            self._open_video_capture()
             return self.get_live_image()
