@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1215</width>
-    <height>397</height>
+    <width>700</width>
+    <height>285</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1215</width>
-    <height>397</height>
+    <width>700</width>
+    <height>285</height>
    </size>
   </property>
   <property name="font">
@@ -47,10 +47,16 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="spacing">
-          <number>10</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QPushButton" name="btn_carousel_prev">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
            <property name="text">
             <string>Previous</string>
            </property>
@@ -62,6 +68,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="btn_carousel_home">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
            <property name="text">
             <string>Home </string>
            </property>
@@ -73,6 +85,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="btn_carousel_next">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
            <property name="layoutDirection">
             <enum>Qt::LeftToRight</enum>
            </property>
@@ -92,6 +110,9 @@
          <property name="formAlignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
          </property>
+         <property name="verticalSpacing">
+          <number>1</number>
+         </property>
          <item row="0" column="0">
           <widget class="QLabel" name="lbl_current_target">
            <property name="text">
@@ -100,7 +121,14 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QComboBox" name="combo_current_target"/>
+          <widget class="QComboBox" name="combo_current_target">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
+          </widget>
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="lbl_raster">
@@ -111,6 +139,12 @@
          </item>
          <item row="1" column="1">
           <widget class="QCheckBox" name="check_raster">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -124,10 +158,24 @@
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QLineEdit" name="line_carousel_speed"/>
+          <widget class="QLineEdit" name="line_carousel_speed">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
+          </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QLineEdit" name="line_carousel_accel"/>
+          <widget class="QLineEdit" name="line_carousel_accel">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
+          </widget>
          </item>
          <item row="4" column="0">
           <widget class="QLabel" name="lbl_carousel_accel">
@@ -147,6 +195,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
            <item>
             <widget class="QLineEdit" name="line_carousel_offset">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>28</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Enter an offset number of steps for use with small targets that cannot be easily rastered. Number of steps can be positive or negative.</string>
              </property>
@@ -154,6 +208,12 @@
            </item>
            <item>
             <widget class="QToolButton" name="btn_clear_carousel_offset">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>28</height>
+              </size>
+             </property>
              <property name="toolTip">
               <string>Clear the currently applied target carousel offset and return to the current target's center position.</string>
              </property>
@@ -178,10 +238,16 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <property name="spacing">
-          <number>10</number>
+          <number>1</number>
          </property>
          <item>
           <widget class="QPushButton" name="btn_sub_up">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
            <property name="text">
             <string>Move Up</string>
            </property>
@@ -193,6 +259,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="btn_sub_home">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
            <property name="text">
             <string>Home </string>
            </property>
@@ -204,6 +276,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="btn_sub_down">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
            <property name="text">
             <string>Move Down</string>
            </property>
@@ -223,6 +301,9 @@
          <property name="formAlignment">
           <set>Qt::AlignCenter</set>
          </property>
+         <property name="verticalSpacing">
+          <number>1</number>
+         </property>
          <item row="0" column="0">
           <widget class="QLabel" name="lbl_sub_position">
            <property name="text">
@@ -231,7 +312,14 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLineEdit" name="line_sub_position"/>
+          <widget class="QLineEdit" name="line_sub_position">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
+          </widget>
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="lbl_sub_speed">
@@ -241,7 +329,14 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLineEdit" name="line_sub_speed"/>
+          <widget class="QLineEdit" name="line_sub_speed">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>28</height>
+            </size>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
