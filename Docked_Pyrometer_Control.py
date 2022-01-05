@@ -47,7 +47,6 @@ class PyrometerControl(QDockWidget):
         #  depending on performance.
         self._video_fps = 12
         self.video_frame_timer = QTimer()
-        self.video_frame_timer.start(int(1000 / self._video_fps))
         
         self.init_connections()
 
@@ -63,6 +62,8 @@ class PyrometerControl(QDockWidget):
         self.ui.btn_pyro_log_file.clicked.connect(self.set_log_file_by_dialog)
         self.ui.ln_log_interval.editingFinished.connect(self.set_log_interval)
         self.ui.ln_pyro_slope.editingFinished.connect(self.set_pyrometer_slope)
+        self.ui.btn_get_frame(self.update_live_image)
+        self.ui.check_enable_video.clicked.connect(self.set_live_video)
         self.video_frame_timer.timeout.connect(self.update_live_image)
         self.pyrometer_value_update_timer.timeout.connect(self.update_pyrometer_values)
         self.log_interval_timer.timeout.connect(self.log_to_file)
@@ -240,6 +241,12 @@ class PyrometerControl(QDockWidget):
 
             return slope, temp, unit
         return None
+
+    def set_live_video(self):
+        if self.ui.check_enable_video.isChecked():
+            self.video_frame_timer.start(int(1000 / self._video_fps))
+        elif not self.ui.check_enable_video.isChecked():
+            self.video_frame_timer.stop()
 
     def update_live_image(self):
         """
