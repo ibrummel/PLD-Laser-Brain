@@ -79,6 +79,7 @@ class PLDMainWindow(QMainWindow):
         self.pyrometer = pyrometer
         # Supply the brain interface to the settings dialog
         self.pld_settings_dialog = InstrumentPreferencesDialog(parent=self)
+        self.pld_settings_dialog.setWindowFlags(Qt.Window)
         self.pld_settings_dialog.hide()
         self.pld_settings_dialog.init_hardware(brain)
         self.loaded_deposition_path = None
@@ -188,7 +189,7 @@ class PLDMainWindow(QMainWindow):
 
     def open_preferences(self):
         # Opens the app's settings dialog
-        self.parent().pld_settings_dialog.open()
+        self.pld_settings_dialog.open()
 
     def load_deposition(self):
         self.query_overwrite('Loading')

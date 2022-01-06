@@ -1,6 +1,6 @@
 import os
 
-from PyQt5.QtCore import QRegExp, pyqtSignal, QTimer
+from PyQt5.QtCore import QRegExp, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QTabWidget, QLineEdit, QPushButton, QToolButton, QGroupBox, QFileDialog, QDialog, QWidget, \
     QLabel, QMessageBox, QStackedWidget, QMainWindow
 from PyQt5 import uic
@@ -77,8 +77,8 @@ class InstrumentPreferencesDialog(QTabWidget):
         for key, widget in self.btns_cancel.items():
             widget.clicked.connect(self.cancel)
 
-        self.tbtn_motor_settings_unlock.clicked.connect(self.unlock_settings)
-        self.tbtn_laser_settings_unlock.clicked.connect(self.unlock_settings)
+        self.tbtn_motor_settings_unlock.clicked.connect(self.set_maint_unlock)
+        self.tbtn_laser_settings_unlock.clicked.connect(self.set_maint_unlock)
         self.btns_laser_maint['new_fill'].clicked.connect(self.new_gas_fill)
         self.btns_laser_maint['reset_user_counter'].clicked.connect(self.reset_user_counter)
         self.btns_laser_maint['evac_inert'].clicked.connect(self.evac_inert)
@@ -115,7 +115,7 @@ class InstrumentPreferencesDialog(QTabWidget):
     def init_hardware(self, brain: RPiHardware):
         self.brain = brain
 
-    def unlock_settings(self):
+    def set_maint_unlock(self):
         if not self._maint_unlocked:
             password = SettingsPasswordDialog(attempt_limit=5)
             if password.result() == QMessageBox.Accepted:
@@ -187,8 +187,9 @@ class InstrumentPreferencesDialog(QTabWidget):
 
         self.write_settings_to_xml()
         self.settings_applied.emit()
-        if self.tbtn_motor_settings_unlock.isChecked():
-            self.unlock_settings()
+        if self._maint_unlocked:
+            print("Relocking maintenance settings")
+            self.set_maint_unlock()
 
     def get_target_roster(self, formatlist=None, sep=' - '):
         # Create a list of 6 empty strings
