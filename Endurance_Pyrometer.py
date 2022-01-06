@@ -277,7 +277,7 @@ class EndurancePyrometer(object):
         ret, frame = self.video_capture.read()
         if ret:
             rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            w, h, ch = rgb_image.shape
+            h, w, ch = rgb_image.shape
             bytes_per_line = w * ch
             return {'image': rgb_image, 'w': w, 'h': h, 'ch': ch, 'bytes_per_line': bytes_per_line}
         else:

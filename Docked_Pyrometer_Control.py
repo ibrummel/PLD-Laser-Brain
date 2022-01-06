@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import socket
+from time import sleep
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QImage, QPixmap
 from src.ui.docked_pyrometer_control_ui import Ui_docked_pyro_controls
@@ -62,7 +63,7 @@ class PyrometerControl(QDockWidget):
         self.ui.btn_pyro_log_file.clicked.connect(self.set_log_file_by_dialog)
         self.ui.ln_log_interval.editingFinished.connect(self.set_log_interval)
         self.ui.ln_pyro_slope.editingFinished.connect(self.set_pyrometer_slope)
-        self.ui.btn_get_frame.clicked.connect(self.update_live_image)
+        self.ui.btn_get_frame.clicked.connect(self.get_single_frame)
         self.ui.check_enable_video.clicked.connect(self.set_live_video)
         self.video_frame_timer.timeout.connect(self.update_live_image)
         self.pyrometer_value_update_timer.timeout.connect(self.update_pyrometer_values)
@@ -248,6 +249,12 @@ class PyrometerControl(QDockWidget):
         elif not self.ui.check_enable_video.isChecked():
             self.video_frame_timer.stop()
 
+    def get_single_frame(self):
+        for i in range(0,4):
+            self.pyrometer.get_live_image()
+            sleep(1/12)
+        self.update_live_image()
+    
     def update_live_image(self):
         """
         Render a new frame in the live video view label widget. Size set based on height of label widget under the
