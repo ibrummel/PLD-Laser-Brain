@@ -166,8 +166,8 @@ class EndurancePyrometer(object):
             self.socket.close()
             self._pyrometer_timeout = False
         except socket.timeout as err:
-            print(err)
-            print("Socket timeout on communication to Pyrometer")
+            # print(err)
+            # print("Socket timeout on communication to Pyrometer")
             answer = "--NA--"
             self._pyrometer_timeout = True
         return answer

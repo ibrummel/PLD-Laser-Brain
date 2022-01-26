@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import socket
-from time import
+from time import sleep
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QImage, QPixmap
 from src.ui.docked_pyrometer_control_ui import Ui_docked_pyro_controls
@@ -48,7 +48,7 @@ class PyrometerControl(QDockWidget):
         #  depending on performance.
         self._video_fps = 12
         self.video_frame_timer = QTimer()
-        
+
         self.init_connections()
 
     def init_connections(self):
@@ -79,9 +79,9 @@ class PyrometerControl(QDockWidget):
         prev_state = self._pyro_connected
         try:
             self.pyrometer.get_twocolor_temp()
-            self._pyro_connected = True
+            self._pyro_connected = not self.pyrometer._pyrometer_timeout
         except socket.timeout as error:  # TODO: Figure out what the actual socket timeout error is called
-            self._pyro_connected = False
+            self._pyro_connected = not self.pyrometer._pyrometer_timeout
             print("Connection to pyrometer timed out")
 
         if prev_state != self._pyro_connected:
@@ -109,9 +109,10 @@ class PyrometerControl(QDockWidget):
 
         :return: None
         """
-        interval = float(self.ui.ln_log_interval.text())
-        self.log_interval_timer.setInterval(1000 * interval)
-        self.ui.ln_log_interval.setText(str(interval))
+        if self._pyro_connected:
+            interval = float(self.ui.ln_log_interval.text())
+            self.log_interval_timer.setInterval(1000 * interval)
+            self.ui.ln_log_interval.setText(str(interval))
 
     def set_pyrometer_slope(self):
         """
@@ -119,8 +120,9 @@ class PyrometerControl(QDockWidget):
 
         :return: None
         """
-        self.pyrometer.set_slope(float(self.ui.ln_pyro_slope.text()))
-        self.update_pyrometer_values()
+        if self._pyro_connected:
+            self.pyrometer.set_slope(float(self.ui.ln_pyro_slope.text()))
+            self.update_pyrometer_values()
 
     def start_stop_logging(self):
         """
@@ -241,20 +243,22 @@ class PyrometerControl(QDockWidget):
                 self.ui.ln_pyro_slope.setText(str(slope))
 
             return slope, temp, unit
-        return None
+        return None, None, None
 
     def set_live_video(self):
-        if self.ui.check_enable_video.isChecked():
-            self.video_frame_timer.start(int(1000 / self._video_fps))
-        elif not self.ui.check_enable_video.isChecked():
-            self.video_frame_timer.stop()
+        if self._pyro_connected:
+            if self.ui.check_enable_video.isChecked():
+                self.video_frame_timer.start(int(1000 / self._video_fps))
+            elif not self.ui.check_enable_video.isChecked():
+                self.video_frame_timer.stop()
 
     def get_single_frame(self):
-        for i in range(0,4):
-            self.pyrometer.get_live_image()
-            sleep(1/12)
-        self.update_live_image()
-    
+        if self._pyro_connected:
+            for i in range(0, 4):
+                self.pyrometer.get_live_image()
+                sleep(1 / 12)
+            self.update_live_image()
+
     def update_live_image(self):
         """
         Render a new frame in the live video view label widget. Size set based on height of label widget under the
