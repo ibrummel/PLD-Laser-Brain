@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import socket
-from time import sleep
+from time import
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QImage, QPixmap
 from src.ui.docked_pyrometer_control_ui import Ui_docked_pyro_controls

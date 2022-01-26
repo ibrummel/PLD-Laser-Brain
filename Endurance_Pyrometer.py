@@ -17,6 +17,7 @@ class EndurancePyrometer(object):
         """
         super(EndurancePyrometer, self).__init__(*args, **kwargs)
         # Set up constants for pyrometer communication
+        self_pyrometer_timeout = False
         self._default_encoding = 'utf-8'
         self._read_length = 1024 * 3
         self._response_char = '!'
@@ -151,17 +152,24 @@ class EndurancePyrometer(object):
         :rtype: str
         """
         # Create an object for connecting to and communicating with the pyrometer
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.settimeout(0.5)
-        self.socket.connect((self.ip_addr, self.port))
-        self.socket.send(request.encode(self._default_encoding))
-        answer = self.socket.recv(self._read_length).decode('utf-8')
-        if answer.startswith(self._response_char):
-            answer = answer.strip(self._recv_termination + self._response_char + param)
-        else:
-            answer = None
+        try:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(0.5)
+            self.socket.connect((self.ip_addr, self.port))
+            self.socket.send(request.encode(self._default_encoding))
+            answer = self.socket.recv(self._read_length).decode('utf-8')
+            if answer.startswith(self._response_char):
+                answer = answer.strip(self._recv_termination + self._response_char + param)
+            else:
+                answer = "--NA--"
 
-        self.socket.close()
+            self.socket.close()
+            self._pyrometer_timeout = False
+        except socket.timeout as err:
+            print(err)
+            print("Socket timeout on communication to Pyrometer")
+            answer = "--NA--"
+            self._pyrometer_timeout = True
         return answer
 
     def _open_video_capture(self):
