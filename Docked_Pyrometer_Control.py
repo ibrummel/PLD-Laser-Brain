@@ -240,7 +240,7 @@ class PyrometerControl(QDockWidget):
                 temp_str = "{} °{}".format(temp, unit)
                 self.ui.lbl_current_pyro_temp.setText(temp_str)
                 slope = self.pyrometer.get_slope()
-                if not self.ui.lbl_pyro_slope.hasFocus():  # Prevent the slope value from being set while user is editing
+                if not self.ui.ln_pyro_slope.hasFocus():  # Prevent the slope value from being set while user is editing
                     self.ui.ln_pyro_slope.setText(str(slope))
 
                 return slope, temp, unit
