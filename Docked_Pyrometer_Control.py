@@ -230,15 +230,18 @@ class PyrometerControl(QDockWidget):
         :return: Tuple of slope (float), temp (float), and unit (string)
         """
         if self._pyro_connected:
-            temp = self.pyrometer.get_twocolor_temp()
-            unit = self.pyrometer.get_temperature_units()
-            temp_str = "{} °{}".format(temp, unit)
-            self.ui.lbl_current_pyro_temp.setText(temp_str)
-            slope = self.pyrometer.get_slope()
-            if not self.ui.lbl_pyro_slope.hasFocus():  # Prevent the slope value from being set while user is editing
-                self.ui.ln_pyro_slope.setText(str(slope))
+            try:
+                temp = self.pyrometer.get_twocolor_temp()
+                unit = self.pyrometer.get_temperature_units()
+                temp_str = "{} °{}".format(temp, unit)
+                self.ui.lbl_current_pyro_temp.setText(temp_str)
+                slope = self.pyrometer.get_slope()
+                if not self.ui.ln_pyro_slope.hasFocus():  # Prevent the slope value from being set while user is editing
+                    self.ui.ln_pyro_slope.setText(str(slope))
 
-            return slope, temp, unit
+                return slope, temp, unit
+            except ValueError:
+                self.check_pyro_connection()
         return None, None, None
 
     def set_live_video(self):
