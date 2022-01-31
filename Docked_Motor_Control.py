@@ -153,11 +153,15 @@ class MotorControlPanel(QDockWidget):
         self.brain.move_to_target(goal)
 
     def move_carousel_offset(self):
-        current_pos = int(self.brain.arduino.query_motor_parameters('carousel', 'position'))
-        input_offset = int(self.lines['carousel_offset'].text())
-        goal = current_pos + input_offset - self.applied_carousel_offset
-        self.applied_carousel_offset = input_offset
-        self.brain.arduino.update_motor_param('carousel', 'goal', goal)
+        try:
+            current_pos = int(self.brain.arduino.query_motor_parameters('carousel', 'position'))
+            input_offset = int(self.lines['carousel_offset'].text())
+            goal = current_pos + input_offset - self.applied_carousel_offset
+            self.applied_carousel_offset = input_offset
+            self.brain.arduino.update_motor_param('carousel', 'goal', goal)
+        except ValueError:
+            self.line_carousel_offset.setText('0')
+            print("Caught invalid offset value entered by user. Resetting offset to 0")
 
     def clear_carousel_offset(self):
         current_pos = int(self.brain.arduino.query_motor_parameters('carousel', 'position'))
@@ -167,16 +171,28 @@ class MotorControlPanel(QDockWidget):
         self.brain.arduino.update_motor_param('carousel', 'goal', goal) # Move to target center
 
     def set_sub_speed_from_line(self):
-        self.brain.set_sub_speed(float(self.lines['sub_speed'].text()))
-        self.lines['sub_speed'].clearFocus()
+        try:
+            self.brain.set_sub_speed(float(self.lines['sub_speed'].text()))
+        except ValueError:
+            self.lines['sub_speed'].setText(str(self.brain.get_sub_speed()))
+        finally:
+            self.lines['sub_speed'].clearFocus()
 
     def set_carousel_speed_from_line(self):
-        self.brain.set_carousel_rps(float(self.lines['carousel_speed'].text()))
-        self.lines['carousel_speed'].clearFocus()
+        try:
+            self.brain.set_carousel_rps(float(self.lines['carousel_speed'].text()))
+        except ValueError:
+            self.lines['carousel_speed'].setText(str(self.brain.get_carousel_rps()))
+        finally:
+            self.lines['carousel_speed'].clearFocus()
 
     def set_carousel_accel_from_line(self):
-        self.brain.set_carousel_acceleration(float(self.lines['carousel_accel'].text()))
-        self.lines['carousel_accel'].clearFocus()
+        try:
+            self.brain.set_carousel_acceleration(float(self.lines['carousel_accel'].text()))
+        except ValueError:
+            self.lines['carousel_accel'].setText(str(self.brain.get_carousel_acceleration()))
+        finally:
+            self.lines['carousel_accel'].clearFocus()
 
     def raster_current_target(self):
         if self.checks['raster'].isChecked():
