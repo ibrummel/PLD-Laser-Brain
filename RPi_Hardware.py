@@ -140,6 +140,10 @@ class RPiHardware(QWidget):
         sub_spd = mm_spd * Global.SUB_STEPS_PER_MM
         self.arduino.update_motor_param('substrate', 'max speed', sub_spd)
 
+    def get_sub_speed(self):
+        spd = float(self.arduino.query_motor_parameters('sub', 'max speed')) / Global.SUB_STEPS_PER_MM
+        return np.round(spd)
+
     def set_sub_acceleration(self, mmpss: float):
         sub_acc = mmpss * Global.SUB_STEPS_PER_MM
         self.arduino.update_motor_param('substrate', 'acceleration', sub_acc)
@@ -156,9 +160,17 @@ class RPiHardware(QWidget):
         carousel_spd = rps_speed * Global.CAROUSEL_STEPS_PER_REV
         self.arduino.update_motor_param('carousel', 'max speed', carousel_spd)
 
+    def get_carousel_rps(self):
+        spd = float(self.arduino.query_motor_parameters('carousel', 'max speed')) / Global.CAROUSEL_STEPS_PER_REV
+        return np.round(spd)
+
     def set_carousel_acceleration(self, rpss: float):
         carousel_acc = rpss * Global.CAROUSEL_STEPS_PER_REV
         self.arduino.update_motor_param('carousel', 'acceleration', carousel_acc)
+
+    def get_carousel_acceleration(self):
+        accel = float(self.arduino.query_motor_parameters('carousel', 'accel')) / Global.CAROUSEL_STEPS_PER_REV
+        return np.round(accel)
 
 
     def move_to_target(self, target_num: int):

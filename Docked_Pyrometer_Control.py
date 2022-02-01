@@ -28,7 +28,7 @@ class PyrometerControl(QDockWidget):
         # Set the initial logging state to false (don't start logging on init)
         self._logging = False
         # Check if pyro connected
-        self._pyro_connected = False
+        self._pyro_connected = True
         self.check_pyro_connection()
         # Read the current slope from the pyrometer and put it in the UI
         self.ui.ln_pyro_slope.setText(str(self.pyrometer.get_slope()))
@@ -76,12 +76,8 @@ class PyrometerControl(QDockWidget):
         :return: None
         """
         prev_state = self._pyro_connected
-        try:
-            self.pyrometer.get_twocolor_temp()
-            self._pyro_connected = not self.pyrometer._pyrometer_timeout
-        except socket.timeout as error:  # TODO: Figure out what the actual socket timeout error is called
-            self._pyro_connected = not self.pyrometer._pyrometer_timeout
-            print("Connection to pyrometer timed out")
+        self.pyrometer.get_twocolor_temp()
+        self._pyro_connected = not self.pyrometer._pyrometer_timeout
 
         if prev_state != self._pyro_connected:
             if not self._pyro_connected:
