@@ -39,7 +39,7 @@ class PyrometerControl(QDockWidget):
         # Note: Timer will always run, timeout will only trigger a write to the log if self._logging == True
         self.log_interval_timer.start(1000 * self._log_interval)
         # Set a default value for the pyrometer log file + initialize GUI
-        self._log_file = "{}_pyrometer_log.csv".format(date.today().strftime("%Y.%m.%d"))
+        self._log_file = r"./Pyrometer_Logs/{}_pyrometer_log.csv".format(date.today().strftime("%Y.%m.%d"))
         self.ui.ln_pyro_log_file.setText(self._log_file)
         # Set up a timer to continually update the GUI with the current temperature.
         self.pyrometer_value_update_timer = QTimer()
@@ -57,8 +57,7 @@ class PyrometerControl(QDockWidget):
 
         :return: None
         """
-        if self._pyro_connected:
-            self.ui.btn_pyro_log_start_stop.clicked.connect(self.start_stop_logging)
+        # Note that connecting the start stop button is handled in the check pyrometer connected routine
         self.ui.ln_pyro_log_file.editingFinished.connect(self.set_log_file_by_line)
         self.ui.btn_pyro_log_file.clicked.connect(self.set_log_file_by_dialog)
         self.ui.ln_log_interval.editingFinished.connect(self.set_log_interval)
@@ -93,7 +92,7 @@ class PyrometerControl(QDockWidget):
                     print('Tried to disconnect start_stop_logging but it was not connected')
                 self.ui.btn_pyro_log_start_stop.clicked.connect(self.check_pyro_connection)
             elif self._pyro_connected:
-                self.ui.btn_pyro_log_start_stop.setText("Start Logging" if self._logging else "Stop Logging")
+                self.ui.btn_pyro_log_start_stop.setText("Start Logging" if not self._logging else "Stop Logging")
                 try:
                     self.ui.btn_pyro_log_start_stop.clicked.disconnect(self.check_pyro_connection)
                 except TypeError:
@@ -133,9 +132,10 @@ class PyrometerControl(QDockWidget):
         # DONE: Actually make this do something.
         # Flipping the self._logging flag will cause writes to the log file to begin.
         self._logging = not self._logging
+        print("Start stop logging ran. self._logging={}".format(self._logging))
         if self._logging:
             self.log_to_file()
-        self.ui.btn_pyro_log_start_stop.setText("Start Logging" if self._logging else "Stop Logging")
+        self.ui.btn_pyro_log_start_stop.setText("Start Logging" if not self._logging else "Stop Logging")
 
     def check_log_file(self):
         """
@@ -154,7 +154,7 @@ class PyrometerControl(QDockWidget):
                 self.set_log_file_by_dialog()
             elif overwrite == QMessageBox.Cancel:
                 return False
-        elif self._log_file == os.path.join(os.getenv('USERPROFILE'), 'Desktop') or self._log_file == '':
+        elif self._log_file == os.path.join('~') or self._log_file == '':
             no_file_selected = QMessageBox.warning(self, 'No File Selected',
                                                    'No file has been selected for writing log data, '
                                                    'please pick a file to save to.',
@@ -242,7 +242,6 @@ class PyrometerControl(QDockWidget):
                 slope = self.pyrometer.get_slope()
                 if not self.ui.ln_pyro_slope.hasFocus():  # Prevent the slope value from being set while user is editing
                     self.ui.ln_pyro_slope.setText(str(slope))
-
                 return slope, temp, unit
             except ValueError:
                 self.check_pyro_connection()
