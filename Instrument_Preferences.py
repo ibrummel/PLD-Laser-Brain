@@ -230,9 +230,9 @@ class InstrumentPreferencesDialog(QTabWidget):
         self.apply()
         self.hide()
 
-    def open_settings(self):
+    def open(self):
         self.init_fields()
-        self.open()
+        super().open()
 
     def parse_xml_to_settings(self, file: str):
         # Make an initial attempt to parse the xml at the standard location
