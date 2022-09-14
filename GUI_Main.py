@@ -189,7 +189,7 @@ class PLDMainWindow(QMainWindow):
 
     def open_preferences(self):
         # Opens the app's settings dialog
-        self.pld_settings_dialog.open()
+        self.pld_settings_dialog.open_settings()
 
     def load_deposition(self):
         self.query_overwrite('Loading')
