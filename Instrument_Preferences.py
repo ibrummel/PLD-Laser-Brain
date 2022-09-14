@@ -108,9 +108,14 @@ class InstrumentPreferencesDialog(QTabWidget):
         for key, widget in self.lines_laser.items():
             widget.setText(self.pld_settings.find("./laser/{}".format(key)).text)
 
-        if isinstance(self.brain, RPiHardware):
+        if isinstance(self.brain, RPiHardware) and self.parent().lsc_docked.laser_connected:
+            self.findChild(QWidget, "tab_laser_settings").setEnabled(True)
             self.pulse_counters['user'].setText(str(self.brain.laser.get_user_counter()))
             self.pulse_counters['total'].setText(str(self.brain.laser.get_total_counter()))
+        else:
+            print("Laser disconnected. Disabling laser controls.")
+            self.findChild(QWidget, "tab_laser_settings").setEnabled(False)
+
 
     def init_hardware(self, brain: RPiHardware):
         self.brain = brain
@@ -224,6 +229,10 @@ class InstrumentPreferencesDialog(QTabWidget):
     def ok(self):
         self.apply()
         self.hide()
+
+    def open(self):
+        self.init_fields()
+        super().open()
 
     def parse_xml_to_settings(self, file: str):
         # Make an initial attempt to parse the xml at the standard location
