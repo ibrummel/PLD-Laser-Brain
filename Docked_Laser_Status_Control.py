@@ -57,6 +57,7 @@ class LaserStatusControl(QDockWidget):
         self.current_hv = self.laser.get_hv()
         # self.lines['voltage'].setValidator(QDoubleValidator(18, 27, 1))
         self.timer_lsc_update = QTimer()
+        self.timer_count_update = QTimer()
         self.timer_check_warmup = QTimer()
 
         self.init_connections()
@@ -97,6 +98,9 @@ class LaserStatusControl(QDockWidget):
         # Moved from main() into the function
         self.timer_lsc_update.timeout.connect(self.update_lsc)
         self.timer_lsc_update.start(int(1000 / int(self.laser.reprate)))
+        
+        self.timer_count_update.timeout.connect(self.update_pulse_counter)
+        self.timer_count_update.start(5 * 1000)
 
         self.timer_check_warmup.setInterval(1000)
         self.timer_check_warmup.timeout.connect(self.check_warmup)
@@ -126,16 +130,7 @@ class LaserStatusControl(QDockWidget):
                 self.lines['tube_press'].setText(self.laser.get_tube_press())
                 sleep(Global.OP_DELAY)
             except VisaIOError as err:
-                # Print error if the laser is believed to be connected
-                if self.laser_connected:
-                    print("{}: Error reading status from the laser. Error message: {}".format(self.failed_reads, err))
-                # Increment number of failed reads
-                self.failed_reads += 1
-                # If there have been 10 consecutive failed reads move to disconnected state
-                if self.failed_reads >= 10 and self.laser_connected:
-                    self.laser_connected = False
-                    print("Laser disconnected. Polling for reconnection...")
-                    self.timer_laser_status_polling.start()
+                self.handle_laser_disconnected(err)
                 return
 
             # If the status update completes set connected status to true and reset the failed read counter
@@ -146,7 +141,22 @@ class LaserStatusControl(QDockWidget):
                 self.timer_laser_status_polling.stop()
 
     def update_pulse_counter(self):
-        self.lines['pulse_counter'].setText(str(self.laser.get_user_counter()))
+        try:
+            self.lines['pulse_counter'].setText(str(self.laser.get_user_counter()))
+        except VisaIOError as err:
+            self.handle_laser_disconnected(err)
+    
+    def handle_laser_disconnected(self, err):
+        # Print error if the laser is believed to be connected
+        if self.laser_connected:
+            print("{}: Error reading status from the laser. Error message: {}".format(self.failed_reads, err))
+        # Increment number of failed reads
+        self.failed_reads += 1
+        # If there have been 10 consecutive failed reads move to disconnected state
+        if self.failed_reads >= 10 and self.laser_connected:
+            self.laser_connected = False
+            print("Laser disconnected. Polling for reconnection...")
+            self.timer_laser_status_polling.start()
 
     def terminal_send(self):
         # Sends the command that was typed into the terminal.
