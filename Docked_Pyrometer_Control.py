@@ -28,10 +28,10 @@ class PyrometerControl(QDockWidget):
         # Set the initial logging state to false (don't start logging on init)
         self._logging = False
         # Check if pyro connected
-        self._pyro_connected = False
+        self._pyro_connected = None
         self.check_pyro_connection()
-        # Read the current slope from the pyrometer and put it in the UI
-        self.ui.ln_pyro_slope.setText(str(self.pyrometer.get_slope()))
+        # Update the values of the GUI from the pyrometer. Respects disconnected status
+        self.update_pyrometer_values()
         #  Set up logging timer.
         self._log_interval = 0.250
         self.ui.ln_log_interval.setText(str(self._log_interval))
@@ -75,11 +75,13 @@ class PyrometerControl(QDockWidget):
 
         :return: None
         """
+        # Preserve old state, make an attempt at reading the pyrometer, and set the pyrometer connected variable if
+        #  reading the pyrometer timed out
         prev_state = self._pyro_connected
         self.pyrometer.get_twocolor_temp()
         self._pyro_connected = not self.pyrometer._pyrometer_timeout
 
-        
+        # If the connection state has changed update the GUI accordingly
         if prev_state != self._pyro_connected:
             if not self._pyro_connected:
                 self.ui.btn_pyro_log_start_stop.setText("Check Connection")
