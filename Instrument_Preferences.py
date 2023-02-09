@@ -232,7 +232,7 @@ class InstrumentPreferencesDialog(QTabWidget):
 
     def open(self):
         self.init_fields()
-        super().open()
+        super().show()
 
     def parse_xml_to_settings(self, file: str):
         # Make an initial attempt to parse the xml at the standard location
