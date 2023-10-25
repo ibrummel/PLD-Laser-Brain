@@ -356,23 +356,23 @@ class NewGasFillDialog(QDialog):
 
     def check_fill_status(self):
         filter_ratio, opmode, tube_press = self.update_fields()
-        print("Current tube pressure: ", tube_press)
+        print("Current tube pressure: ", tube_press, '                   ', end='\r')
 
         if opmode == "NEW FILL":
             self.lbl_fill_status.setText("New fill procedure started")
-            print("New fill procedure started")
+            print("New fill procedure started", '                   ', end='\r')
         elif opmode == "NEW FILL, EVAC":
             self.lbl_fill_status.setText("Evacuating laser tube for new gas fill")
-            print("Evacuating laser tube for new gas fill")
+            print("Evacuating laser tube for new gas fill", '                   ', end='\r')
         elif opmode == "NEW FILL, WAIT":
             self.lbl_fill_status.setText("Performing new fill leak test")
-            print("Performing new fill leak test")
+            print("Performing new fill leak test", '                   ', end='\r')
         elif opmode == "NEW FILL, FILL":
             self.lbl_fill_status.setText("Filling laser tube with new gas")
-            print("Filling laser tube with new gas")
+            print("Filling laser tube with new gas", '                   ', end='\r')
         elif opmode == "NEW FILL:3":
             self.lbl_fill_status.setText("No gas flow for new fill. You need to restart the procedure")
-            print("No gas flow for new fill. You need to restart the procedure")
+            print("No gas flow for new fill. You need to restart the procedure", '                   ', end='\r')
             no_flow = QMessageBox.warning(self, "No gas flow",
                                           "The laser threw a 'No gas flow' error. Please ensure that all relevant "
                                           "cylinders and valves on the gas panel are open then click OK. (Note: laser "
@@ -381,13 +381,13 @@ class NewGasFillDialog(QDialog):
                                           QMessageBox.Ok, QMessageBox.Ok)
         elif opmode == "OFF" or opmode == "OFF:0":
             self.lbl_fill_status.setText("New gas fill complete")
-            print("New gas fill complete")
+            print("New gas fill complete", '                   ', end='\r')
             complete = QMessageBox.information(self, "New Gas Fill Complete",
                                                "The new gas fill procedure is complete click ok to close this dialog",
                                                QMessageBox.Ok, QMessageBox.Ok)
             self.close()
         elif opmode == "SAFETY FILL":
-            print("Safety fill triggered, this is most likely due to a laser tube leak according to the manual.")
+            print("Safety fill triggered, this is most likely due to a laser tube leak according to the manual.", '                   ', end='\r')
         else:
             print(opmode)
 
