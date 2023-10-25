@@ -83,6 +83,7 @@ class InstrumentPreferencesDialog(QTabWidget):
         self.btns_laser_maint['reset_user_counter'].clicked.connect(self.reset_user_counter)
         self.btns_laser_maint['evac_inert'].clicked.connect(self.evac_inert)
         self.btns_laser_maint['evac_premix'].clicked.connect(self.evac_premix)
+        self.btns_laser_maint['halogen_capacity_reset'].clicked.connect(self.halogen_capacity_reset)
 
     # noinspection PyTypeChecker
     # To avoid erroneous errors where it thinks XML cant handle xpaths as strings
@@ -160,6 +161,18 @@ class InstrumentPreferencesDialog(QTabWidget):
 
     def evac_inert(self):
         self.brain.laser.flush_line('INERT')
+    
+    def halogen_capacity_reset(self):
+        confirm = QMessageBox.warning(self, "Are you sure?",
+                                      "Are you sure you want to reset the halogen filter capacity?\n"
+                                      "This should only be done if you have just replaced the halogen "
+                                      "filter. For replacement instructions see laser manual section 8.9.",
+                                      QMessageBox.Ok | QMessageBox.Cancel,
+                                      QMessageBox.Cancel)
+        if confirm == QMessageBox.Cancel:
+            pass
+        elif confirm == QMessageBox.Ok:
+            self.brain.laser.reset_filter_contamination()
 
     def open(self):
         self.parse_xml_to_settings(self.settings_file_path)
@@ -393,4 +406,5 @@ class NewGasFillDialog(QDialog):
             self.settings.maint_timer.timeout.disconnect(self.check_fill_status)
         except TypeError:
             pass
+        self._maint_unlocked = False
         super().close()

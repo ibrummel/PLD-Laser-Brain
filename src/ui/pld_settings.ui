@@ -49,8 +49,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>604</width>
-         <height>1200</height>
+         <width>493</width>
+         <height>936</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -814,14 +814,21 @@
        <item>
         <widget class="QPushButton" name="btn_maint_evac_premix">
          <property name="text">
-          <string>Evacuate Premix/Buffer Gas Line</string>
+          <string>Purge Premix/Buffer Gas Line</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btn_maint_evac_inert">
          <property name="text">
-          <string>Evacuate Inert Gas Line</string>
+          <string>Purge Inert Gas Line</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_maint_halogen_capacity_reset">
+         <property name="text">
+          <string>Reset Halogen Filter Capacity</string>
          </property>
         </widget>
        </item>

@@ -180,8 +180,12 @@ class CompexLaser:
     def set_halogen_filter_cap(self, cap):
         # Provides a value for the halogen source capacity as a percentage,
         # 0 <= cap <= 120, this function also runs the set command.
-        self.laser.write('CAP.SET=%s' % cap)
+        if cap > 120:
+            cap = 120
+        elif cap < 0:
+            cap = 0
         self.laser.write('OPMODE=CAPACITY RESET')
+        self.laser.write('CAP.SET={}'.format(cap))
 
     def set_charge_on_demand(self, is_charge_on_demand):
         # Sets the charge on demand mode for the laser. Note that if COD is
